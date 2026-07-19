@@ -285,17 +285,18 @@ impl<D: PickerDelegate> Picker<D> {
             return menu;
         };
 
-        let render_aside = |aside: DocumentationAside, cx: &mut Context<Self>| {
-            WithRemSize::new(ui_font_size)
-                .occlude()
-                .elevation_2(window.theme(cx))
-                .w_full()
-                .p_2()
-                .overflow_hidden()
-                .when(is_wide_window, |this| this.max_w_96())
-                .when(!is_wide_window, |this| this.max_w_48())
-                .child((aside.render)(cx))
-        };
+        let render_aside =
+            |aside: DocumentationAside, window: &mut Window, cx: &mut Context<Self>| {
+                WithRemSize::new(ui_font_size)
+                    .occlude()
+                    .elevation_2(window.theme(cx))
+                    .w_full()
+                    .p_2()
+                    .overflow_hidden()
+                    .when(is_wide_window, |this| this.max_w_96())
+                    .when(!is_wide_window, |this| this.max_w_48())
+                    .child((aside.render)(window, cx))
+            };
 
         if is_wide_window {
             let aside_index = self.delegate.documentation_aside_index();
@@ -328,7 +329,7 @@ impl<D: PickerDelegate> Picker<D> {
                             })
                             .top(top)
                             .h(height)
-                            .child(render_aside(aside, cx)),
+                            .child(render_aside(aside, window, cx)),
                     )
                 })
         } else {
@@ -336,7 +337,7 @@ impl<D: PickerDelegate> Picker<D> {
                 .w_full()
                 .gap_1()
                 .justify_end()
-                .child(render_aside(aside, cx))
+                .child(render_aside(aside, window, cx))
                 .child(menu)
         }
     }
@@ -373,7 +374,7 @@ impl<D: PickerDelegate> Picker<D> {
                             ))
                             .border_t_1()
                             .border_color(window.theme(cx).colors().border_variant)
-                            .child(preview.render(cx)),
+                            .child(preview.render(window, cx)),
                     ),
             )
             .when(self.is_resizable(), |this| {
@@ -421,7 +422,7 @@ impl<D: PickerDelegate> Picker<D> {
                             .border_l_1()
                             .border_color(window.theme(cx).colors().border_variant)
                             .overflow_hidden()
-                            .child(preview.render(cx)),
+                            .child(preview.render(window, cx)),
                     ),
             )
             .when(self.is_resizable(), |this| {

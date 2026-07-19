@@ -105,7 +105,7 @@ impl ModeSelector {
                     entry.documentation_aside(side, {
                         let description = description.clone();
 
-                        move |_| Label::new(description.clone()).into_any_element()
+                        move |_, _| Label::new(description.clone()).into_any_element()
                     })
                 } else {
                     entry
@@ -158,7 +158,7 @@ impl Render for ModeSelector {
             .trigger_with_tooltip(
                 trigger_button,
                 Tooltip::element({
-                    move |_window, cx| {
+                    move |window, cx| {
                         v_flex()
                             .gap_1()
                             .child(
@@ -173,7 +173,7 @@ impl Render for ModeSelector {
                                     .pt_1()
                                     .gap_2()
                                     .border_t_1()
-                                    .border_color(cx.theme().colors().border_variant)
+                                    .border_color(window.theme(cx).colors().border_variant)
                                     .justify_between()
                                     .child(Label::new("Cycle Through Modes"))
                                     .child(KeyBinding::for_action(&CycleModeSelector, cx)),

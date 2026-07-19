@@ -2,6 +2,7 @@ use anyhow::{Context as _, Result};
 use collections::HashMap;
 use context_server::{ContextServerCommand, ContextServerId};
 use editor::{Editor, EditorElement, EditorStyle};
+use ui::WindowTheme as _;
 
 use extension_host::ExtensionStore;
 use gpui::{
@@ -824,7 +825,7 @@ impl ConfigureContextServerModal {
         }
     }
 
-    fn render_modal_content(&self, cx: &App) -> AnyElement {
+    fn render_modal_content(&self, window: &Window, cx: &App) -> AnyElement {
         let editor = match &self.source {
             ConfigurationSource::Existing { editor, .. } => editor,
             ConfigurationSource::Extension { editor, .. } => {
@@ -839,12 +840,12 @@ impl ConfigureContextServerModal {
             .p_2()
             .rounded_md()
             .border_1()
-            .border_color(cx.theme().colors().border_variant)
-            .bg(cx.theme().colors().editor_background)
+            .border_color(window.theme(cx).colors().border_variant)
+            .bg(window.theme(cx).colors().editor_background)
             .child({
                 let settings = ThemeSettings::get_global(cx);
                 let text_style = TextStyle {
-                    color: cx.theme().colors().text,
+                    color: window.theme(cx).colors().text,
                     font_family: settings.buffer_font.family.clone(),
                     font_fallbacks: settings.buffer_font.fallbacks.clone(),
                     font_size: settings.buffer_font_size(cx).into(),
@@ -855,10 +856,10 @@ impl ConfigureContextServerModal {
                 EditorElement::new(
                     editor,
                     EditorStyle {
-                        background: cx.theme().colors().editor_background,
-                        local_player: cx.theme().players().local(),
+                        background: window.theme(cx).colors().editor_background,
+                        local_player: window.theme(cx).players().local(),
                         text: text_style,
-                        syntax: cx.theme().syntax().clone(),
+                        syntax: window.theme(cx).syntax().clone(),
                         ..Default::default()
                     },
                 )
@@ -990,11 +991,12 @@ impl ConfigureContextServerModal {
         &self,
         server_id: &ContextServerId,
         error: Option<SharedString>,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> Div {
         let settings = ThemeSettings::get_global(cx);
         let text_style = TextStyle {
-            color: cx.theme().colors().text,
+            color: window.theme(cx).colors().text,
             font_family: settings.buffer_font.family.clone(),
             font_fallbacks: settings.buffer_font.fallbacks.clone(),
             font_size: settings.buffer_font_size(cx).into(),
@@ -1038,10 +1040,10 @@ impl ConfigureContextServerModal {
                     .child(div().flex_1().child(EditorElement::new(
                         &self.secret_editor,
                         EditorStyle {
-                            background: cx.theme().colors().editor_background,
-                            local_player: cx.theme().players().local(),
+                            background: window.theme(cx).colors().editor_background,
+                            local_player: window.theme(cx).players().local(),
                             text: text_style,
-                            syntax: cx.theme().syntax().clone(),
+                            syntax: window.theme(cx).syntax().clone(),
                             ..Default::default()
                         },
                     )))
@@ -1141,7 +1143,7 @@ impl Render for ConfigureContextServerModal {
                                         .overflow_y_scroll()
                                         .track_scroll(&self.scroll_handle)
                                         .child(self.render_modal_description(window, cx))
-                                        .child(self.render_modal_content(cx))
+                                        .child(self.render_modal_content(window, cx))
                                         .child(match &self.state {
                                             State::Idle => div(),
                                             State::Waiting => {
@@ -1154,6 +1156,7 @@ impl Render for ConfigureContextServerModal {
                                                 self.render_client_secret_required(
                                                     &server_id.clone(),
                                                     error.clone(),
+                                                    window,
                                                     cx,
                                                 )
                                             }

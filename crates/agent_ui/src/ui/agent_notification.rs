@@ -158,8 +158,8 @@ impl Render for AgentNotification {
                                             let mut row = h_flex().gap_1p5().child(project);
                                             if has_caption {
                                                 row = row.child(
-                                                    div().size(px(3.)).rounded_full().bg(cx
-                                                        .theme()
+                                                    div().size(px(3.)).rounded_full().bg(window
+                                                        .theme(cx)
                                                         .colors()
                                                         .text
                                                         .opacity(0.5)),

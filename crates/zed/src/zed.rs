@@ -84,7 +84,9 @@ use std::{
     sync::atomic::{self, AtomicBool},
 };
 use terminal_view::terminal_panel::{self, TerminalPanel};
-use theme::{ActiveTheme, SystemAppearance, ThemeRegistry, WindowTheme, deserialize_icon_theme};
+use theme::{
+    ConfiguredTheme, SystemAppearance, ThemeRegistry, WindowTheme, deserialize_icon_theme,
+};
 use theme_settings::{ThemeSettings, load_user_theme};
 use ui::{Navigable, NavigableEntry, PopoverMenuHandle, TintColor, prelude::*};
 use util::markdown::MarkdownString;
@@ -406,7 +408,7 @@ pub fn build_window_options(display_uuid: Option<Uuid>, cx: &mut App) -> WindowO
         // other platforms.
         app_owns_titlebar_drag: true,
         display_id: display.map(|display| display.id()),
-        window_background: cx.theme().window_background_appearance(),
+        window_background: cx.configured_theme().window_background_appearance(),
         app_id: Some(app_id.to_owned()),
         #[cfg(any(target_os = "linux", target_os = "freebsd"))]
         icon: APP_ICON.as_ref().cloned(),
@@ -907,7 +909,7 @@ async fn initialize_agent_panel(
 fn register_actions(
     app_state: Arc<AppState>,
     workspace: &mut Workspace,
-    _: &mut Window,
+    _window: &mut Window,
     cx: &mut Context<Workspace>,
 ) {
     workspace

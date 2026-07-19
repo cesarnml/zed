@@ -178,7 +178,7 @@ impl<S: ApiCompatibleProviderSettings> ApiCompatibleProviderConfigurationView<S>
         .detach_and_log_err(cx);
     }
 
-    fn remove_provider(&mut self, _: &mut Window, cx: &mut Context<Self>) {
+    fn remove_provider(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
         let id = self.state.read(cx).id.clone();
         let fs = <dyn fs::Fs>::global(cx);
         settings::update_settings_file(fs, cx, move |settings, _| {
@@ -201,7 +201,7 @@ impl<S: ApiCompatibleProviderSettings> ApiCompatibleProviderConfigurationView<S>
 }
 
 impl<S: ApiCompatibleProviderSettings> Render for ApiCompatibleProviderConfigurationView<S> {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let state = self.state.read(cx);
         let env_var_set = state.api_key_state.is_from_env_var();
         let env_var_name = state.api_key_state.env_var_name();
@@ -233,8 +233,8 @@ impl<S: ApiCompatibleProviderSettings> Render for ApiCompatibleProviderConfigura
                 .justify_between()
                 .rounded_md()
                 .border_1()
-                .border_color(cx.theme().colors().border)
-                .bg(cx.theme().colors().background)
+                .border_color(window.theme(cx).colors().border)
+                .bg(window.theme(cx).colors().background)
                 .child(
                     h_flex()
                         .flex_1()

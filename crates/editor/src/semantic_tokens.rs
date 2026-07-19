@@ -1,4 +1,5 @@
 use std::{collections::hash_map, sync::Arc, time::Duration};
+use theme::ConfiguredTheme as _;
 
 use collections::{HashMap, HashSet};
 use futures::future::join_all;
@@ -19,7 +20,6 @@ use settings::{
 };
 use text::BufferId;
 use theme::SyntaxTheme;
-use ui::ActiveTheme as _;
 
 use crate::{
     Editor,
@@ -309,7 +309,7 @@ impl Editor {
                                     ) else {
                                         continue;
                                     };
-                                    let theme = cx.theme().syntax();
+                                    let theme = cx.configured_theme().syntax();
                                     token_highlights.reserve(2 * server_tokens.len());
                                     token_highlights.extend(buffer_into_editor_highlights(
                                         &server_tokens,
@@ -2258,7 +2258,7 @@ mod tests {
         use collections::IndexMap;
         use gpui::{Hsla, Rgba, UpdateGlobal as _};
         use theme_settings::{HighlightStyleContent, ThemeStyleContent};
-        use ui::ActiveTheme as _;
+        use ui::ConfiguredTheme as _;
 
         init_test(cx, |_| {});
 
@@ -2320,7 +2320,7 @@ mod tests {
 
         // Per-theme overrides (theme_overrides keyed by theme name) also go through
         // GlobalTheme reload → theme_changed → refresh_semantic_token_highlights.
-        let theme_name = cx.update(|_, cx| cx.theme().name.to_string());
+        let theme_name = cx.update(|_, cx| cx.configured_theme().name.to_string());
         let green_color: Hsla = Rgba {
             r: 0.0,
             g: 1.0,

@@ -121,7 +121,7 @@ impl AiSettingItem {
 }
 
 impl RenderOnce for AiSettingItem {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let Self {
             id,
             status,
@@ -147,8 +147,8 @@ impl RenderOnce for AiSettingItem {
                 .justify_center()
                 .rounded_sm()
                 .border_1()
-                .border_color(cx.theme().colors().border_variant)
-                .bg(cx.theme().colors().element_active.opacity(0.2))
+                .border_color(window.theme(cx).colors().border_variant)
+                .bg(window.theme(cx).colors().element_active.opacity(0.2))
                 .child(
                     Label::new(SharedString::from(letter.to_string()))
                         .size(LabelSize::Small)
@@ -183,11 +183,11 @@ impl RenderOnce for AiSettingItem {
                 this.child(
                     IconDecoration::new(
                         IconDecorationKind::Dot,
-                        cx.theme().colors().panel_background,
-                        cx,
+                        window.theme(cx).colors().panel_background,
+                        window.theme(cx),
                     )
                     .size(px(12.))
-                    .color(color.color(cx.theme()))
+                    .color(color.color(window.theme(cx)))
                     .position(gpui::Point {
                         x: px(-3.),
                         y: px(-3.),
@@ -250,15 +250,15 @@ impl Component for AiSettingItem {
         server or provider's name, source, current status, and associated actions."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let container = || {
             v_flex()
                 .w_80()
                 .p_2()
                 .gap_2()
                 .border_1()
-                .border_color(cx.theme().colors().border_variant)
-                .bg(cx.theme().colors().panel_background)
+                .border_color(window.theme(cx).colors().border_variant)
+                .bg(window.theme(cx).colors().panel_background)
         };
 
         let details_row = |icon_name: IconName, icon_color: Color, message: &str| {

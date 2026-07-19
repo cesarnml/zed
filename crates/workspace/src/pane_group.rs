@@ -337,7 +337,7 @@ pub struct LeaderDecoration {
 }
 
 pub trait PaneLeaderDecorator {
-    fn decorate(&self, pane: &Entity<Pane>, cx: &App) -> LeaderDecoration;
+    fn decorate(&self, pane: &Entity<Pane>, window: &Window, cx: &App) -> LeaderDecoration;
     fn active_pane(&self) -> &Entity<Pane>;
     fn workspace(&self) -> &WeakEntity<Workspace>;
 }
@@ -357,7 +357,7 @@ impl<'a> ActivePaneDecorator<'a> {
 }
 
 impl PaneLeaderDecorator for ActivePaneDecorator<'_> {
-    fn decorate(&self, _: &Entity<Pane>, _: &App) -> LeaderDecoration {
+    fn decorate(&self, _: &Entity<Pane>, _: &Window, _: &App) -> LeaderDecoration {
         LeaderDecoration::default()
     }
     fn active_pane(&self) -> &Entity<Pane> {
@@ -370,7 +370,7 @@ impl PaneLeaderDecorator for ActivePaneDecorator<'_> {
 }
 
 impl PaneLeaderDecorator for PaneRenderContext<'_> {
-    fn decorate(&self, pane: &Entity<Pane>, cx: &App) -> LeaderDecoration {
+    fn decorate(&self, pane: &Entity<Pane>, window: &Window, cx: &App) -> LeaderDecoration {
         let follower_state = self.follower_states.iter().find_map(|(leader_id, state)| {
             if state.center_pane == *pane {
                 Some((*leader_id, state))
@@ -435,7 +435,7 @@ impl PaneLeaderDecorator for PaneRenderContext<'_> {
                         .w_96()
                         .bottom_3()
                         .right_3()
-                        .elevation_2(cx.theme())
+                        .elevation_2(window.theme(cx))
                         .p_1()
                         .child(status)
                         .when_some(
@@ -463,15 +463,15 @@ impl PaneLeaderDecorator for PaneRenderContext<'_> {
                         )
                         .into_any_element()
                 });
-                leader_color = cx
-                    .theme()
+                leader_color = window
+                    .theme(cx)
                     .players()
                     .color_for_participant(leader.participant_index.0)
                     .cursor;
             }
             CollaboratorId::Agent => {
                 status_box = None;
-                leader_color = cx.theme().players().agent().cursor;
+                leader_color = window.theme(cx).players().agent().cursor;
             }
         }
 
@@ -563,7 +563,7 @@ impl Member {
                     false
                 };
 
-                let decoration = render_cx.decorate(pane, cx);
+                let decoration = render_cx.decorate(pane, window, cx);
                 let is_active = pane == render_cx.active_pane();
 
                 let pane = div()

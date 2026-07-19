@@ -1802,7 +1802,7 @@ impl CollabPanel {
         self.update_entries(false, cx);
     }
 
-    pub fn select_next(&mut self, _: &SelectNext, _: &mut Window, cx: &mut Context<Self>) {
+    pub fn select_next(&mut self, _: &SelectNext, _window: &mut Window, cx: &mut Context<Self>) {
         let ix = self.selection.map_or(0, |ix| ix + 1);
         if ix < self.entries.len() {
             self.selection = Some(ix);
@@ -1814,7 +1814,12 @@ impl CollabPanel {
         cx.notify();
     }
 
-    pub fn select_previous(&mut self, _: &SelectPrevious, _: &mut Window, cx: &mut Context<Self>) {
+    pub fn select_previous(
+        &mut self,
+        _: &SelectPrevious,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         let ix = self.selection.take().unwrap_or(0);
         if ix > 0 {
             self.selection = Some(ix - 1);
@@ -2804,6 +2809,7 @@ impl CollabPanel {
                     is_selected,
                     ix,
                     string_match.as_ref(),
+                    window,
                     cx,
                 )
                 .into_any_element(),
@@ -2862,13 +2868,13 @@ impl CollabPanel {
                     .h(Tab::container_height(cx))
                     .gap_1p5()
                     .border_b_1()
-                    .border_color(cx.theme().colors().border)
+                    .border_color(window.theme(cx).colors().border)
                     .child(
                         Icon::new(IconName::MagnifyingGlass)
                             .size(IconSize::Small)
                             .color(Color::Muted),
                     )
-                    .child(self.render_filter_input(&self.filter_editor, cx))
+                    .child(self.render_filter_input(&self.filter_editor, window, cx))
                     .when(has_query, |this| {
                         this.pr_2p5().child(
                             IconButton::new("clear_filter", IconName::Close)
@@ -2922,14 +2928,15 @@ impl CollabPanel {
     fn render_filter_input(
         &self,
         editor: &Entity<Editor>,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         let settings = ThemeSettings::get_global(cx);
         let text_style = TextStyle {
             color: if editor.read(cx).read_only(cx) {
-                cx.theme().colors().text_disabled
+                window.theme(cx).colors().text_disabled
             } else {
-                cx.theme().colors().text
+                window.theme(cx).colors().text
             },
             font_family: settings.ui_font.family.clone(),
             font_features: settings.ui_font.features.clone(),
@@ -2944,7 +2951,7 @@ impl CollabPanel {
         EditorElement::new(
             editor,
             EditorStyle {
-                local_player: cx.theme().players().local(),
+                local_player: window.theme(cx).players().local(),
                 text: text_style,
                 ..Default::default()
             },
@@ -3360,6 +3367,7 @@ impl CollabPanel {
         is_selected: bool,
         ix: usize,
         string_match: Option<&StringMatch>,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         let channel_id = channel.id;
@@ -3508,9 +3516,9 @@ impl CollabPanel {
                 })
             })
             .drag_over::<Channel>({
-                move |style, dragged_channel: &Channel, _window, cx| {
+                move |style, dragged_channel: &Channel, window, cx| {
                     if dragged_channel.root_id() == root_id {
-                        style.bg(cx.theme().colors().ghost_element_hover)
+                        style.bg(window.theme(cx).colors().ghost_element_hover)
                     } else {
                         style
                     }
@@ -4123,11 +4131,11 @@ struct DraggedChannelView {
 }
 
 impl Render for DraggedChannelView {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let ui_font = ThemeSettings::get_global(cx).ui_font.family.clone();
         h_flex()
             .font_family(ui_font)
-            .bg(cx.theme().colors().background)
+            .bg(window.theme(cx).colors().background)
             .w(self.width)
             .p_1()
             .gap_1()
@@ -4154,8 +4162,8 @@ struct JoinChannelTooltip {
 }
 
 impl Render for JoinChannelTooltip {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        tooltip_container(cx, |container, cx| {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        tooltip_container(window, cx, |container, cx| {
             let participants = self
                 .channel_store
                 .read(cx)

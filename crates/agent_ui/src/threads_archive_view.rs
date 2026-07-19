@@ -30,7 +30,7 @@ use picker::{
 };
 use project::{AgentId, AgentServerStore};
 use settings::Settings as _;
-use theme::{ActiveTheme, WindowTheme};
+use theme::WindowTheme;
 use ui::{
     AgentThreadStatus, Divider, KeyBinding, ListItem, ListItemSpacing, ListSubHeader, ScrollAxes,
     Scrollbars, Tab, ThreadItem, Tooltip, WithScrollbar, prelude::*,
@@ -594,7 +594,7 @@ impl ThreadsArchiveView {
     fn render_list_entry(
         &mut self,
         ix: usize,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let Some(item) = self.items.get(ix) else {
@@ -657,7 +657,8 @@ impl ThreadsArchiveView {
                     &branch_names_for_thread,
                 );
 
-                let archived_color = Color::Custom(cx.theme().colors().icon_muted.opacity(0.6));
+                let archived_color =
+                    Color::Custom(window.theme(cx).colors().icon_muted.opacity(0.6));
 
                 let base = ThreadItem::new(id, thread.display_title())
                     .icon(icon)
@@ -940,7 +941,7 @@ impl ThreadsArchiveView {
         )
     }
 
-    fn render_toolbar(&self, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render_toolbar(&self, window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
         let entry_count = self
             .items
             .iter()
@@ -965,7 +966,7 @@ impl ThreadsArchiveView {
             .h(Tab::content_height(cx))
             .justify_between()
             .border_b_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .child(
                 Label::new(count_label)
                     .size(LabelSize::Small)
@@ -1101,7 +1102,9 @@ impl Render for ThreadsArchiveView {
             .on_action(cx.listener(Self::archive_selected_thread))
             .size_full()
             .child(self.render_header(window, cx))
-            .when(!has_query, |this| this.child(self.render_toolbar(cx)))
+            .when(!has_query, |this| {
+                this.child(self.render_toolbar(window, cx))
+            })
             .child(content)
     }
 }
@@ -1185,10 +1188,10 @@ impl Focusable for ProjectPickerModal {
 impl ModalView for ProjectPickerModal {}
 
 impl Render for ProjectPickerModal {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .key_context("ProjectPickerModal")
-            .elevation_3(cx.theme())
+            .elevation_3(window.theme(cx))
             .on_action(cx.listener(|this, _: &workspace::Open, window, cx| {
                 this.picker.update(cx, |picker, cx| {
                     picker.delegate.open_local_folder(window, cx)
@@ -1598,7 +1601,11 @@ impl PickerDelegate for ProjectPickerDelegate {
         }
     }
 
-    fn render_footer(&self, _: &mut Window, cx: &mut Context<Picker<Self>>) -> Option<AnyElement> {
+    fn render_footer(
+        &self,
+        window: &mut Window,
+        cx: &mut Context<Picker<Self>>,
+    ) -> Option<AnyElement> {
         let has_selection = self.selected_match().is_some();
         let focus_handle = self.focus_handle.clone();
 
@@ -1609,7 +1616,7 @@ impl PickerDelegate for ProjectPickerDelegate {
                 .gap_1()
                 .justify_end()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(
                     Button::new("open_local_folder", "Choose from Local Folders")
                         .key_binding(KeyBinding::for_action_in(

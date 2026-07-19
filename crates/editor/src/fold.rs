@@ -948,7 +948,7 @@ impl Editor {
                 return;
             }
             let placeholder = FoldPlaceholder {
-                render: Arc::new(move |_, _, cx| {
+                render: Arc::new(move |_, _, _, cx| {
                     div()
                         .bg(hint_background)
                         .border_b_1()

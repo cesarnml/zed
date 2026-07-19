@@ -5,6 +5,7 @@ use std::{
     rc::Rc,
     time::{Duration, Instant},
 };
+use ui::WindowTheme as _;
 
 use sysinfo::{Pid, ProcessRefreshKind, RefreshKind, System};
 
@@ -213,7 +214,12 @@ impl LanguageServerHealthStatus {
 }
 
 impl LanguageServerState {
-    fn fill_menu(&self, mut menu: ContextMenu, cx: &mut Context<Self>) -> ContextMenu {
+    fn fill_menu(
+        &self,
+        mut menu: ContextMenu,
+        _window: &Window,
+        cx: &mut Context<Self>,
+    ) -> ContextMenu {
         let lsp_logs = cx
             .try_global::<GlobalLogStore>()
             .map(|lsp_logs| lsp_logs.0.clone());
@@ -585,7 +591,7 @@ impl LanguageServerState {
                             let server_version = server_version.clone();
                             let server_message = server_message.clone();
                             let process_memory_cache = process_memory_cache.clone();
-                            move |_, cx| {
+                            move |window, cx| {
                                 let memory_usage = process_id.map(|pid| {
                                     process_memory_cache.borrow_mut().get_memory_usage(pid)
                                 });
@@ -605,7 +611,7 @@ impl LanguageServerState {
                                     server_version.as_ref().map(|v| format!("v{}", v.as_ref()));
 
                                 let separator_color =
-                                    cx.theme().colors().icon_disabled.opacity(0.8);
+                                    window.theme(cx).colors().icon_disabled.opacity(0.8);
 
                                 v_flex()
                                     .id("metadata-container")
@@ -1208,8 +1214,8 @@ impl LspButton {
                 lsp_button
                     .update_in(cx, |lsp_button, window, cx| {
                         lsp_button.regenerate_items(cx);
-                        let menu = ContextMenu::build(window, cx, |menu, _, cx| {
-                            state.update(cx, |state, cx| state.fill_menu(menu, cx))
+                        let menu = ContextMenu::build(window, cx, |menu, window, cx| {
+                            state.update(cx, |state, cx| state.fill_menu(menu, window, cx))
                         });
                         lsp_button.lsp_menu = Some(menu.clone());
                         lsp_button.popover_menu_handle.refresh_menu(
@@ -1321,7 +1327,7 @@ impl StatusItemView for LspButton {
 }
 
 impl Render for LspButton {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl ui::IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl ui::IntoElement {
         let is_restricted = self
             .server_state
             .read(cx)
@@ -1418,7 +1424,9 @@ impl Render for LspButton {
                         .tab_index(0isize)
                         .aria_label("Language Servers")
                         .when(is_restricted, |s| s.icon_color(Color::Warning))
-                        .indicator_border_color(Some(cx.theme().colors().status_bar_background)),
+                        .indicator_border_color(Some(
+                            window.theme(cx).colors().status_bar_background,
+                        )),
                     move |_window, cx| {
                         Tooltip::with_meta("Language Servers", Some(&ToggleMenu), description, cx)
                     },

@@ -315,7 +315,7 @@ impl PickerDelegate for DevContainerPickerDelegate {
 
     fn render_footer(
         &self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<AnyElement> {
         Some(
@@ -325,7 +325,7 @@ impl PickerDelegate for DevContainerPickerDelegate {
                 .gap_1()
                 .justify_start()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(
                     Button::new("run-action", "Start Dev Container")
                         .key_binding(
@@ -1342,7 +1342,7 @@ impl PickerDelegate for RemoteServerPickerDelegate {
 
     fn render_footer(
         &self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<AnyElement> {
         let is_project_selected = matches!(
@@ -1378,7 +1378,7 @@ impl PickerDelegate for RemoteServerPickerDelegate {
                 .p_1p5()
                 .justify_end()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(buttons)
                 .into_any(),
         )

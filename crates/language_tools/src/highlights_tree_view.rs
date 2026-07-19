@@ -12,7 +12,7 @@ use language::{BufferId, Point, ToOffset};
 use menu::{SelectNext, SelectPrevious};
 use std::{mem, ops::Range, sync::Arc, time::Duration};
 use theme::SyntaxTheme;
-use theme::{ActiveTheme, WindowTheme};
+use theme::WindowTheme;
 use ui::{
     ButtonLike, ContextMenu, PopoverMenu, PopoverMenuHandle, Tooltip, WithScrollbar, prelude::*,
 };
@@ -317,7 +317,9 @@ impl HighlightsTreeView {
                 .await;
 
             let Some(input) = this
-                .update(cx, |this, cx| this.highlight_refresh_input(cx))
+                .update_in(cx, |this, window, cx| {
+                    this.highlight_refresh_input(window, cx)
+                })
                 .ok()
                 .flatten()
             else {
@@ -335,14 +337,18 @@ impl HighlightsTreeView {
         });
     }
 
-    fn highlight_refresh_input(&self, cx: &mut Context<Self>) -> Option<HighlightRefreshInput> {
+    fn highlight_refresh_input(
+        &self,
+        window: &Window,
+        cx: &mut Context<Self>,
+    ) -> Option<HighlightRefreshInput> {
         let editor_state = self.editor.as_ref()?;
         let editor = editor_state.editor.read(cx);
         let display_map = editor.display_map.clone();
         let project = editor.project().cloned()?;
         let multi_buffer = editor.buffer().clone();
         let multi_buffer_snapshot = multi_buffer.read(cx).snapshot(cx);
-        let syntax_theme = cx.theme().syntax().clone();
+        let syntax_theme = window.theme(cx).syntax().clone();
 
         let (text_highlights, semantic_token_highlights) =
             display_map.update(cx, |display_map, _| {
@@ -582,9 +588,15 @@ impl HighlightsTreeView {
         Some(())
     }
 
-    fn render_entry(&self, entry: &HighlightEntry, selected: bool, cx: &App) -> Div {
-        let colors = cx.theme().colors();
-        let style_preview = render_style_preview(entry.style, selected, cx);
+    fn render_entry(
+        &self,
+        entry: &HighlightEntry,
+        selected: bool,
+        window: &Window,
+        cx: &App,
+    ) -> Div {
+        let colors = window.theme(cx).colors();
+        let style_preview = render_style_preview(entry.style, selected, window, cx);
 
         h_flex()
             .gap_1()
@@ -604,8 +616,8 @@ impl HighlightsTreeView {
             .hover(|style| style.bg(colors.element_hover))
     }
 
-    fn render_separator(&self, label: &SharedString, cx: &App) -> Div {
-        let colors = cx.theme().colors();
+    fn render_separator(&self, label: &SharedString, window: &Window, cx: &App) -> Div {
+        let colors = window.theme(cx).colors();
         h_flex()
             .gap_1()
             .px(rems(0.5))
@@ -622,7 +634,7 @@ impl HighlightsTreeView {
     fn compute_items(
         &mut self,
         visible_range: Range<usize>,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Vec<Div> {
         let mut items = Vec::new();
@@ -634,14 +646,14 @@ impl HighlightsTreeView {
 
             match display_item {
                 DisplayItem::ExcerptSeparator { label } => {
-                    items.push(self.render_separator(label, cx));
+                    items.push(self.render_separator(label, window, cx));
                 }
                 DisplayItem::Entry { entry_ix } => {
                     let entry_ix = *entry_ix;
                     let entry = &self.cached_entries[entry_ix];
                     let selected = Some(entry_ix) == self.selected_item_ix;
                     let rendered = self
-                        .render_entry(entry, selected, cx)
+                        .render_entry(entry, selected, window, cx)
                         .on_mouse_down(
                             MouseButton::Left,
                             cx.listener(move |tree_view, _: &MouseDownEvent, window, cx| {
@@ -1074,7 +1086,7 @@ impl HighlightsTreeToolbarItemView {
 }
 
 impl Render for HighlightsTreeToolbarItemView {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         h_flex()
             .gap_1()
             .children(self.render_header(cx))
@@ -1280,8 +1292,8 @@ fn format_anchor_range(
     Some((display, start_buffer.remote_id(), start..end))
 }
 
-fn render_style_preview(style: HighlightStyle, selected: bool, cx: &App) -> Div {
-    let colors = cx.theme().colors();
+fn render_style_preview(style: HighlightStyle, selected: bool, window: &Window, cx: &App) -> Div {
+    let colors = window.theme(cx).colors();
 
     let display_color = style.color.or(style.background_color);
 

@@ -82,54 +82,58 @@ impl ZedAiOnboarding {
         self
     }
 
-    fn certified_user_stamp(cx: &App) -> impl IntoElement {
+    fn certified_user_stamp(window: &ui::Window, cx: &App) -> impl IntoElement {
         div().absolute().bottom_1().right_1().child(
             Vector::new(
                 VectorName::ProUserStamp,
                 rems_from_px(156.),
                 rems_from_px(60.),
             )
-            .color(Color::Custom(cx.theme().colors().text_accent.alpha(0.8))),
+            .color(Color::Custom(
+                window.theme(cx).colors().text_accent.alpha(0.8),
+            )),
         )
     }
 
-    fn pro_trial_stamp(cx: &App) -> impl IntoElement {
+    fn pro_trial_stamp(window: &ui::Window, cx: &App) -> impl IntoElement {
         div().absolute().bottom_1().right_1().child(
             Vector::new(
                 VectorName::ProTrialStamp,
                 rems_from_px(156.),
                 rems_from_px(60.),
             )
-            .color(Color::Custom(cx.theme().colors().text.alpha(0.8))),
+            .color(Color::Custom(window.theme(cx).colors().text.alpha(0.8))),
         )
     }
 
-    fn business_stamp(cx: &App) -> impl IntoElement {
+    fn business_stamp(window: &ui::Window, cx: &App) -> impl IntoElement {
         div().absolute().bottom_1().right_1().child(
             Vector::new(
                 VectorName::BusinessStamp,
                 rems_from_px(156.),
                 rems_from_px(60.),
             )
-            .color(Color::Custom(cx.theme().colors().text_accent.alpha(0.8))),
+            .color(Color::Custom(
+                window.theme(cx).colors().text_accent.alpha(0.8),
+            )),
         )
     }
 
-    fn vip_stamp(cx: &App) -> impl IntoElement {
+    fn vip_stamp(window: &ui::Window, cx: &App) -> impl IntoElement {
         div().absolute().bottom_1().right_1().child(
             Vector::new(VectorName::VipStamp, rems_from_px(156.), rems_from_px(60.))
-                .color(Color::Custom(cx.theme().colors().text.alpha(0.8))),
+                .color(Color::Custom(window.theme(cx).colors().text.alpha(0.8))),
         )
     }
 
-    fn student_stamp(cx: &App) -> impl IntoElement {
+    fn student_stamp(window: &ui::Window, cx: &App) -> impl IntoElement {
         div().absolute().bottom_1().right_1().child(
             Vector::new(
                 VectorName::StudentStamp,
                 rems_from_px(156.),
                 rems_from_px(60.),
             )
-            .color(Color::Custom(cx.theme().colors().text.alpha(0.8))),
+            .color(Color::Custom(window.theme(cx).colors().text.alpha(0.8))),
         )
     }
 
@@ -185,7 +189,7 @@ impl ZedAiOnboarding {
             .into_any_element()
     }
 
-    fn render_free_plan_state(&self, cx: &mut App) -> AnyElement {
+    fn render_free_plan_state(&self, window: &ui::Window, cx: &mut App) -> AnyElement {
         if self.account_too_young {
             v_flex()
                 .relative()
@@ -246,7 +250,7 @@ impl ZedAiOnboarding {
                                     Label::new("(Current Plan)")
                                         .size(LabelSize::Small)
                                         .color(Color::Custom(
-                                            cx.theme().colors().text_muted.opacity(0.6),
+                                            window.theme(cx).colors().text_muted.opacity(0.6),
                                         ))
                                         .buffer_font(cx),
                                 )
@@ -288,12 +292,12 @@ impl ZedAiOnboarding {
         }
     }
 
-    fn render_trial_state(&self, cx: &mut App) -> AnyElement {
+    fn render_trial_state(&self, window: &ui::Window, cx: &mut App) -> AnyElement {
         v_flex()
             .w_full()
             .relative()
             .gap_1()
-            .child(Self::pro_trial_stamp(cx))
+            .child(Self::pro_trial_stamp(window, cx))
             .child(Headline::new("Welcome to the Zed Pro Trial"))
             .child(
                 Label::new("Here's what you get for the next 14 days:")
@@ -305,12 +309,12 @@ impl ZedAiOnboarding {
             .into_any_element()
     }
 
-    fn render_pro_plan_state(&self, cx: &mut App) -> AnyElement {
+    fn render_pro_plan_state(&self, window: &ui::Window, cx: &mut App) -> AnyElement {
         v_flex()
             .w_full()
             .relative()
             .gap_1()
-            .child(Self::certified_user_stamp(cx))
+            .child(Self::certified_user_stamp(window, cx))
             .child(Headline::new("Welcome to Zed Pro"))
             .child(
                 Label::new("Here's what you get:")
@@ -322,12 +326,12 @@ impl ZedAiOnboarding {
             .into_any_element()
     }
 
-    fn render_business_plan_state(&self, cx: &mut App) -> AnyElement {
+    fn render_business_plan_state(&self, window: &ui::Window, cx: &mut App) -> AnyElement {
         v_flex()
             .w_full()
             .relative()
             .gap_1()
-            .child(Self::business_stamp(cx))
+            .child(Self::business_stamp(window, cx))
             .child(Headline::new("Welcome to Zed Business"))
             .child(
                 Label::new("Here's what you get:")
@@ -339,12 +343,12 @@ impl ZedAiOnboarding {
             .into_any_element()
     }
 
-    fn render_vip_plan_state(&self, cx: &mut App) -> AnyElement {
+    fn render_vip_plan_state(&self, window: &ui::Window, cx: &mut App) -> AnyElement {
         v_flex()
             .w_full()
             .relative()
             .gap_1()
-            .child(Self::vip_stamp(cx))
+            .child(Self::vip_stamp(window, cx))
             .child(Headline::new("Welcome to Zed VIP"))
             .child(
                 Label::new("Here's what you get:")
@@ -356,12 +360,12 @@ impl ZedAiOnboarding {
             .into_any_element()
     }
 
-    fn render_student_plan_state(&self, cx: &mut App) -> AnyElement {
+    fn render_student_plan_state(&self, window: &ui::Window, cx: &mut App) -> AnyElement {
         v_flex()
             .w_full()
             .relative()
             .gap_1()
-            .child(Self::student_stamp(cx))
+            .child(Self::student_stamp(window, cx))
             .child(Headline::new("Welcome to Zed Student"))
             .child(
                 Label::new("Here's what you get:")
@@ -375,16 +379,16 @@ impl ZedAiOnboarding {
 }
 
 impl RenderOnce for ZedAiOnboarding {
-    fn render(self, _window: &mut ui::Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut ui::Window, cx: &mut App) -> impl IntoElement {
         if matches!(self.sign_in_status, SignInStatus::SignedIn) {
             match self.plan {
-                None => self.render_free_plan_state(cx),
-                Some(Plan::ZedFree) => self.render_free_plan_state(cx),
-                Some(Plan::ZedProTrial) => self.render_trial_state(cx),
-                Some(Plan::ZedPro) => self.render_pro_plan_state(cx),
-                Some(Plan::ZedBusiness) => self.render_business_plan_state(cx),
-                Some(Plan::ZedVip) => self.render_vip_plan_state(cx),
-                Some(Plan::ZedStudent) => self.render_student_plan_state(cx),
+                None => self.render_free_plan_state(window, cx),
+                Some(Plan::ZedFree) => self.render_free_plan_state(window, cx),
+                Some(Plan::ZedProTrial) => self.render_trial_state(window, cx),
+                Some(Plan::ZedPro) => self.render_pro_plan_state(window, cx),
+                Some(Plan::ZedBusiness) => self.render_business_plan_state(window, cx),
+                Some(Plan::ZedVip) => self.render_vip_plan_state(window, cx),
+                Some(Plan::ZedStudent) => self.render_student_plan_state(window, cx),
             }
         } else {
             self.render_sign_in_disclaimer(cx)

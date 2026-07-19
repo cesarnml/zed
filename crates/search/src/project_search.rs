@@ -625,7 +625,7 @@ pub enum ViewEvent {
 impl EventEmitter<ViewEvent> for ProjectSearchView {}
 
 impl Render for ProjectSearchView {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let mut key_context = KeyContext::default();
         key_context.add("ProjectSearchView");
 
@@ -670,7 +670,7 @@ impl Render for ProjectSearchView {
                 .items_center()
                 .justify_center()
                 .overflow_hidden()
-                .bg(cx.theme().colors().editor_background)
+                .bg(window.theme(cx).colors().editor_background)
                 .track_focus(&self.focus_handle(cx))
                 .child(
                     v_flex()
@@ -838,7 +838,7 @@ impl Item for ProjectSearchView {
     fn set_nav_history(
         &mut self,
         nav_history: ItemNavHistory,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.results_editor.update(cx, |editor, _| {
@@ -1901,11 +1901,11 @@ impl ProjectSearchView {
             )
     }
 
-    fn border_color_for(&self, panel: InputPanel, cx: &App) -> Hsla {
+    fn border_color_for(&self, panel: InputPanel, window: &Window, cx: &App) -> Hsla {
         if self.panels_with_errors.contains_key(&panel) {
-            Color::Error.color(cx.theme())
+            Color::Error.color(window.theme(cx))
         } else {
-            cx.theme().colors().border
+            window.theme(cx).colors().border
         }
     }
 
@@ -2328,10 +2328,13 @@ impl Render for ProjectSearchBar {
         let input_width = SearchInputWidth::calc_width(container_width);
 
         let input_base_styles = |panel: InputPanel| {
-            input_base_styles(search.border_color_for(panel, cx), |div| match panel {
-                InputPanel::Query | InputPanel::Replacement => div.w(input_width),
-                InputPanel::Include | InputPanel::Exclude => div.flex_grow_1(),
-            })
+            input_base_styles(
+                search.border_color_for(panel, window, cx),
+                |div| match panel {
+                    InputPanel::Query | InputPanel::Replacement => div.w(input_width),
+                    InputPanel::Include | InputPanel::Exclude => div.flex_grow_1(),
+                },
+            )
         };
         let theme_colors = window.theme(cx).colors();
         let project_search = search.entity.read(cx);
@@ -2382,6 +2385,7 @@ impl Render for ProjectSearchBar {
             .child(div().flex_1().py_1().child(render_text_input(
                 &search.query_editor,
                 color_override,
+                window,
                 cx,
             )))
             .child(
@@ -2541,13 +2545,10 @@ impl Render for ProjectSearchBar {
             .child(mode_column);
 
         let replace_line = search.replace_enabled.then(|| {
-            let replace_column = input_base_styles(InputPanel::Replacement).child(
-                div().flex_1().py_1().child(render_text_input(
-                    &search.replacement_editor,
-                    None,
-                    cx,
-                )),
-            );
+            let replace_column =
+                input_base_styles(InputPanel::Replacement).child(div().flex_1().py_1().child(
+                    render_text_input(&search.replacement_editor, None, window, cx),
+                ));
 
             let focus_handle = search.replacement_editor.read(cx).focus_handle(cx);
             let replace_actions = h_flex()
@@ -2586,7 +2587,12 @@ impl Render for ProjectSearchBar {
                 .on_action(cx.listener(|this, action, window, cx| {
                     this.next_history_query(action, window, cx)
                 }))
-                .child(render_text_input(&search.included_files_editor, None, cx));
+                .child(render_text_input(
+                    &search.included_files_editor,
+                    None,
+                    window,
+                    cx,
+                ));
             let exclude = input_base_styles(InputPanel::Exclude)
                 .on_action(cx.listener(|this, action, window, cx| {
                     this.previous_history_query(action, window, cx)
@@ -2594,7 +2600,12 @@ impl Render for ProjectSearchBar {
                 .on_action(cx.listener(|this, action, window, cx| {
                     this.next_history_query(action, window, cx)
                 }))
-                .child(render_text_input(&search.excluded_files_editor, None, cx));
+                .child(render_text_input(
+                    &search.excluded_files_editor,
+                    None,
+                    window,
+                    cx,
+                ));
             let mode_column = h_flex()
                 .gap_1()
                 .min_w_64()
@@ -2719,7 +2730,7 @@ impl ToolbarItemView for ProjectSearchBar {
     fn set_active_pane_item(
         &mut self,
         active_pane_item: Option<&dyn ItemHandle>,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) -> ToolbarItemLocation {
         cx.notify();
@@ -3068,8 +3079,8 @@ pub mod tests {
                 .update(cx, |search_view, window, cx| {
                     let match_bg = window.theme(cx).colors().search_match_background;
                     let active_match_bg = window.theme(cx).colors().search_active_match_background;
-                    let selection_bg = cx
-                        .theme()
+                    let selection_bg = window
+                        .theme(cx)
                         .colors()
                         .editor_document_highlight_bracket_background;
 
@@ -5288,7 +5299,11 @@ pub mod tests {
         }
         impl EventEmitter<gpui::DismissEvent> for EmptyModalView {}
         impl Render for EmptyModalView {
-            fn render(&mut self, _: &mut Window, _: &mut Context<'_, Self>) -> impl IntoElement {
+            fn render(
+                &mut self,
+                _window: &mut Window,
+                _: &mut Context<'_, Self>,
+            ) -> impl IntoElement {
                 div()
             }
         }

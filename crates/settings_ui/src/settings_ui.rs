@@ -1,3 +1,5 @@
+use ui::ConfiguredTheme as _;
+use ui::WindowTheme as _;
 mod components;
 mod page_data;
 pub mod pages;
@@ -874,7 +876,7 @@ fn open_settings_editor_with(
                 show: true,
                 is_movable: true,
                 kind: gpui::WindowKind::Normal,
-                window_background: cx.theme().window_background_appearance(),
+                window_background: cx.configured_theme().window_background_appearance(),
                 app_id: Some(app_id.to_owned()),
                 window_decorations: Some(window_decorations),
                 window_min_size: Some(gpui::Size {
@@ -1101,6 +1103,7 @@ impl SettingsPageItem {
         cx: &mut Context<SettingsWindow>,
     ) -> AnyElement {
         let file = settings_window.current_file.clone();
+        let theme_colors = window.theme(cx).colors().clone();
 
         let apply_padding = |element: Stateful<Div>| -> Stateful<Div> {
             let element = element.pt_4();
@@ -1312,8 +1315,8 @@ impl SettingsPageItem {
                                     this.mb_8()
                                 })
                                 .border_dashed()
-                                .border_color(cx.theme().colors().border_variant)
-                                .bg(cx.theme().colors().element_background.opacity(0.2)),
+                                .border_color(theme_colors.border_variant)
+                                .bg(theme_colors.element_background.opacity(0.2)),
                         );
                     }
                 }
@@ -5140,14 +5143,14 @@ fn render_theme_picker(
     _metadata: Option<&SettingsFieldMetadata>,
     title: &'static str,
     description: &'static str,
-    _window: &mut Window,
+    window: &mut Window,
     cx: &mut App,
 ) -> AnyElement {
     let (_, value) = SettingsStore::global(cx).get_value_from_file(file.to_settings(), field.pick);
     let current_value = value
         .cloned()
         .map(|theme_name| theme_name.0.into())
-        .unwrap_or_else(|| cx.theme().name.clone());
+        .unwrap_or_else(|| window.theme(cx).name.clone());
 
     let handle = ui::PopoverMenuHandle::default();
     PopoverMenu::new("theme-picker")
@@ -5201,14 +5204,14 @@ fn render_icon_theme_picker(
     _metadata: Option<&SettingsFieldMetadata>,
     title: &'static str,
     description: &'static str,
-    _window: &mut Window,
+    window: &mut Window,
     cx: &mut App,
 ) -> AnyElement {
     let (_, value) = SettingsStore::global(cx).get_value_from_file(file.to_settings(), field.pick);
     let current_value = value
         .cloned()
         .map(|theme_name| theme_name.0.into())
-        .unwrap_or_else(|| cx.theme().name.clone());
+        .unwrap_or_else(|| window.theme(cx).name.clone());
 
     let handle = ui::PopoverMenuHandle::default();
     PopoverMenu::new("icon-theme-picker")

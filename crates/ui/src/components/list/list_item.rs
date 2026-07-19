@@ -296,7 +296,7 @@ impl ParentElement for ListItem {
 }
 
 impl RenderOnce for ListItem {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         h_flex()
             .id(self.id)
             .when_some(self.group_name, |this, group| this.group(group))
@@ -316,15 +316,15 @@ impl RenderOnce for ListItem {
                             DockSide::Right => this.border_r_2(),
                         })
                         .when(focused && !self.disabled, |this| {
-                            this.border_color(cx.theme().colors().border_focused)
+                            this.border_color(window.theme(cx).colors().border_focused)
                         })
                 })
                 .when(self.selectable && !self.disabled, |this| {
-                    this.hover(|style| style.bg(cx.theme().colors().ghost_element_hover))
-                        .active(|style| style.bg(cx.theme().colors().ghost_element_active))
+                    this.hover(|style| style.bg(window.theme(cx).colors().ghost_element_hover))
+                        .active(|style| style.bg(window.theme(cx).colors().ghost_element_active))
                         .when(self.outlined, |this| this.rounded_sm())
                         .when(self.selected, |this| {
-                            this.bg(cx.theme().colors().ghost_element_selected)
+                            this.bg(window.theme(cx).colors().ghost_element_selected)
                         })
                 })
             })
@@ -371,17 +371,21 @@ impl RenderOnce for ListItem {
                         this.when_some(self.focused, |this, focused| {
                             if focused && !self.disabled {
                                 this.border_1()
-                                    .border_color(cx.theme().colors().border_focused)
+                                    .border_color(window.theme(cx).colors().border_focused)
                             } else {
                                 this.border_1()
                             }
                         })
                         .when(self.selectable && !self.disabled, |this| {
-                            this.hover(|style| style.bg(cx.theme().colors().ghost_element_hover))
-                                .active(|style| style.bg(cx.theme().colors().ghost_element_active))
-                                .when(self.selected, |this| {
-                                    this.bg(cx.theme().colors().ghost_element_selected)
-                                })
+                            this.hover(|style| {
+                                style.bg(window.theme(cx).colors().ghost_element_hover)
+                            })
+                            .active(|style| {
+                                style.bg(window.theme(cx).colors().ghost_element_active)
+                            })
+                            .when(self.selected, |this| {
+                                this.bg(window.theme(cx).colors().ghost_element_selected)
+                            })
                         })
                     })
                     .when_some(
@@ -390,7 +394,7 @@ impl RenderOnce for ListItem {
                     )
                     .when(self.outlined, |this| {
                         this.border_1()
-                            .border_color(cx.theme().colors().border)
+                            .border_color(window.theme(cx).colors().border)
                             .rounded_sm()
                             .overflow_hidden()
                     })

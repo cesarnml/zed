@@ -33,7 +33,7 @@ use std::{
 };
 use terminal_view::terminal_panel::TerminalPanel;
 use tests::{active_debug_session_panel, init_test, init_test_workspace};
-use theme::ActiveTheme;
+use theme::ConfiguredTheme;
 use util::{path, rel_path::rel_path};
 use workspace::item::SaveOptions;
 use workspace::pane_group::SplitDirection;
@@ -1602,7 +1602,7 @@ async fn test_active_debug_line_setting(executor: BackgroundExecutor, cx: &mut T
 
     main_editor.update_in(cx, |editor, window, cx| {
         let active_debug_lines: Vec<_> = editor
-            .highlighted_rows::<ActiveDebugLine>(cx.theme())
+            .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
             .collect();
 
         assert_eq!(
@@ -1621,7 +1621,7 @@ async fn test_active_debug_line_setting(executor: BackgroundExecutor, cx: &mut T
 
     second_editor.update(cx, |editor, cx| {
         let active_debug_lines: Vec<_> = editor
-            .highlighted_rows::<ActiveDebugLine>(cx.theme())
+            .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
             .collect();
 
         assert!(
@@ -1681,7 +1681,7 @@ async fn test_active_debug_line_setting(executor: BackgroundExecutor, cx: &mut T
 
     second_editor.update_in(cx, |editor, window, cx| {
         let active_debug_lines: Vec<_> = editor
-            .highlighted_rows::<ActiveDebugLine>(cx.theme())
+            .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
             .collect();
 
         assert_eq!(
@@ -1700,7 +1700,7 @@ async fn test_active_debug_line_setting(executor: BackgroundExecutor, cx: &mut T
 
     main_editor.update(cx, |editor, cx| {
         let active_debug_lines: Vec<_> = editor
-            .highlighted_rows::<ActiveDebugLine>(cx.theme())
+            .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
             .collect();
 
         assert!(
@@ -1725,7 +1725,7 @@ async fn test_active_debug_line_setting(executor: BackgroundExecutor, cx: &mut T
 
     second_editor.update(cx, |editor, cx| {
         let active_debug_lines: Vec<_> = editor
-            .highlighted_rows::<ActiveDebugLine>(cx.theme())
+            .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
             .collect();
 
         assert!(
@@ -1736,7 +1736,7 @@ async fn test_active_debug_line_setting(executor: BackgroundExecutor, cx: &mut T
 
     main_editor.update(cx, |editor, cx| {
         let active_debug_lines: Vec<_> = editor
-            .highlighted_rows::<ActiveDebugLine>(cx.theme())
+            .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
             .collect();
 
         assert!(
@@ -1756,7 +1756,7 @@ async fn test_active_debug_line_setting(executor: BackgroundExecutor, cx: &mut T
 
     main_editor.update(cx, |editor, cx| {
         let active_debug_lines: Vec<_> = editor
-            .highlighted_rows::<ActiveDebugLine>(cx.theme())
+            .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
             .collect();
 
         assert!(
@@ -1767,7 +1767,7 @@ async fn test_active_debug_line_setting(executor: BackgroundExecutor, cx: &mut T
 
     second_editor.update(cx, |editor, cx| {
         let active_debug_lines: Vec<_> = editor
-            .highlighted_rows::<ActiveDebugLine>(cx.theme())
+            .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
             .collect();
 
         assert!(
@@ -2093,7 +2093,7 @@ async fn test_breakpoint_jumps_only_in_proper_split_view(
                     if let Some(editor) = item.to_any_view().downcast::<Editor>().ok() {
                         total_active_debug_lines += editor
                             .read(cx)
-                            .highlighted_rows::<ActiveDebugLine>(cx.theme())
+                            .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
                             .count();
                     }
                 }
@@ -2113,7 +2113,7 @@ async fn test_breakpoint_jumps_only_in_proper_split_view(
 
             let active_debug_lines: Vec<_> = pane_b_editor
                 .read(cx)
-                .highlighted_rows::<ActiveDebugLine>(cx.theme())
+                .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
                 .collect();
 
             assert_eq!(
@@ -2187,7 +2187,7 @@ async fn test_breakpoint_jumps_only_in_proper_split_view(
 
             let active_debug_lines: Vec<_> = pane_b_editor
                 .read(cx)
-                .highlighted_rows::<ActiveDebugLine>(cx.theme())
+                .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
                 .collect();
 
             assert_eq!(
@@ -2207,7 +2207,7 @@ async fn test_breakpoint_jumps_only_in_proper_split_view(
                     if let Some(editor) = item.to_any_view().downcast::<Editor>().ok() {
                         total_active_debug_lines += editor
                             .read(cx)
-                            .highlighted_rows::<ActiveDebugLine>(cx.theme())
+                            .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
                             .count();
                     }
                 }
@@ -2321,7 +2321,7 @@ async fn test_breakpoint_jumps_only_in_proper_split_view(
 
             let active_debug_lines: Vec<_> = pane_c_editor
                 .read(cx)
-                .highlighted_rows::<ActiveDebugLine>(cx.theme())
+                .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
                 .collect();
 
             assert_eq!(
@@ -2341,7 +2341,7 @@ async fn test_breakpoint_jumps_only_in_proper_split_view(
                     if let Some(editor) = item.to_any_view().downcast::<Editor>().ok() {
                         total_active_debug_lines += editor
                             .read(cx)
-                            .highlighted_rows::<ActiveDebugLine>(cx.theme())
+                            .highlighted_rows::<ActiveDebugLine>(cx.configured_theme())
                             .count();
                     }
                 }

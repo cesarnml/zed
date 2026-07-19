@@ -103,7 +103,7 @@ impl Focusable for SidebarRecentProjects {
 }
 
 impl Render for SidebarRecentProjects {
-    fn render(&mut self, _: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .key_context("SidebarRecentProjects")
             .w(rems(18.))
@@ -163,7 +163,7 @@ impl PickerDelegate for SidebarRecentProjectsDelegate {
     fn update_matches(
         &mut self,
         query: String,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Task<()> {
         let query = query.trim_start();
@@ -378,7 +378,11 @@ impl PickerDelegate for SidebarRecentProjectsDelegate {
         )
     }
 
-    fn render_footer(&self, _: &mut Window, cx: &mut Context<Picker<Self>>) -> Option<AnyElement> {
+    fn render_footer(
+        &self,
+        window: &mut Window,
+        cx: &mut Context<Picker<Self>>,
+    ) -> Option<AnyElement> {
         let focus_handle = self.focus_handle.clone();
 
         Some(
@@ -387,7 +391,7 @@ impl PickerDelegate for SidebarRecentProjectsDelegate {
                 .flex_1()
                 .gap_1()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child({
                     let open_action = workspace::Open {
                         create_new_window: Some(false),

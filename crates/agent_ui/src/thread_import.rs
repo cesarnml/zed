@@ -345,14 +345,14 @@ impl ThreadImportModal {
         }
     }
 
-    fn cancel(&mut self, _: &menu::Cancel, _: &mut Window, cx: &mut Context<Self>) {
+    fn cancel(&mut self, _: &menu::Cancel, _window: &mut Window, cx: &mut Context<Self>) {
         cx.emit(DismissEvent);
     }
 
     fn import_threads(
         &mut self,
         _: &menu::SecondaryConfirm,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if self.is_importing || !self.has_checked_selectable_agent() {
@@ -432,7 +432,7 @@ impl Focusable for ThreadImportModal {
 impl ModalView for ThreadImportModal {}
 
 impl Render for ThreadImportModal {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let has_agents = !self.agent_entries.is_empty();
         let disabled_import_thread =
             self.is_importing || !has_agents || !self.has_checked_selectable_agent();
@@ -555,7 +555,7 @@ impl Render for ThreadImportModal {
             .id("thread-import-modal")
             .key_context("ThreadImportModal")
             .w(rems(34.))
-            .elevation_3(cx.theme())
+            .elevation_3(window.theme(cx))
             .overflow_hidden()
             .track_focus(&self.focus_handle)
             .on_action(cx.listener(Self::cancel))

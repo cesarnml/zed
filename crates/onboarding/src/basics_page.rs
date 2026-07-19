@@ -43,7 +43,7 @@ fn get_theme_family_themes(theme_name: &str) -> Option<(&'static str, &'static s
     None
 }
 
-fn render_theme_section(tab_index: &mut isize, cx: &mut App) -> impl IntoElement {
+fn render_theme_section(tab_index: &mut isize, window: &Window, cx: &mut App) -> impl IntoElement {
     let theme_selection = ThemeSettings::get_global(cx).theme.clone();
     let system_appearance = theme::SystemAppearance::global(cx);
 
@@ -96,12 +96,18 @@ fn render_theme_section(tab_index: &mut isize, cx: &mut App) -> impl IntoElement
             h_flex()
                 .gap_2()
                 .justify_between()
-                .children(render_theme_previews(tab_index, &theme_selection, cx)),
+                .children(render_theme_previews(
+                    tab_index,
+                    &theme_selection,
+                    window,
+                    cx,
+                )),
         );
 
     fn render_theme_previews(
         tab_index: &mut isize,
         theme_selection: &ThemeSelection,
+        window: &Window,
         cx: &mut App,
     ) -> [impl IntoElement; 3] {
         let system_appearance = SystemAppearance::global(cx);
@@ -132,7 +138,7 @@ fn render_theme_section(tab_index: &mut isize, cx: &mut App) -> impl IntoElement
             let theme = &themes[index];
             let is_selected = theme.name == current_theme_name;
             let name = theme.name.clone();
-            let colors = cx.theme().colors();
+            let colors = window.theme(cx).colors();
 
             v_flex()
                 .w_full()
@@ -712,13 +718,17 @@ fn render_ai_section(user_store: &Entity<UserStore>, cx: &mut App) -> impl IntoE
         .child(grid)
 }
 
-pub(crate) fn render_basics_page(user_store: &Entity<UserStore>, cx: &mut App) -> impl IntoElement {
+pub(crate) fn render_basics_page(
+    user_store: &Entity<UserStore>,
+    window: &Window,
+    cx: &mut App,
+) -> impl IntoElement {
     let mut tab_index = 0;
 
     v_flex()
         .id("basics-page")
         .gap_6()
-        .child(render_theme_section(&mut tab_index, cx))
+        .child(render_theme_section(&mut tab_index, window, cx))
         .child(render_base_keymap_section(&mut tab_index, cx))
         .child(render_ai_section(user_store, cx))
         .child(render_import_settings_section(&mut tab_index, cx))

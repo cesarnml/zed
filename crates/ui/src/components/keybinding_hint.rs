@@ -258,10 +258,10 @@ impl Component for KeybindingHint {
         "Displays a keyboard shortcut hint with optional prefix and suffix text"
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let enter = KeyBinding::for_action(&menu::Confirm, cx);
 
-        let bg_color = cx.theme().colors().surface_background;
+        let bg_color = window.theme(cx).colors().surface_background;
 
         v_flex()
             .gap_6()

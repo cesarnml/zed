@@ -3,7 +3,6 @@ use gpui::{
     AnyElement, App, IntoElement, ParentElement, Rems, RenderOnce, SharedString, Styled, Window,
     div, rems,
 };
-use theme::ActiveTheme;
 
 use crate::{Color, rems_from_px};
 
@@ -210,14 +209,14 @@ pub struct Headline {
 }
 
 impl RenderOnce for Headline {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let ui_font = theme::theme_settings(cx).ui_font(cx).clone();
 
         div()
             .font(ui_font)
             .line_height(self.size.line_height())
             .text_size(self.size.rems())
-            .text_color(cx.theme().colors().text)
+            .text_color(window.theme(cx).colors().text)
             .child(self.text)
     }
 }

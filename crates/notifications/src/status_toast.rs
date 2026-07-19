@@ -75,12 +75,12 @@ impl StatusToast {
 }
 
 impl Render for StatusToast {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let has_action_or_dismiss = self.action.is_some() || self.show_dismiss;
 
         h_flex()
             .id("status-toast")
-            .elevation_3(cx.theme())
+            .elevation_3(window.theme(cx))
             .gap_2()
             .py_1p5()
             .pl_2p5()
@@ -92,7 +92,7 @@ impl Render for StatusToast {
                 }
             })
             .flex_none()
-            .bg(cx.theme().colors().surface_background)
+            .bg(window.theme(cx).colors().surface_background)
             .shadow_lg()
             .when_some(self.icon.clone(), |this, icon| this.child(icon))
             .child(Label::new(self.text.clone()).color(Color::Default))

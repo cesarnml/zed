@@ -50,9 +50,9 @@ impl Focusable for SharedScreen {
     }
 }
 impl Render for SharedScreen {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .track_focus(&self.focus)
             .key_context("SharedScreen")
             .size_full()

@@ -155,8 +155,19 @@ pub trait ActiveTheme {
     fn theme(&self) -> &Arc<Theme>;
 }
 
-impl ActiveTheme for App {
-    fn theme(&self) -> &Arc<Theme> {
+/// Access the configured (settings) theme, ignoring per-window overrides.
+///
+/// Use this only in contexts where no [`Window`] exists (app startup, menus,
+/// tests). UI that renders into a window must use [`WindowTheme`] instead;
+/// deliberately, `cx.theme()` does not exist so per-window overrides cannot be
+/// silently bypassed.
+pub trait ConfiguredTheme {
+    /// Returns the configured (settings) theme.
+    fn configured_theme(&self) -> &Arc<Theme>;
+}
+
+impl ConfiguredTheme for App {
+    fn configured_theme(&self) -> &Arc<Theme> {
         GlobalTheme::theme(self)
     }
 }

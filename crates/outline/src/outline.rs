@@ -1,5 +1,6 @@
 use std::ops::Range;
 use std::{cmp, sync::Arc};
+use ui::WindowTheme as _;
 
 use editor::scroll::ScrollOffset;
 use editor::{Anchor, AnchorRangeExt, Editor, scroll::Autoscroll};
@@ -13,7 +14,6 @@ use gpui::{
 use language::{OffsetRangeExt, Outline, OutlineItem, OutlineSearchEntry};
 use picker::{MatchLocation, Picker, PickerDelegate, PreviewUpdate};
 use settings::Settings;
-use theme::ActiveTheme;
 use theme_settings::ThemeSettings;
 use ui::{ListItem, ListItemSpacing, prelude::*};
 use util::ResultExt;
@@ -294,13 +294,13 @@ impl PickerDelegate for OutlineViewDelegate {
     fn set_selected_index(
         &mut self,
         ix: usize,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Picker<OutlineViewDelegate>>,
     ) {
         self.set_selected_index(ix, true, cx);
     }
 
-    fn try_get_preview_data_for_match(&self, cx: &App) -> Option<PreviewUpdate> {
+    fn try_get_preview_data_for_match(&self, _window: &Window, cx: &App) -> Option<PreviewUpdate> {
         let selected_match = self.matches.get(self.selected_match_index)?;
         let outline_item = self.outline.items.get(selected_match.candidate_id())?;
         let multi_buffer = self.active_editor.read(cx).buffer().clone();
@@ -442,7 +442,7 @@ impl PickerDelegate for OutlineViewDelegate {
         &self,
         ix: usize,
         selected: bool,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         let entry = self.matches.get(ix)?;
@@ -458,7 +458,7 @@ impl PickerDelegate for OutlineViewDelegate {
                     div()
                         .text_ui(cx)
                         .pl(rems(outline_item.depth as f32))
-                        .child(render_item(outline_item, ranges, cx)),
+                        .child(render_item(outline_item, ranges, window, cx)),
                 ),
         )
     }
@@ -467,10 +467,11 @@ impl PickerDelegate for OutlineViewDelegate {
 pub fn render_item<T>(
     outline_item: &OutlineItem<T>,
     match_ranges: impl IntoIterator<Item = Range<usize>>,
+    window: &Window,
     cx: &App,
 ) -> StyledText {
     let highlight_style = HighlightStyle {
-        background_color: Some(cx.theme().colors().text_accent.alpha(0.3)),
+        background_color: Some(window.theme(cx).colors().text_accent.alpha(0.3)),
         ..Default::default()
     };
     let custom_highlights = match_ranges
@@ -483,7 +484,7 @@ pub fn render_item<T>(
     // but I'm not sure how to get the current one and modify it.
     // Before this change TextStyle::default() was used here, which was giving us the wrong font and text color.
     let text_style = TextStyle {
-        color: cx.theme().colors().text,
+        color: window.theme(cx).colors().text,
         font_family: settings.buffer_font.family.clone(),
         font_features: settings.buffer_font.features.clone(),
         font_fallbacks: settings.buffer_font.fallbacks.clone(),

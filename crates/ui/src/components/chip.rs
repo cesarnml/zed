@@ -96,12 +96,14 @@ impl Chip {
 }
 
 impl RenderOnce for Chip {
-    fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let bg_color = self
             .bg_color
-            .unwrap_or(cx.theme().colors().element_background);
+            .unwrap_or(window.theme(cx).colors().element_background);
 
-        let border_color = self.border_color.unwrap_or(cx.theme().colors().border);
+        let border_color = self
+            .border_color
+            .unwrap_or(window.theme(cx).colors().border);
 
         h_flex()
             .when_some(self.height, |this, h| this.h(h))
@@ -143,7 +145,7 @@ impl Component for Chip {
         or other short informative pieces of metadata, optionally with an icon."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let chip_examples = vec![
             single_example("Default", Chip::new("Chip Example").into_any_element()),
             single_example(
@@ -162,7 +164,7 @@ impl Component for Chip {
             single_example(
                 "Customized Background Color",
                 Chip::new("Chip Example")
-                    .bg_color(cx.theme().colors().text_accent.opacity(0.1))
+                    .bg_color(window.theme(cx).colors().text_accent.opacity(0.1))
                     .into_any_element(),
             ),
         ];

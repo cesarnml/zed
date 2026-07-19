@@ -481,7 +481,7 @@ impl ComponentPreview {
             .into_any_element()
     }
 
-    fn render_all_components(&self, cx: &Context<Self>) -> impl IntoElement {
+    fn render_all_components(&self, window: &Window, cx: &Context<Self>) -> impl IntoElement {
         v_flex()
             .id("component-list")
             .px_8()
@@ -493,7 +493,7 @@ impl ComponentPreview {
                         .size_full()
                         .items_center()
                         .justify_center()
-                        .text_color(cx.theme().colors().text_muted)
+                        .text_color(window.theme(cx).colors().text_muted)
                         .child(format!("No components matching '{}'.", self.filter_text))
                         .into_any_element()
                 } else {
@@ -671,7 +671,7 @@ impl Render for ComponentPreview {
                         div().id("content-area").flex_1().overflow_y_scroll().child(
                             match active_page {
                                 PreviewPage::AllComponents => {
-                                    self.render_all_components(cx).into_any_element()
+                                    self.render_all_components(window, cx).into_any_element()
                                 }
                                 PreviewPage::Component(id) => self
                                     .render_component_page(&id, window, cx)
@@ -905,7 +905,7 @@ impl ComponentPreviewPage {
     ///
     /// Doesn't render if the component is `ComponentStatus::Live`
     /// as that is the default state
-    fn render_component_status(&self, cx: &App) -> Option<impl IntoElement> {
+    fn render_component_status(&self, window: &Window, cx: &App) -> Option<impl IntoElement> {
         let status = self.component.status();
         let status_description = status.description().to_string();
 
@@ -923,7 +923,7 @@ impl ComponentPreviewPage {
                         div()
                             .px_1p5()
                             .rounded_sm()
-                            .bg(color.color(cx.theme()).alpha(0.12))
+                            .bg(color.color(window.theme(cx)).alpha(0.12))
                             .child(
                                 Label::new(status.to_string())
                                     .size(LabelSize::Small)
@@ -938,15 +938,15 @@ impl ComponentPreviewPage {
         }
     }
 
-    fn render_header(&self, _: &Window, cx: &App) -> impl IntoElement {
+    fn render_header(&self, window: &Window, cx: &App) -> impl IntoElement {
         v_flex()
             .min_w_0()
             .w_full()
             .p_12()
             .gap_6()
-            .bg(cx.theme().colors().surface_background)
+            .bg(window.theme(cx).colors().surface_background)
             .border_b_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .child(
                 v_flex()
                     .gap_1()
@@ -962,7 +962,7 @@ impl ComponentPreviewPage {
                                 Headline::new(self.component.scopeless_name())
                                     .size(HeadlineSize::XLarge),
                             )
-                            .children(self.render_component_status(cx)),
+                            .children(self.render_component_status(window, cx)),
                     ),
             )
             .child(Label::new(self.component.description()).size(LabelSize::Small))

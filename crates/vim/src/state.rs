@@ -19,6 +19,7 @@ use gpui::{
     WeakEntity,
 };
 use language::{Buffer, BufferEvent, BufferId, Chunk, LanguageAwareStyling, Point};
+use ui::WindowTheme as _;
 
 use multi_buffer::MultiBufferRow;
 use picker::{Picker, PickerDelegate};
@@ -32,8 +33,8 @@ use std::{fmt::Display, ops::Range, sync::Arc};
 use text::{Bias, ToPoint};
 use theme_settings::ThemeSettings;
 use ui::{
-    ActiveTheme, Context, Div, FluentBuilder, KeyBinding, ParentElement, SharedString, Styled,
-    StyledTypography, Window, h_flex, rems,
+    Context, Div, FluentBuilder, KeyBinding, ParentElement, SharedString, Styled, StyledTypography,
+    Window, h_flex, rems,
 };
 use util::ResultExt;
 use util::rel_path::RelPath;
@@ -1276,7 +1277,12 @@ impl PickerDelegate for RegistersViewDelegate {
         self.selected_index
     }
 
-    fn set_selected_index(&mut self, ix: usize, _: &mut Window, cx: &mut Context<Picker<Self>>) {
+    fn set_selected_index(
+        &mut self,
+        ix: usize,
+        _window: &mut Window,
+        cx: &mut Context<Picker<Self>>,
+    ) {
         self.selected_index = ix;
         cx.notify();
     }
@@ -1288,21 +1294,21 @@ impl PickerDelegate for RegistersViewDelegate {
     fn update_matches(
         &mut self,
         _: String,
-        _: &mut Window,
+        _window: &mut Window,
         _: &mut Context<Picker<Self>>,
     ) -> gpui::Task<()> {
         Task::ready(())
     }
 
-    fn confirm(&mut self, _: bool, _: &mut Window, _: &mut Context<Picker<Self>>) {}
+    fn confirm(&mut self, _: bool, _window: &mut Window, _: &mut Context<Picker<Self>>) {}
 
-    fn dismissed(&mut self, _: &mut Window, _: &mut Context<Picker<Self>>) {}
+    fn dismissed(&mut self, _window: &mut Window, _: &mut Context<Picker<Self>>) {}
 
     fn render_match(
         &self,
         ix: usize,
         selected: bool,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         let register_match = self.matches.get(ix)?;
@@ -1313,7 +1319,7 @@ impl PickerDelegate for RegistersViewDelegate {
         output.push(register_match.name);
         runs.push((
             0..output.len(),
-            HighlightStyle::color(cx.theme().colors().text_accent),
+            HighlightStyle::color(window.theme(cx).colors().text_accent),
         ));
         output.push(' ');
         output.push(' ');
@@ -1342,14 +1348,14 @@ impl PickerDelegate for RegistersViewDelegate {
             output.push_str(&replace);
             runs.push((
                 base + ix..base + ix + replace.len(),
-                HighlightStyle::color(cx.theme().colors().text_muted),
+                HighlightStyle::color(window.theme(cx).colors().text_muted),
             ));
             base += replace.len() - c.len_utf8();
         }
 
         let theme = ThemeSettings::get_global(cx);
         let text_style = TextStyle {
-            color: cx.theme().colors().editor_foreground,
+            color: window.theme(cx).colors().editor_foreground,
             font_family: theme.buffer_font.family.clone(),
             font_features: theme.buffer_font.features.clone(),
             font_fallbacks: theme.buffer_font.fallbacks.clone(),
@@ -1362,7 +1368,9 @@ impl PickerDelegate for RegistersViewDelegate {
 
         Some(
             h_flex()
-                .when(selected, |el| el.bg(cx.theme().colors().element_selected))
+                .when(selected, |el| {
+                    el.bg(window.theme(cx).colors().element_selected)
+                })
                 .font_buffer(cx)
                 .text_buffer(cx)
                 .h(theme.buffer_font_size(cx) * theme.line_height())
@@ -1447,15 +1455,14 @@ enum MarksMatchInfo {
 }
 
 impl MarksMatchInfo {
-    fn from_chunks<'a>(chunks: impl Iterator<Item = Chunk<'a>>, cx: &App) -> Self {
+    fn from_chunks<'a>(chunks: impl Iterator<Item = Chunk<'a>>, theme: &theme::Theme) -> Self {
         let mut line = String::new();
         let mut highlights = Vec::new();
         let mut offset = 0;
         for chunk in chunks {
             line.push_str(chunk.text);
             if let Some(highlight_id) = chunk.syntax_highlight_id
-                && let Some(highlight) = cx
-                    .theme()
+                && let Some(highlight) = theme
                     .syntax()
                     .style_for_captures(highlight_id, &chunk.syntax_fallbacks)
                     .cloned()
@@ -1496,7 +1503,12 @@ impl PickerDelegate for MarksViewDelegate {
         self.selected_index
     }
 
-    fn set_selected_index(&mut self, ix: usize, _: &mut Window, cx: &mut Context<Picker<Self>>) {
+    fn set_selected_index(
+        &mut self,
+        ix: usize,
+        _window: &mut Window,
+        cx: &mut Context<Picker<Self>>,
+    ) {
         self.selected_index = ix;
         cx.notify();
     }
@@ -1508,67 +1520,35 @@ impl PickerDelegate for MarksViewDelegate {
     fn update_matches(
         &mut self,
         _: String,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> gpui::Task<()> {
         let Some(workspace) = self.workspace.upgrade() else {
             return Task::ready(());
         };
-        cx.spawn(async move |picker, cx| {
-            let mut matches = Vec::new();
-            let _ = workspace.update(cx, |workspace, cx| {
-                let entity_id = cx.entity_id();
-                let Some(editor) = workspace
-                    .active_item(cx)
-                    .and_then(|item| item.act_as::<Editor>(cx))
-                else {
-                    return;
-                };
-                let editor = editor.read(cx);
-                let mut has_seen = HashSet::new();
-                let Some(marks_state) = cx.global::<VimGlobals>().marks.get(&entity_id) else {
-                    return;
-                };
-                let marks_state = marks_state.read(cx);
+        {
+            let theme = window.theme(cx).clone();
+            cx.spawn(async move |picker, cx| {
+                let mut matches = Vec::new();
+                let _ = workspace.update(cx, |workspace, cx| {
+                    let entity_id = cx.entity_id();
+                    let Some(editor) = workspace
+                        .active_item(cx)
+                        .and_then(|item| item.act_as::<Editor>(cx))
+                    else {
+                        return;
+                    };
+                    let editor = editor.read(cx);
+                    let mut has_seen = HashSet::new();
+                    let Some(marks_state) = cx.global::<VimGlobals>().marks.get(&entity_id) else {
+                        return;
+                    };
+                    let marks_state = marks_state.read(cx);
 
-                if let Some(map) = marks_state
-                    .multibuffer_marks
-                    .get(&editor.buffer().entity_id())
-                {
-                    for (name, anchors) in map {
-                        if has_seen.contains(name) {
-                            continue;
-                        }
-                        has_seen.insert(name.clone());
-                        let Some(anchor) = anchors.first() else {
-                            continue;
-                        };
-
-                        let snapshot = editor.buffer().read(cx).snapshot(cx);
-                        let position = anchor.to_point(&snapshot);
-
-                        let chunks = snapshot.chunks(
-                            Point::new(position.row, 0)
-                                ..Point::new(
-                                    position.row,
-                                    snapshot.line_len(MultiBufferRow(position.row)),
-                                ),
-                            LanguageAwareStyling {
-                                tree_sitter: true,
-                                diagnostics: true,
-                            },
-                        );
-                        matches.push(MarksMatch {
-                            name: name.clone(),
-                            position,
-                            info: MarksMatchInfo::from_chunks(chunks, cx),
-                        })
-                    }
-                }
-
-                if let Some(buffer) = editor.buffer().read(cx).as_singleton() {
-                    let buffer = buffer.read(cx);
-                    if let Some(map) = marks_state.buffer_marks.get(&buffer.remote_id()) {
+                    if let Some(map) = marks_state
+                        .multibuffer_marks
+                        .get(&editor.buffer().entity_id())
+                    {
                         for (name, anchors) in map {
                             if has_seen.contains(name) {
                                 continue;
@@ -1577,98 +1557,133 @@ impl PickerDelegate for MarksViewDelegate {
                             let Some(anchor) = anchors.first() else {
                                 continue;
                             };
-                            let snapshot = buffer.snapshot();
+
+                            let snapshot = editor.buffer().read(cx).snapshot(cx);
                             let position = anchor.to_point(&snapshot);
+
                             let chunks = snapshot.chunks(
                                 Point::new(position.row, 0)
-                                    ..Point::new(position.row, snapshot.line_len(position.row)),
+                                    ..Point::new(
+                                        position.row,
+                                        snapshot.line_len(MultiBufferRow(position.row)),
+                                    ),
                                 LanguageAwareStyling {
                                     tree_sitter: true,
                                     diagnostics: true,
                                 },
                             );
-
                             matches.push(MarksMatch {
                                 name: name.clone(),
                                 position,
-                                info: MarksMatchInfo::from_chunks(chunks, cx),
+                                info: MarksMatchInfo::from_chunks(chunks, &theme),
                             })
                         }
                     }
-                }
 
-                for (name, mark_location) in marks_state.global_marks.iter() {
-                    if has_seen.contains(name) {
-                        continue;
-                    }
-                    has_seen.insert(name.clone());
-
-                    match mark_location {
-                        MarkLocation::Buffer(entity_id) => {
-                            if let Some(&anchor) = marks_state
-                                .multibuffer_marks
-                                .get(entity_id)
-                                .and_then(|map| map.get(name))
-                                .and_then(|anchors| anchors.first())
-                            {
-                                let Some((info, snapshot)) = workspace
-                                    .items(cx)
-                                    .filter_map(|item| item.act_as::<Editor>(cx))
-                                    .map(|entity| entity.read(cx).buffer())
-                                    .find(|buffer| buffer.entity_id().eq(entity_id))
-                                    .map(|buffer| {
-                                        (
-                                            MarksMatchInfo::Title(
-                                                buffer.read(cx).title(cx).to_string(),
-                                            ),
-                                            buffer.read(cx).snapshot(cx),
-                                        )
-                                    })
-                                else {
+                    if let Some(buffer) = editor.buffer().read(cx).as_singleton() {
+                        let buffer = buffer.read(cx);
+                        if let Some(map) = marks_state.buffer_marks.get(&buffer.remote_id()) {
+                            for (name, anchors) in map {
+                                if has_seen.contains(name) {
+                                    continue;
+                                }
+                                has_seen.insert(name.clone());
+                                let Some(anchor) = anchors.first() else {
                                     continue;
                                 };
-                                matches.push(MarksMatch {
-                                    name: name.clone(),
-                                    position: anchor.to_point(&snapshot),
-                                    info,
-                                });
-                            }
-                        }
-                        MarkLocation::Path(path) => {
-                            if let Some(&position) = marks_state
-                                .serialized_marks
-                                .get(path.as_ref())
-                                .and_then(|map| map.get(name))
-                                .and_then(|points| points.first())
-                            {
-                                let info = MarksMatchInfo::Path(path.clone());
+                                let snapshot = buffer.snapshot();
+                                let position = anchor.to_point(&snapshot);
+                                let chunks = snapshot.chunks(
+                                    Point::new(position.row, 0)
+                                        ..Point::new(position.row, snapshot.line_len(position.row)),
+                                    LanguageAwareStyling {
+                                        tree_sitter: true,
+                                        diagnostics: true,
+                                    },
+                                );
+
                                 matches.push(MarksMatch {
                                     name: name.clone(),
                                     position,
-                                    info,
-                                });
+                                    info: MarksMatchInfo::from_chunks(chunks, &theme),
+                                })
                             }
                         }
                     }
-                }
-            });
-            let _ = picker.update(cx, |picker, cx| {
-                matches.sort_by_key(|a| {
-                    (
-                        a.name.chars().next().map(|c| c.is_ascii_uppercase()),
-                        a.name.clone(),
-                    )
+
+                    for (name, mark_location) in marks_state.global_marks.iter() {
+                        if has_seen.contains(name) {
+                            continue;
+                        }
+                        has_seen.insert(name.clone());
+
+                        match mark_location {
+                            MarkLocation::Buffer(entity_id) => {
+                                if let Some(&anchor) = marks_state
+                                    .multibuffer_marks
+                                    .get(entity_id)
+                                    .and_then(|map| map.get(name))
+                                    .and_then(|anchors| anchors.first())
+                                {
+                                    let Some((info, snapshot)) = workspace
+                                        .items(cx)
+                                        .filter_map(|item| item.act_as::<Editor>(cx))
+                                        .map(|entity| entity.read(cx).buffer())
+                                        .find(|buffer| buffer.entity_id().eq(entity_id))
+                                        .map(|buffer| {
+                                            (
+                                                MarksMatchInfo::Title(
+                                                    buffer.read(cx).title(cx).to_string(),
+                                                ),
+                                                buffer.read(cx).snapshot(cx),
+                                            )
+                                        })
+                                    else {
+                                        continue;
+                                    };
+                                    matches.push(MarksMatch {
+                                        name: name.clone(),
+                                        position: anchor.to_point(&snapshot),
+                                        info,
+                                    });
+                                }
+                            }
+                            MarkLocation::Path(path) => {
+                                if let Some(&position) = marks_state
+                                    .serialized_marks
+                                    .get(path.as_ref())
+                                    .and_then(|map| map.get(name))
+                                    .and_then(|points| points.first())
+                                {
+                                    let info = MarksMatchInfo::Path(path.clone());
+                                    matches.push(MarksMatch {
+                                        name: name.clone(),
+                                        position,
+                                        info,
+                                    });
+                                }
+                            }
+                        }
+                    }
                 });
-                let digits = matches
-                    .iter()
-                    .map(|m| (m.position.row + 1).ilog10() + (m.position.column + 1).ilog10())
-                    .max()
-                    .unwrap_or_default();
-                picker.delegate.matches = matches;
-                picker.delegate.point_column_width = (digits + 4) as usize;
-                cx.notify();
-            });
-        })
+                let _ = picker.update(cx, |picker, cx| {
+                    matches.sort_by_key(|a| {
+                        (
+                            a.name.chars().next().map(|c| c.is_ascii_uppercase()),
+                            a.name.clone(),
+                        )
+                    });
+                    let digits = matches
+                        .iter()
+                        .map(|m| (m.position.row + 1).ilog10() + (m.position.column + 1).ilog10())
+                        .max()
+                        .unwrap_or_default();
+                    picker.delegate.matches = matches;
+                    picker.delegate.point_column_width = (digits + 4) as usize;
+                    cx.notify();
+                });
+            })
+        }
     }
 
     fn confirm(&mut self, _: bool, window: &mut Window, cx: &mut Context<Picker<Self>>) {
@@ -1697,13 +1712,13 @@ impl PickerDelegate for MarksViewDelegate {
         cx.emit(DismissEvent);
     }
 
-    fn dismissed(&mut self, _: &mut Window, _: &mut Context<Picker<Self>>) {}
+    fn dismissed(&mut self, _window: &mut Window, _: &mut Context<Picker<Self>>) {}
 
     fn render_match(
         &self,
         ix: usize,
         selected: bool,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         let mark_match = self.matches.get(ix)?;
@@ -1714,7 +1729,7 @@ impl PickerDelegate for MarksViewDelegate {
         left_output.push_str(&mark_match.name);
         left_runs.push((
             0..left_output.len(),
-            HighlightStyle::color(cx.theme().colors().text_accent),
+            HighlightStyle::color(window.theme(cx).colors().text_accent),
         ));
         left_output.push(' ');
         left_output.push(' ');
@@ -1733,14 +1748,17 @@ impl PickerDelegate for MarksViewDelegate {
                 let s = path.to_string_lossy().into_owned();
                 (
                     s.clone(),
-                    vec![(0..s.len(), HighlightStyle::color(cx.theme().colors().text))],
+                    vec![(
+                        0..s.len(),
+                        HighlightStyle::color(window.theme(cx).colors().text),
+                    )],
                 )
             }
             MarksMatchInfo::Title(title) => (
                 title.clone(),
                 vec![(
                     0..title.len(),
-                    HighlightStyle::color(cx.theme().colors().text),
+                    HighlightStyle::color(window.theme(cx).colors().text),
                 )],
             ),
             MarksMatchInfo::Content { line, highlights } => (line.clone(), highlights.clone()),
@@ -1748,7 +1766,7 @@ impl PickerDelegate for MarksViewDelegate {
 
         let theme = ThemeSettings::get_global(cx);
         let text_style = TextStyle {
-            color: cx.theme().colors().editor_foreground,
+            color: window.theme(cx).colors().editor_foreground,
             font_family: theme.buffer_font.family.clone(),
             font_features: theme.buffer_font.features.clone(),
             font_fallbacks: theme.buffer_font.fallbacks.clone(),
@@ -1761,7 +1779,9 @@ impl PickerDelegate for MarksViewDelegate {
 
         Some(
             h_flex()
-                .when(selected, |el| el.bg(cx.theme().colors().element_selected))
+                .when(selected, |el| {
+                    el.bg(window.theme(cx).colors().element_selected)
+                })
                 .font_buffer(cx)
                 .text_buffer(cx)
                 .h(theme.buffer_font_size(cx) * theme.line_height())

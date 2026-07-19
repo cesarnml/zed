@@ -1204,7 +1204,7 @@ impl Vim {
                 .map(|s| buffer_snapshot.point_to_offset(s.head()))
                 .unwrap_or(start_offset);
 
-            let style = editor.style(cx);
+            let style = editor.style(window, cx);
             let font = style.text.font();
             let font_size = style.text.font_size.to_pixels(window.rem_size());
             let label_color = window.theme(cx).colors().vim_helix_jump_label_foreground;
@@ -1864,6 +1864,7 @@ struct HelixJumpUiData {
 mod test {
     use futures::StreamExt;
     use std::{fmt::Write, time::Duration};
+    use ui::ConfiguredTheme as _;
 
     use editor::{HighlightKey, MultiBufferOffset};
     use gpui::{
@@ -1876,7 +1877,6 @@ mod test {
     use search::{ProjectSearchView, project_search};
     use serde_json::json;
     use settings::{SettingsStore, ThemeColorsContent, ThemeStyleContent};
-    use theme::ActiveTheme as _;
     use util::path;
     use workspace::{DeploySearch, MultiWorkspace};
 
@@ -2024,10 +2024,13 @@ mod test {
                 .first()
                 .map(|selection| buffer_snapshot.point_to_offset(selection.head()))
                 .unwrap_or(MultiBufferOffset(0));
-            let style = editor.style(cx);
+            let style = editor.style(window, cx);
             let font = style.text.font();
             let font_size = style.text.font_size.to_pixels(window.rem_size());
-            let label_color = cx.theme().colors().vim_helix_jump_label_foreground;
+            let label_color = cx
+                .configured_theme()
+                .colors()
+                .vim_helix_jump_label_foreground;
             let data = Vim::build_helix_jump_ui_data(
                 buffer_snapshot,
                 MultiBufferOffset(0),
@@ -4046,11 +4049,14 @@ mod test {
         cx.executor().advance_clock(Duration::from_millis(200));
         cx.run_until_parked();
 
-        let configured_label_color =
-            cx.update(|_, cx| cx.theme().colors().vim_helix_jump_label_foreground);
+        let configured_label_color = cx.update(|_, cx| {
+            cx.configured_theme()
+                .colors()
+                .vim_helix_jump_label_foreground
+        });
         assert_ne!(
             configured_label_color,
-            cx.update(|_, cx| cx.theme().status().error)
+            cx.update(|_, cx| cx.configured_theme().status().error)
         );
         cx.set_state("ˇalpha beta gamma", Mode::HelixNormal);
 
@@ -4064,7 +4070,7 @@ mod test {
                 .first()
                 .map(|selection| buffer_snapshot.point_to_offset(selection.head()))
                 .unwrap_or(MultiBufferOffset(0));
-            let style = editor.style(cx);
+            let style = editor.style(window, cx);
             let font = style.text.font();
             let font_size = style.text.font_size.to_pixels(window.rem_size());
             let data = Vim::build_helix_jump_ui_data(

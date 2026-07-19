@@ -2,14 +2,14 @@ use std::{ops::Range, rc::Rc};
 use theme::WindowTheme;
 
 use crate::{
-    ActiveTheme as _, AnyElement, App, Button, ButtonCommon as _, ButtonStyle, Color, Component,
-    ComponentScope, Context, Div, DraggedColumn, ElementId, FixedWidth as _, FluentBuilder as _,
-    HeaderResizeInfo, Indicator, InteractiveElement, IntoElement, ParentElement, Pixels,
-    RESIZE_DIVIDER_WIDTH, RedistributableColumnsState, RegisterComponent, RenderOnce, ScrollAxes,
-    ScrollableHandle, Scrollbars, SharedString, StatefulInteractiveElement, Styled, StyledExt as _,
-    StyledTypography, TableResizeBehavior, Window, WithScrollbar, bind_redistributable_columns,
-    div, example_group_with_title, h_flex, px, redistribute_hidden_widths,
-    render_column_resize_divider, render_redistributable_columns_resize_handles, single_example,
+    AnyElement, App, Button, ButtonCommon as _, ButtonStyle, Color, Component, ComponentScope,
+    Context, Div, DraggedColumn, ElementId, FixedWidth as _, FluentBuilder as _, HeaderResizeInfo,
+    Indicator, InteractiveElement, IntoElement, ParentElement, Pixels, RESIZE_DIVIDER_WIDTH,
+    RedistributableColumnsState, RegisterComponent, RenderOnce, ScrollAxes, ScrollableHandle,
+    Scrollbars, SharedString, StatefulInteractiveElement, Styled, StyledExt as _, StyledTypography,
+    TableResizeBehavior, Window, WithScrollbar, bind_redistributable_columns, div,
+    example_group_with_title, h_flex, px, redistribute_hidden_widths, render_column_resize_divider,
+    render_redistributable_columns_resize_handles, single_example,
     table_row::{IntoTableRow as _, TableRow},
     v_flex,
 };
@@ -737,6 +737,7 @@ pub fn render_table_header(
     table_context: TableRenderContext,
     resize_info: Option<HeaderResizeInfo>,
     entity_id: Option<EntityId>,
+    window: &mut Window,
     cx: &mut App,
 ) -> AnyElement {
     let cols = headers.cols();
@@ -757,7 +758,7 @@ pub fn render_table_header(
         .py_1()
         .w_full()
         .border_b_1()
-        .border_color(cx.theme().colors().border_variant);
+        .border_color(window.theme(cx).colors().border_variant);
 
     let use_ui_font = table_context.use_ui_font;
     let resize_info_ref = resize_info.as_ref();
@@ -1181,6 +1182,7 @@ impl RenderOnce for Table {
                     table_context.clone(),
                     header_resize_info,
                     interaction_state.as_ref().map(Entity::entity_id),
+                    window,
                     cx,
                 ))
             })

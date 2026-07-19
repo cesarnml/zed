@@ -98,7 +98,7 @@ impl ChannelModal {
     fn set_channel_visibility(
         &mut self,
         selection: &ToggleState,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.channel_store.update(cx, |channel_store, cx| {
@@ -116,7 +116,7 @@ impl ChannelModal {
         });
     }
 
-    fn dismiss(&mut self, _: &menu::Cancel, _: &mut Window, cx: &mut Context<Self>) {
+    fn dismiss(&mut self, _: &menu::Cancel, _window: &mut Window, cx: &mut Context<Self>) {
         cx.emit(DismissEvent);
     }
 }
@@ -131,7 +131,7 @@ impl Focusable for ChannelModal {
 }
 
 impl Render for ChannelModal {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let channel_store = self.channel_store.read(cx);
         let Some(channel) = channel_store.channel_for_id(self.channel_id) else {
             return div();
@@ -145,7 +145,7 @@ impl Render for ChannelModal {
             .key_context("ChannelModal")
             .on_action(cx.listener(Self::toggle_mode))
             .on_action(cx.listener(Self::dismiss))
-            .elevation_3(cx.theme())
+            .elevation_3(window.theme(cx))
             .child(
                 v_flex()
                     .px_2()
@@ -206,7 +206,7 @@ impl Render for ChannelModal {
                                     .cursor_pointer()
                                     .border_b_2()
                                     .when(mode == Mode::ManageMembers, |this| {
-                                        this.border_color(cx.theme().colors().border)
+                                        this.border_color(window.theme(cx).colors().border)
                                     })
                                     .child(Label::new("Manage Members"))
                                     .on_click(cx.listener(|this, _, window, cx| {
@@ -221,7 +221,7 @@ impl Render for ChannelModal {
                                     .cursor_pointer()
                                     .border_b_2()
                                     .when(mode == Mode::InviteMembers, |this| {
-                                        this.border_color(cx.theme().colors().border)
+                                        this.border_color(window.theme(cx).colors().border)
                                     })
                                     .child(Label::new("Invite Members"))
                                     .on_click(cx.listener(|this, _, window, cx| {
@@ -390,7 +390,7 @@ impl PickerDelegate for ChannelModalDelegate {
         }
     }
 
-    fn dismissed(&mut self, _: &mut Window, cx: &mut Context<Picker<Self>>) {
+    fn dismissed(&mut self, _window: &mut Window, cx: &mut Context<Picker<Self>>) {
         if self.context_menu.is_none() {
             self.channel_modal
                 .update(cx, |_, cx| {
@@ -404,7 +404,7 @@ impl PickerDelegate for ChannelModalDelegate {
         &self,
         ix: usize,
         selected: bool,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         let user = self.user_at_index(ix)?;

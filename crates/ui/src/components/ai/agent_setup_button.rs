@@ -76,7 +76,7 @@ impl Component for AgentSetupButton {
 }
 
 impl RenderOnce for AgentSetupButton {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let is_clickable = !self.disabled && self.on_click.is_some();
 
         let has_top_section = self.icon.is_some() || self.name.is_some();
@@ -97,21 +97,21 @@ impl RenderOnce for AgentSetupButton {
                 .h_full()
                 .justify_center()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
-                .bg(cx.theme().colors().element_background.opacity(0.5))
+                .border_color(window.theme(cx).colors().border_variant)
+                .bg(window.theme(cx).colors().element_background.opacity(0.5))
                 .child(state_element)
         });
 
         v_flex()
             .id(self.id)
             .border_1()
-            .border_color(cx.theme().colors().border_variant)
+            .border_color(window.theme(cx).colors().border_variant)
             .rounded_sm()
             .when(is_clickable, |this| {
                 this.cursor_pointer().hover(|style| {
                     style
-                        .bg(cx.theme().colors().element_hover)
-                        .border_color(cx.theme().colors().border)
+                        .bg(window.theme(cx).colors().element_hover)
+                        .border_color(window.theme(cx).colors().border)
                 })
             })
             .when_some(top_section, |this, section| this.child(section))

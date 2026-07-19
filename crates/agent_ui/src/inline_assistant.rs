@@ -4,6 +4,7 @@ use language_models::provider::anthropic::telemetry::{
 use std::mem;
 use std::ops::Range;
 use std::sync::Arc;
+use ui::WindowTheme as _;
 use uuid::Uuid;
 
 use crate::context::load_context;
@@ -500,7 +501,7 @@ impl InlineAssistant {
             }
 
             let [prompt_block_id, tool_description_block_id, end_block_id] =
-                self.insert_assist_blocks(&editor, &range, &prompt_editor, cx);
+                self.insert_assist_blocks(&editor, &range, &prompt_editor, window, cx);
 
             assists.push((
                 assist_id,
@@ -606,6 +607,7 @@ impl InlineAssistant {
         editor: &Entity<Editor>,
         range: &Range<Anchor>,
         prompt_editor: &Entity<PromptEditor<BufferCodegen>>,
+        _window: &Window,
         cx: &mut App,
     ) -> [CustomBlockId; 3] {
         let prompt_editor_height = prompt_editor.update(cx, |prompt_editor, cx| {
@@ -638,7 +640,7 @@ impl InlineAssistant {
                         .h_full()
                         .w_full()
                         .border_t_1()
-                        .border_color(cx.theme().status().info_border)
+                        .border_color(cx.window.theme(cx.app).status().info_border)
                         .into_any_element()
                 }),
                 priority: 0,

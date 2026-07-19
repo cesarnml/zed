@@ -56,11 +56,11 @@ impl GradientFade {
 }
 
 impl RenderOnce for GradientFade {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let stop = self.gradient_stop;
 
         // Best-effort to flatten potentially-transparent colors to opaque ones.
-        let app_bg = cx.theme().colors().background;
+        let app_bg = window.theme(cx).colors().background;
         let base_bg = app_bg.blend(self.base_bg);
         let hover_bg = app_bg.blend(self.hover_bg);
         let active_bg = app_bg.blend(self.active_bg);

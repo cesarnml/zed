@@ -229,9 +229,10 @@ impl CommitModal {
         }
     }
 
-    fn commit_editor_element(&self, _window: &mut Window, cx: &mut Context<Self>) -> EditorElement {
+    fn commit_editor_element(&self, window: &mut Window, cx: &mut Context<Self>) -> EditorElement {
         let settings = theme_settings::ThemeSettings::get_global(cx);
-        let editor_style = git_commit_editor_style(settings.git_commit_buffer_font_size(cx), cx);
+        let editor_style =
+            git_commit_editor_style(settings.git_commit_buffer_font_size(cx), window, cx);
         EditorElement::new(&self.commit_editor, editor_style)
     }
 
@@ -347,7 +348,7 @@ impl CommitModal {
             .anchor(Anchor::TopRight)
     }
 
-    pub fn render_footer(&self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    pub fn render_footer(&self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let (
             can_commit,
             tooltip,
@@ -420,7 +421,8 @@ impl CommitModal {
         let focus_handle = self.focus_handle(cx);
 
         let close_kb_hint = ui::KeyBinding::for_action(&menu::Cancel, cx).map(|close_kb| {
-            KeybindingHint::new(close_kb, cx.theme().colors().editor_background).suffix("Cancel")
+            KeybindingHint::new(close_kb, window.theme(cx).colors().editor_background)
+                .suffix("Cancel")
         });
 
         h_flex()
@@ -502,7 +504,7 @@ impl CommitModal {
             )
     }
 
-    fn dismiss(&mut self, _: &menu::Cancel, _: &mut Window, cx: &mut Context<Self>) {
+    fn dismiss(&mut self, _: &menu::Cancel, _window: &mut Window, cx: &mut Context<Self>) {
         if self.git_panel.read(cx).amend_pending() {
             self.git_panel
                 .update(cx, |git_panel, cx| git_panel.set_amend_pending(false, cx));

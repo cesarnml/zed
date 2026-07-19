@@ -277,13 +277,13 @@ impl SvgPreviewView {
 }
 
 impl Render for SvgPreviewView {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .id("SvgPreview")
             .key_context("SvgPreview")
             .track_focus(&self.focus_handle(cx))
             .size_full()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .flex()
             .justify_center()
             .items_center()

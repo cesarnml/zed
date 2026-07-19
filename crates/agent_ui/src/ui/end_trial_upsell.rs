@@ -17,7 +17,7 @@ impl EndTrialUpsell {
 }
 
 impl RenderOnce for EndTrialUpsell {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let pro_section = v_flex()
             .gap_1()
             .child(
@@ -57,7 +57,9 @@ impl RenderOnce for EndTrialUpsell {
                     .child(
                         Label::new("(Current Plan)")
                             .size(LabelSize::Small)
-                            .color(Color::Custom(cx.theme().colors().text_muted.opacity(0.6)))
+                            .color(Color::Custom(
+                                window.theme(cx).colors().text_muted.opacity(0.6),
+                            ))
                             .buffer_font(cx),
                     )
                     .child(Divider::horizontal()),

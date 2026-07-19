@@ -1185,7 +1185,7 @@ impl DiagnosticPopover {
             )
             // Don't draw the background color if the theme
             // allows transparent surfaces.
-            .when(theme_is_transparent(cx), |this| {
+            .when(theme_is_transparent(window.theme(cx)), |this| {
                 this.bg(gpui::transparent_black())
             })
             // Prevent a mouse move on the popover from being propagated to the editor,

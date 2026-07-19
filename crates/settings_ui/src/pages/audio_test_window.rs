@@ -260,7 +260,7 @@ impl Drop for AudioTestWindow {
     }
 }
 
-pub fn open_audio_test_window(_window: &mut Window, cx: &mut App) {
+pub fn open_audio_test_window(window: &mut Window, cx: &mut App) {
     let existing = cx
         .windows()
         .into_iter()
@@ -294,7 +294,7 @@ pub fn open_audio_test_window(_window: &mut Window, cx: &mut App) {
             show: true,
             is_movable: true,
             kind: WindowKind::Normal,
-            window_background: cx.theme().window_background_appearance(),
+            window_background: window.theme(cx).window_background_appearance(),
             app_id: Some(app_id.to_owned()),
             window_decorations: Some(gpui::WindowDecorations::Client),
             window_bounds: Some(WindowBounds::centered(window_size, cx)),

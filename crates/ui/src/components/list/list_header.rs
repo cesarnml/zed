@@ -108,7 +108,7 @@ impl Toggleable for ListHeader {
 }
 
 impl RenderOnce for ListHeader {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let ui_density = theme::theme_settings(cx).ui_density(cx);
 
         h_flex()
@@ -127,7 +127,7 @@ impl RenderOnce for ListHeader {
                     })
                     .when(self.inset, |this| this.px_2())
                     .when(self.selected, |this| {
-                        this.bg(cx.theme().colors().ghost_element_selected)
+                        this.bg(window.theme(cx).colors().ghost_element_selected)
                     })
                     .when_some(self.focused, |this, focused| {
                         this.border_1()

@@ -58,7 +58,7 @@ impl Render for Breadcrumbs {
             return element.into_any_element();
         };
 
-        let Some((segments, breadcrumb_font)) = active_item.breadcrumbs(cx) else {
+        let Some((segments, breadcrumb_font)) = active_item.breadcrumbs(window, cx) else {
             return element.into_any_element();
         };
 

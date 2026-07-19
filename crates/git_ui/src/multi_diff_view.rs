@@ -312,8 +312,12 @@ impl Item for MultiDiffView {
         ToolbarItemLocation::PrimaryLeft
     }
 
-    fn breadcrumbs(&self, cx: &App) -> Option<(Vec<HighlightedText>, Option<Font>)> {
-        self.editor.breadcrumbs(cx)
+    fn breadcrumbs(
+        &self,
+        window: &Window,
+        cx: &App,
+    ) -> Option<(Vec<HighlightedText>, Option<Font>)> {
+        self.editor.breadcrumbs(window, cx)
     }
 
     fn added_to_workspace(

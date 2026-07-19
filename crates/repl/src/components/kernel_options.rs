@@ -218,7 +218,12 @@ impl PickerDelegate for KernelPickerDelegate {
         self.selected_index
     }
 
-    fn set_selected_index(&mut self, ix: usize, _: &mut Window, cx: &mut Context<Picker<Self>>) {
+    fn set_selected_index(
+        &mut self,
+        ix: usize,
+        _window: &mut Window,
+        cx: &mut Context<Picker<Self>>,
+    ) {
         if matches!(
             self.filtered_entries.get(ix),
             Some(KernelPickerEntry::SectionHeader(_))
@@ -312,7 +317,7 @@ impl PickerDelegate for KernelPickerDelegate {
         &self,
         ix: usize,
         selected: bool,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         let entry = self.filtered_entries.get(ix)?;
@@ -423,14 +428,14 @@ impl PickerDelegate for KernelPickerDelegate {
 
     fn render_footer(
         &self,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<gpui::AnyElement> {
         Some(
             h_flex()
                 .w_full()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .p_1()
                 .gap_4()
                 .child(

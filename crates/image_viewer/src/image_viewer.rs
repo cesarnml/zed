@@ -603,7 +603,7 @@ impl Item for ImageView {
             .into()
     }
 
-    fn tab_icon(&self, _: &Window, cx: &App) -> Option<Icon> {
+    fn tab_icon(&self, _window: &Window, cx: &App) -> Option<Icon> {
         let path = self.image_item.read(cx).abs_path(cx)?;
         ItemSettings::get_global(cx)
             .file_icons
@@ -621,7 +621,11 @@ impl Item for ImageView {
         }
     }
 
-    fn breadcrumbs(&self, cx: &App) -> Option<(Vec<HighlightedText>, Option<Font>)> {
+    fn breadcrumbs(
+        &self,
+        _window: &Window,
+        cx: &App,
+    ) -> Option<(Vec<HighlightedText>, Option<Font>)> {
         let text = breadcrumbs_text_for_image(self.project.read(cx), self.image_item.read(cx), cx);
         let font = ThemeSettings::get_global(cx).buffer_font.clone();
 
@@ -765,7 +769,7 @@ impl Focusable for ImageView {
 }
 
 impl Render for ImageView {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
             .track_focus(&self.focus_handle(cx))
             .key_context("ImageViewer")
@@ -777,7 +781,7 @@ impl Render for ImageView {
             .on_action(cx.listener(Self::reveal_in_file_manager))
             .size_full()
             .relative()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child({
                 let container = div()
                     .id("image-container")

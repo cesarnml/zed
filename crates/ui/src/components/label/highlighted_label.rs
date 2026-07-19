@@ -175,8 +175,8 @@ impl LabelCommon for HighlightedLabel {
         self
     }
 
-    fn inline_code(mut self, cx: &App) -> Self {
-        self.base = self.base.inline_code(cx);
+    fn inline_code(mut self, theme: &impl ActiveTheme, cx: &App) -> Self {
+        self.base = self.base.inline_code(theme, cx);
         self
     }
 }

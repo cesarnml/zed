@@ -1,4 +1,5 @@
 use std::ops::Range;
+use theme::ConfiguredTheme;
 
 use collections::HashMap;
 use futures::FutureExt;
@@ -12,7 +13,7 @@ use multi_buffer::{
     ToOffset as _,
 };
 use text::BufferId;
-use theme::{ActiveTheme as _, SyntaxTheme};
+use theme::SyntaxTheme;
 use unicode_segmentation::UnicodeSegmentation as _;
 use util::maybe;
 
@@ -49,7 +50,7 @@ impl Editor {
             })
         } else {
             let buffer_snapshot = buffer.read(cx).snapshot();
-            let syntax = cx.theme().syntax().clone();
+            let syntax = cx.configured_theme().syntax().clone();
             cx.background_executor()
                 .spawn(async move { buffer_snapshot.outline(Some(&syntax)).items })
         }
@@ -215,7 +216,7 @@ impl Editor {
                 let results = join_all(tasks).await.into_iter().collect::<HashMap<_, _>>();
                 editor
                     .update(cx, |editor, cx| {
-                        let syntax = cx.theme().syntax().clone();
+                        let syntax = cx.configured_theme().syntax().clone();
                         let display_snapshot =
                             editor.display_map.update(cx, |map, cx| map.snapshot(cx));
                         let mut highlighted_results = results;
@@ -904,6 +905,7 @@ mod tests {
         use collections::IndexMap;
         use gpui::{Hsla, Rgba, UpdateGlobal as _};
         use theme_settings::{HighlightStyleContent, ThemeStyleContent};
+        use ui::ConfiguredTheme as _;
 
         init_test(cx, |_| {});
 
@@ -935,6 +937,15 @@ mod tests {
                     });
                 });
             });
+        });
+        cx.update_editor(|editor, _window, cx| {
+            editor
+                .project
+                .as_ref()
+                .expect("editor should have a project")
+                .read(cx)
+                .languages()
+                .set_theme(cx.configured_theme().clone());
         });
         cx.set_state("fn maˇin() {}");
         cx.run_until_parked();
@@ -986,6 +997,15 @@ mod tests {
                     });
                 });
             });
+        });
+        cx.update_editor(|editor, _window, cx| {
+            editor
+                .project
+                .as_ref()
+                .expect("editor should have a project")
+                .read(cx)
+                .languages()
+                .set_theme(cx.configured_theme().clone());
         });
         cx.run_until_parked();
 

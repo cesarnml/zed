@@ -1043,7 +1043,7 @@ impl ConfigurationView {
 }
 
 impl Render for ConfigurationView {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let is_authenticated = self.state.read(cx).is_authenticated();
 
         v_flex()
@@ -1063,7 +1063,7 @@ impl Render for ConfigurationView {
                             .child(
                                 ListBulletItem::new("")
                                     .child(Label::new("To get your first model, try running").color(Color::Muted))
-                                    .child(Label::new("lms get qwen2.5-coder-7b").inline_code(cx).color(Color::Muted).ml_1()),
+                                    .child(Label::new("lms get qwen2.5-coder-7b").inline_code(window.theme(cx), cx).color(Color::Muted).ml_1()),
                             ),
                     )
                     .child(Label::new(

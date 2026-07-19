@@ -61,7 +61,7 @@ use std::{
     sync::{Arc, LazyLock, OnceLock},
     time::Instant,
 };
-use theme::{ActiveTheme, ThemeRegistry};
+use theme::{ConfiguredTheme, GlobalTheme, ThemeRegistry};
 use theme_settings::load_user_theme;
 use util::{ResultExt, maybe};
 use uuid::Uuid;
@@ -791,7 +791,8 @@ fn main() {
             let client = app_state.client.clone();
             move |cx| {
                 for &mut window in cx.windows().iter_mut() {
-                    let background_appearance = cx.theme().window_background_appearance();
+                    let background_appearance =
+                        cx.configured_theme().window_background_appearance();
                     window
                         .update(cx, |_, window, _| {
                             window.set_background_appearance(background_appearance)
@@ -821,10 +822,18 @@ fn main() {
             }
         })
         .detach();
+        app_state.languages.set_theme(cx.configured_theme().clone());
+        cx.observe_global::<GlobalTheme>({
+            let languages = app_state.languages.clone();
+            move |cx| {
+                languages.set_theme(cx.configured_theme().clone());
+            }
+        })
+        .detach();
         telemetry::event!(
             "Settings Changed",
             setting = "theme",
-            value = cx.theme().name.to_string()
+            value = cx.configured_theme().name.to_string()
         );
         telemetry::event!(
             "Settings Changed",

@@ -50,13 +50,13 @@ impl Render for HelloWorld {
         let markdown_style = MarkdownStyle {
             base_text_style: gpui::TextStyle {
                 font_family: "Zed Mono".into(),
-                color: cx.theme().colors().text,
+                color: cx.configured_theme().colors().text,
                 ..Default::default()
             },
             code_block: StyleRefinement {
                 text: gpui::TextStyleRefinement {
                     font_family: Some("Zed Mono".into()),
-                    background_color: Some(cx.theme().colors().editor_background),
+                    background_color: Some(cx.configured_theme().colors().editor_background),
                     ..Default::default()
                 },
                 margin: gpui::EdgesRefinement {
@@ -69,26 +69,26 @@ impl Render for HelloWorld {
             },
             inline_code: gpui::TextStyleRefinement {
                 font_family: Some("Zed Mono".into()),
-                background_color: Some(cx.theme().colors().editor_background),
+                background_color: Some(cx.configured_theme().colors().editor_background),
                 ..Default::default()
             },
-            rule_color: Color::Muted.color(cx.theme()),
-            block_quote_border_color: Color::Muted.color(cx.theme()),
+            rule_color: Color::Muted.color(cx.configured_theme()),
+            block_quote_border_color: Color::Muted.color(cx.configured_theme()),
             block_quote: gpui::TextStyleRefinement {
-                color: Some(Color::Muted.color(cx.theme())),
+                color: Some(Color::Muted.color(cx.configured_theme())),
                 ..Default::default()
             },
             link: gpui::TextStyleRefinement {
-                color: Some(Color::Accent.color(cx.theme())),
+                color: Some(Color::Accent.color(cx.configured_theme())),
                 underline: Some(gpui::UnderlineStyle {
                     thickness: px(1.),
-                    color: Some(Color::Accent.color(cx.theme())),
+                    color: Some(Color::Accent.color(cx.configured_theme())),
                     wavy: false,
                 }),
                 ..Default::default()
             },
-            syntax: cx.theme().syntax().clone(),
-            selection_background_color: cx.theme().colors().element_selection_background,
+            syntax: cx.configured_theme().syntax().clone(),
+            selection_background_color: cx.configured_theme().colors().element_selection_background,
             heading: Default::default(),
             ..Default::default()
         };

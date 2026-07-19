@@ -3,7 +3,7 @@ use gpui::{
     AnyElement, App, Entity, EventEmitter, FocusHandle, Focusable, Hsla, Task, actions, hsla,
 };
 use strum::IntoEnumIterator;
-use theme::all_theme_colors;
+use theme::{ConfiguredTheme, all_theme_colors};
 use ui::{
     AudioStatus, Avatar, AvatarAudioStatusIndicator, AvatarAvailabilityIndicator, ButtonLike,
     Checkbox, CollaboratorAvailability, DecoratedIcon, ElevationIndex, Facepile, IconDecoration,
@@ -89,7 +89,7 @@ impl Item for ThemePreview {
     fn to_item_events(_: &Self::Event, _: &mut dyn FnMut(crate::item::ItemEvent)) {}
 
     fn tab_content_text(&self, _detail: usize, cx: &App) -> SharedString {
-        let name = cx.theme().name.clone();
+        let name = cx.configured_theme().name.clone();
         format!("{} Preview", name).into()
     }
 
@@ -294,7 +294,7 @@ impl ThemePreview {
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         let bg = layer.bg(window.theme(cx));
-        let all_colors = all_theme_colors(cx);
+        let all_colors = all_theme_colors(window.theme(cx));
 
         v_flex()
             .gap_1()

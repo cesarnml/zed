@@ -822,8 +822,8 @@ async fn test_remote_git_graph_data_and_search(
     render_git_graph(&remote_graph, cx_b);
     let remote_initial_graph_data =
         remote_graph.read_with(cx_b, |graph, _| graph.initial_commit_data_for_test());
-    remote_graph.update(cx_b, |graph, cx| {
-        graph.search_for_test(SharedString::from(search_query), cx);
+    remote_graph.update_in(cx_b, |graph, window, cx| {
+        graph.search_for_test(SharedString::from(search_query), window, cx);
     });
     cx_b.run_until_parked();
     let remote_search_results =
@@ -834,8 +834,8 @@ async fn test_remote_git_graph_data_and_search(
     render_git_graph(&local_graph, cx_a);
     let local_initial_graph_data =
         local_graph.read_with(cx_a, |graph, _| graph.initial_commit_data_for_test());
-    local_graph.update(cx_a, |graph, cx| {
-        graph.search_for_test(SharedString::from(search_query), cx);
+    local_graph.update_in(cx_a, |graph, window, cx| {
+        graph.search_for_test(SharedString::from(search_query), window, cx);
     });
     cx_a.run_until_parked();
     let local_search_results =

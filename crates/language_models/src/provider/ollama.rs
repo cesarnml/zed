@@ -848,7 +848,7 @@ impl ConfigurationView {
         cx.notify();
     }
 
-    fn render_instructions(cx: &App) -> Div {
+    fn render_instructions(window: &Window, cx: &App) -> Div {
         v_flex()
             .gap_2()
             .child(
@@ -874,7 +874,10 @@ impl ConfigurationView {
                                 Label::new("Start Ollama and download a model:")
                                     .color(Color::Muted),
                             )
-                            .child(Label::new("ollama run gpt-oss:20b").inline_code(cx)),
+                            .child(
+                                Label::new("ollama run gpt-oss:20b")
+                                    .inline_code(window.theme(cx), cx),
+                            ),
                     )
                     .child(
                         ListBulletItem::new("Click 'Connect' below to start using Ollama in Zed")
@@ -925,7 +928,7 @@ impl ConfigurationView {
           )
     }
 
-    fn render_context_window_editor(&self, cx: &Context<Self>) -> Div {
+    fn render_context_window_editor(&self, window: &Window, cx: &Context<Self>) -> Div {
         let settings = OllamaLanguageModelProvider::settings(cx);
         let custom_context_window_set = settings.context_window.is_some();
 
@@ -935,8 +938,8 @@ impl ConfigurationView {
                 .justify_between()
                 .rounded_md()
                 .border_1()
-                .border_color(cx.theme().colors().border_variant)
-                .bg(cx.theme().colors().background.opacity(0.5))
+                .border_color(window.theme(cx).colors().border_variant)
+                .bg(window.theme(cx).colors().background.opacity(0.5))
                 .child(
                     h_flex()
                         .gap_1()
@@ -974,7 +977,7 @@ impl ConfigurationView {
         }
     }
 
-    fn render_api_url_editor(&self, cx: &Context<Self>) -> Div {
+    fn render_api_url_editor(&self, window: &Window, cx: &Context<Self>) -> Div {
         let api_url = OllamaLanguageModelProvider::api_url(cx);
         let custom_api_url_set = api_url != OLLAMA_API_URL;
 
@@ -984,8 +987,8 @@ impl ConfigurationView {
                 .justify_between()
                 .rounded_md()
                 .border_1()
-                .border_color(cx.theme().colors().border_variant)
-                .bg(cx.theme().colors().background.opacity(0.5))
+                .border_color(window.theme(cx).colors().border_variant)
+                .bg(window.theme(cx).colors().background.opacity(0.5))
                 .child(
                     h_flex()
                         .gap_1()
@@ -1014,15 +1017,15 @@ impl ConfigurationView {
 }
 
 impl Render for ConfigurationView {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let is_authenticated = self.state.read(cx).is_authenticated();
 
         v_flex()
             .gap_2()
             .child(Headline::new("Ollama").size(HeadlineSize::Small))
-            .child(Self::render_instructions(cx))
-            .child(self.render_api_url_editor(cx))
-            .child(self.render_context_window_editor(cx))
+            .child(Self::render_instructions(window, cx))
+            .child(self.render_api_url_editor(window, cx))
+            .child(self.render_context_window_editor(window, cx))
             .child(self.render_api_key_editor(cx))
             .child(Divider::horizontal())
             .child(

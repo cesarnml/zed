@@ -227,7 +227,7 @@ impl ToastView for WorktreeFetchFailedToast {
 }
 
 impl Render for WorktreeFetchFailedToast {
-    fn render(&mut self, _window: &mut Window, cx: &mut gpui::Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut gpui::Context<Self>) -> impl IntoElement {
         let workspace_for_retry = self.workspace.clone();
         let worktree_name = self.worktree_name.clone();
         let branch_target = self.branch_target.clone();
@@ -239,13 +239,13 @@ impl Render for WorktreeFetchFailedToast {
 
         h_flex()
             .id("worktree-fetch-failed-toast")
-            .elevation_3(cx.theme())
+            .elevation_3(window.theme(cx))
             .gap_2()
             .py_1p5()
             .pl_2p5()
             .pr_1p5()
             .flex_none()
-            .bg(cx.theme().colors().surface_background)
+            .bg(window.theme(cx).colors().surface_background)
             .shadow_lg()
             .child(
                 Icon::new(IconName::XCircle)

@@ -573,7 +573,7 @@ impl CommitView {
             let editor = editor.rhs_editor().clone();
             editor.update(cx, |editor, cx| {
                 let snapshot = editor.snapshot(window, cx);
-                let style = editor.style(cx);
+                let style = editor.style(window, cx);
                 let font_id = window.text_system().resolve_font(&style.text.font());
                 let font_size = style.text.font_size.to_pixels(window.rem_size());
                 snapshot

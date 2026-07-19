@@ -1,16 +1,21 @@
 use crate::{Editor, HighlightKey, RangeToAnchorExt, display_map::DisplaySnapshot};
-use gpui::{AppContext, Context, HighlightStyle};
+use gpui::{AppContext, Context, HighlightStyle, Window};
 use language::CursorShape;
 use multi_buffer::MultiBufferOffset;
-use theme::ActiveTheme;
+use theme::WindowTheme as _;
 
 impl Editor {
     #[ztracing::instrument(skip_all)]
     pub fn refresh_matching_bracket_highlights(
         &mut self,
         snapshot: &DisplaySnapshot,
+        window: &Window,
         cx: &mut Context<Editor>,
     ) {
+        let bracket_background = window
+            .theme(cx)
+            .colors()
+            .editor_document_highlight_bracket_background;
         let newest_selection = self.selections.newest::<MultiBufferOffset>(&snapshot);
         // Don't highlight brackets if the selection isn't empty
         if !newest_selection.is_empty() {
@@ -66,11 +71,7 @@ impl Editor {
                                 HighlightKey::MatchingBracket,
                                 new_ranges,
                                 HighlightStyle {
-                                    background_color: Some(
-                                        cx.theme()
-                                            .colors()
-                                            .editor_document_highlight_bracket_background,
-                                    ),
+                                    background_color: Some(bracket_background),
                                     ..Default::default()
                                 },
                                 cx,

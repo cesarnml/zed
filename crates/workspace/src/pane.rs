@@ -2814,7 +2814,7 @@ impl Pane {
             DecoratedIcon::new(
                 icon,
                 Some(
-                    IconDecoration::new(icon_decoration, knockout_item_color, cx)
+                    IconDecoration::new(icon_decoration, knockout_item_color, window.theme(cx))
                         .color(icon_color.color(window.theme(cx)))
                         .position(Point {
                             x: px(-2.),
@@ -3564,7 +3564,7 @@ impl Pane {
                             .border_color(window.theme(cx).colors().border)
                     })
             }))
-            .child(self.render_unpinned_tabs_container(unpinned_tabs, tab_count, cx));
+            .child(self.render_unpinned_tabs_container(unpinned_tabs, tab_count, window, cx));
         tab_bar.into_any_element()
     }
 
@@ -3593,7 +3593,7 @@ impl Pane {
                     .overflow_x_scroll()
                     .w_full()
                     .children(pinned_tabs)
-                    .child(self.render_pinned_tab_bar_drop_target(cx)),
+                    .child(self.render_pinned_tab_bar_drop_target(window, cx)),
             );
         v_flex()
             .w_full()
@@ -3603,6 +3603,7 @@ impl Pane {
                 TabBar::new("unpinned_tab_bar").child(self.render_unpinned_tabs_container(
                     unpinned_tabs,
                     tab_count,
+                    window,
                     cx,
                 )),
             )
@@ -3613,6 +3614,7 @@ impl Pane {
         &mut self,
         unpinned_tabs: Vec<AnyElement>,
         tab_count: usize,
+        window: &Window,
         cx: &mut Context<Pane>,
     ) -> impl IntoElement {
         h_flex()
@@ -3624,12 +3626,13 @@ impl Pane {
                 this.suppress_scroll = true;
             }))
             .children(unpinned_tabs)
-            .child(self.render_tab_bar_drop_target(tab_count, cx))
+            .child(self.render_tab_bar_drop_target(tab_count, window, cx))
     }
 
     fn render_tab_bar_drop_target(
         &self,
         tab_count: usize,
+        _window: &Window,
         cx: &mut Context<Pane>,
     ) -> impl IntoElement {
         div()
@@ -3640,11 +3643,11 @@ impl Pane {
             // HACK: This empty child is currently necessary to force the drop target to appear
             // despite us setting a min width above.
             .child("")
-            .drag_over::<DraggedTab>(|bar, _, _, cx| {
-                bar.bg(cx.theme().colors().drop_target_background)
+            .drag_over::<DraggedTab>(|bar, _, window, cx| {
+                bar.bg(window.theme(cx).colors().drop_target_background)
             })
-            .drag_over::<DraggedSelection>(|bar, _, _, cx| {
-                bar.bg(cx.theme().colors().drop_target_background)
+            .drag_over::<DraggedSelection>(|bar, _, window, cx| {
+                bar.bg(window.theme(cx).colors().drop_target_background)
             })
             .on_drop(
                 cx.listener(move |this, dragged_tab: &DraggedTab, window, cx| {
@@ -3674,7 +3677,11 @@ impl Pane {
             }))
     }
 
-    fn render_pinned_tab_bar_drop_target(&self, cx: &mut Context<Pane>) -> impl IntoElement {
+    fn render_pinned_tab_bar_drop_target(
+        &self,
+        window: &Window,
+        cx: &mut Context<Pane>,
+    ) -> impl IntoElement {
         div()
             .id("pinned_tabs_border")
             .debug_selector(|| "pinned_tabs_border".into())
@@ -3682,15 +3689,15 @@ impl Pane {
             .h(Tab::container_height(cx))
             .flex_grow_1()
             .border_l_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             // HACK: This empty child is currently necessary to force the drop target to appear
             // despite us setting a min width above.
             .child("")
-            .drag_over::<DraggedTab>(|bar, _, _, cx| {
-                bar.bg(cx.theme().colors().drop_target_background)
+            .drag_over::<DraggedTab>(|bar, _, window, cx| {
+                bar.bg(window.theme(cx).colors().drop_target_background)
             })
-            .drag_over::<DraggedSelection>(|bar, _, _, cx| {
-                bar.bg(cx.theme().colors().drop_target_background)
+            .drag_over::<DraggedSelection>(|bar, _, window, cx| {
+                bar.bg(window.theme(cx).colors().drop_target_background)
             })
             .on_drop(
                 cx.listener(move |this, dragged_tab: &DraggedTab, window, cx| {
@@ -9323,7 +9330,7 @@ mod tests {
                 _project: Entity<Project>,
                 _pane: Option<&Pane>,
                 item: Entity<Self::Item>,
-                _: &mut Window,
+                _window: &mut Window,
                 cx: &mut Context<Self>,
             ) -> Self
             where

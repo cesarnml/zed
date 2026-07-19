@@ -162,7 +162,7 @@ impl RenderOnce for UpdateButton {
             let progress = progress.clamp(0.0, 1.0);
             let icon_box = IconSize::XSmall.rems().to_pixels(window.rem_size());
             let progress_color = Color::Default.color(window.theme(cx));
-            CircularProgress::new(progress, 1.0, icon_box, cx)
+            CircularProgress::new(progress, 1.0, icon_box, window.theme(cx))
                 .stroke_width(
                     icon_box * (LOAD_CIRCLE_GLYPH_STROKE_WIDTH / LOAD_CIRCLE_GLYPH_VIEWBOX),
                 )

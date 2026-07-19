@@ -250,18 +250,18 @@ impl LabelCommon for Label {
     }
 
     /// Styles the label to look like inline code.
-    fn inline_code(mut self, cx: &App) -> Self {
-        self.base = self.base.inline_code(cx);
+    fn inline_code(mut self, theme: &impl ActiveTheme, cx: &App) -> Self {
+        self.base = self.base.inline_code(theme, cx);
         self
     }
 }
 
 impl RenderOnce for Label {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         if self.render_code_spans {
             if let Some((stripped, code_ranges)) = parse_backtick_spans(&self.label) {
                 let buffer_font_family = theme::theme_settings(cx).buffer_font(cx).family.clone();
-                let background_color = cx.theme().colors().element_background;
+                let background_color = window.theme(cx).colors().element_background;
 
                 let highlights = code_ranges.iter().map(|range| {
                     (
@@ -370,7 +370,7 @@ impl Component for Label {
         sizes, and formatting options."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         v_flex()
                 .gap_6()
                 .children(vec![
@@ -398,7 +398,7 @@ impl Component for Label {
                             single_example("Italic", Label::new("Code Comment").italic().into_any_element()),
                             single_example("Strikethrough", Label::new("Deprecated Feature").strikethrough().into_any_element()),
                             single_example("Underline", Label::new("Clickable Link").underline().into_any_element()),
-                            single_example("Inline Code", Label::new("fn main() {}").inline_code(cx).into_any_element()),
+                            single_example("Inline Code", Label::new("fn main() {}").inline_code(window.theme(cx), cx).into_any_element()),
                         ],
                     ),
                     example_group_with_title(

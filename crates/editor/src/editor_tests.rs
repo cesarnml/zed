@@ -2997,7 +2997,7 @@ async fn test_move_start_of_paragraph_end_of_paragraph(cx: &mut TestAppContext) 
 
     let line_height = cx.update_editor(|editor, window, cx| {
         editor
-            .style(cx)
+            .style(window, cx)
             .text
             .line_height_in_pixels(window.rem_size())
     });
@@ -3277,7 +3277,7 @@ async fn test_scroll_page_up_page_down(cx: &mut TestAppContext) {
     let mut cx = EditorTestContext::new(cx).await;
     let line_height = cx.update_editor(|editor, window, cx| {
         editor
-            .style(cx)
+            .style(window, cx)
             .text
             .line_height_in_pixels(window.rem_size())
     });
@@ -3339,7 +3339,7 @@ async fn test_scroll_line_up_down_cursor_margin(cx: &mut TestAppContext) {
     let line_height = cx.update_editor(|editor, window, cx| {
         editor.set_vertical_scroll_margin(2, cx);
         editor
-            .style(cx)
+            .style(window, cx)
             .text
             .line_height_in_pixels(window.rem_size())
     });
@@ -3424,7 +3424,7 @@ async fn test_autoscroll(cx: &mut TestAppContext) {
     let line_height = cx.update_editor(|editor, window, cx| {
         editor.set_vertical_scroll_margin(2, cx);
         editor
-            .style(cx)
+            .style(window, cx)
             .text
             .line_height_in_pixels(window.rem_size())
     });
@@ -3506,7 +3506,7 @@ async fn test_autoscroll_relative(cx: &mut TestAppContext) {
     let line_height = cx.update_editor(|editor, window, cx| {
         editor.set_vertical_scroll_margin(0, cx);
         editor
-            .style(cx)
+            .style(window, cx)
             .text
             .line_height_in_pixels(window.rem_size())
     });
@@ -3610,7 +3610,7 @@ async fn test_exclude_overscroll_margin_clamps_scroll_position(cx: &mut TestAppC
             sizing_behavior: SizingBehavior::ExcludeOverscrollMargin,
         });
         editor
-            .style(cx)
+            .style(window, cx)
             .text
             .line_height_in_pixels(window.rem_size())
     });
@@ -3655,7 +3655,7 @@ async fn test_move_page_up_page_down(cx: &mut TestAppContext) {
 
     let line_height = cx.update_editor(|editor, window, cx| {
         editor
-            .style(cx)
+            .style(window, cx)
             .text
             .line_height_in_pixels(window.rem_size())
     });
@@ -29916,7 +29916,7 @@ async fn test_goto_definition_preserve_scroll_strategy(cx: &mut TestAppContext) 
     let window = cx.window;
     let line_height = cx.update_editor(|editor, window, cx| {
         editor
-            .style(cx)
+            .style(window, cx)
             .text
             .line_height_in_pixels(window.rem_size())
     });
@@ -31128,7 +31128,7 @@ async fn test_edit_prediction_text(cx: &mut TestAppContext) {
             assert_eq!(highlighted_edits.highlights[0].0, 6..16);
             assert_eq!(
                 highlighted_edits.highlights[0].1.background_color,
-                Some(cx.theme().status().created_background)
+                Some(cx.configured_theme().status().created_background)
             );
         },
     )
@@ -31146,7 +31146,7 @@ async fn test_edit_prediction_text(cx: &mut TestAppContext) {
             assert_eq!(highlighted_edits.highlights[0].0, 0..4);
             assert_eq!(
                 highlighted_edits.highlights[0].1.background_color,
-                Some(cx.theme().status().created_background)
+                Some(cx.configured_theme().status().created_background)
             );
         },
     )
@@ -31168,11 +31168,11 @@ async fn test_edit_prediction_text(cx: &mut TestAppContext) {
             assert_eq!(highlighted_edits.highlights[1].0, 16..29);
             assert_eq!(
                 highlighted_edits.highlights[0].1.background_color,
-                Some(cx.theme().status().created_background)
+                Some(cx.configured_theme().status().created_background)
             );
             assert_eq!(
                 highlighted_edits.highlights[1].1.background_color,
-                Some(cx.theme().status().created_background)
+                Some(cx.configured_theme().status().created_background)
             );
         },
     )
@@ -31203,7 +31203,7 @@ async fn test_edit_prediction_text(cx: &mut TestAppContext) {
             for highlight in &highlighted_edits.highlights {
                 assert_eq!(
                     highlight.1.background_color,
-                    Some(cx.theme().status().created_background)
+                    Some(cx.configured_theme().status().created_background)
                 );
             }
         },
@@ -31227,7 +31227,7 @@ async fn test_edit_prediction_text_with_deletions(cx: &mut TestAppContext) {
             assert_eq!(highlighted_edits.highlights[0].0, 5..11);
             assert_eq!(
                 highlighted_edits.highlights[0].1.background_color,
-                Some(cx.theme().status().deleted_background)
+                Some(cx.configured_theme().status().deleted_background)
             );
         },
     )
@@ -31244,7 +31244,7 @@ async fn test_edit_prediction_text_with_deletions(cx: &mut TestAppContext) {
             assert_eq!(highlighted_edits.highlights[0].0, 6..14);
             assert_eq!(
                 highlighted_edits.highlights[0].1.background_color,
-                Some(cx.theme().status().created_background)
+                Some(cx.configured_theme().status().created_background)
             );
         },
     )
@@ -31313,7 +31313,7 @@ async fn assert_highlighted_edits(
             &edit_preview,
             include_deletions,
             &snapshot,
-            cx,
+            cx.configured_theme(),
         );
         assertion_fn(highlighted_edits, cx)
     });
@@ -32418,7 +32418,7 @@ impl BookmarkTestContext {
                         .display_to_pixel_point(block_top, &snapshot, window, cx)
                         .expect("expected prompt block to be visible");
                     let line_height = editor
-                        .style(cx)
+                        .style(window, cx)
                         .text
                         .line_height_in_pixels(window.rem_size());
                     let editor_origin = editor
@@ -38288,7 +38288,7 @@ async fn test_scroll_by_clicking_sticky_header(cx: &mut TestAppContext) {
 
     let line_height = cx.update_editor(|editor, window, cx| {
         editor
-            .style(cx)
+            .style(window, cx)
             .text
             .line_height_in_pixels(window.rem_size())
     });
@@ -38453,7 +38453,7 @@ async fn test_clicking_sticky_header_sets_character_select_mode(cx: &mut TestApp
 
     let line_height = cx.update_editor(|editor, window, cx| {
         editor
-            .style(cx)
+            .style(window, cx)
             .text
             .line_height_in_pixels(window.rem_size())
     });

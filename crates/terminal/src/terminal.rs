@@ -30,7 +30,7 @@ use serde::{Deserialize, Serialize};
 use settings::Settings;
 use task::{HideStrategy, Shell, ShellKind, SpawnInTerminal};
 use terminal_settings::{AlternateScroll, CursorShape as SettingsCursorShape, TerminalSettings};
-use theme::{ActiveTheme, Theme};
+use theme::{ConfiguredTheme, Theme};
 use urlencoding;
 use util::{ResultExt as _, paths::PathStyle, truncate_and_trailoff};
 
@@ -1660,8 +1660,9 @@ impl Terminal {
                 // we might respond with out of date value if a "set color" sequence is immediately
                 // followed by a color request sequence.
 
-                let color = self.term.lock().colors()[index]
-                    .unwrap_or_else(|| to_vte_rgb(get_color_at_index(index, cx.theme().as_ref())));
+                let color = self.term.lock().colors()[index].unwrap_or_else(|| {
+                    to_vte_rgb(get_color_at_index(index, cx.configured_theme().as_ref()))
+                });
                 self.write_to_pty(format(color).into_bytes());
             }
             TerminalBackendEvent::ChildExit(exit_status) => {

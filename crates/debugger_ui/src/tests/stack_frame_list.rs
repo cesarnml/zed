@@ -16,7 +16,7 @@ use gpui::{BackgroundExecutor, TestAppContext, VisualTestContext};
 use project::{FakeFs, Project};
 use serde_json::json;
 use std::sync::Arc;
-use theme::ActiveTheme;
+use theme::ConfiguredTheme;
 use unindent::Unindent as _;
 use util::{path, rel_path::rel_path};
 use workspace::Item;
@@ -346,7 +346,7 @@ async fn test_select_stack_frame(executor: BackgroundExecutor, cx: &mut TestAppC
                     let snapshot = editor.snapshot(window, cx);
 
                     editor
-                        .highlighted_rows::<editor::ActiveDebugLine>(cx.theme())
+                        .highlighted_rows::<editor::ActiveDebugLine>(cx.configured_theme())
                         .map(|(range, _)| {
                             let start = range.start.to_point(&snapshot.buffer_snapshot());
                             let end = range.end.to_point(&snapshot.buffer_snapshot());
@@ -409,7 +409,7 @@ async fn test_select_stack_frame(executor: BackgroundExecutor, cx: &mut TestAppC
                 let snapshot = editor.snapshot(window, cx);
 
                 editor
-                    .highlighted_rows::<editor::ActiveDebugLine>(cx.theme())
+                    .highlighted_rows::<editor::ActiveDebugLine>(cx.configured_theme())
                     .map(|(range, _)| {
                         let start = range.start.to_point(&snapshot.buffer_snapshot());
                         let end = range.end.to_point(&snapshot.buffer_snapshot());

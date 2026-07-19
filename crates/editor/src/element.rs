@@ -85,7 +85,7 @@ use std::{
 };
 use sum_tree::Bias;
 use text::BufferId;
-use theme::{ActiveTheme, Appearance, PlayerColor, WindowTheme};
+use theme::{Appearance, PlayerColor, WindowTheme};
 use theme_settings::BufferLineHeight;
 use ui::utils::ensure_minimum_contrast;
 use ui::{ButtonLike, POPOVER_Y_PADDING, Tooltip, prelude::*, scrollbars::ShowScrollbar};
@@ -820,7 +820,7 @@ impl EditorElement {
                     layouts.push(layout);
                 }
 
-                let mut player = editor.current_user_player_color(cx);
+                let mut player = editor.current_user_player_color(window, cx);
                 if !editor.is_focused(window) {
                     const UNFOCUS_EDITOR_SELECTION_OPACITY: f32 = 0.5;
                     player.selection = player.selection.opacity(UNFOCUS_EDITOR_SELECTION_OPACITY);
@@ -869,8 +869,8 @@ impl EditorElement {
                                     .get(&collaborator.user_id)
                                 && let Some((local_selection_style, _)) = selections.first_mut()
                             {
-                                *local_selection_style = cx
-                                    .theme()
+                                *local_selection_style = window
+                                    .theme(cx)
                                     .players()
                                     .color_for_participant(participant_index.0);
                             }
@@ -887,6 +887,7 @@ impl EditorElement {
                 for selection in snapshot.remote_selections_in_range(
                     &(start_anchor..end_anchor),
                     collaboration_hub.as_ref(),
+                    window,
                     cx,
                 ) {
                     // Don't re-render the leader's selections, since the local selections
@@ -938,7 +939,7 @@ impl EditorElement {
                         )
                     })
                     .collect::<Vec<_>>();
-                let player = editor.current_user_player_color(cx);
+                let player = editor.current_user_player_color(window, cx);
                 selections.push((player, layouts));
             }
         });
@@ -948,6 +949,7 @@ impl EditorElement {
             &mut selections,
             start_anchor..end_anchor,
             &snapshot.display_snapshot,
+            window,
             cx,
         );
 
@@ -957,6 +959,7 @@ impl EditorElement {
     fn collect_cursors(
         &self,
         snapshot: &EditorSnapshot,
+        window: &Window,
         cx: &mut App,
     ) -> Vec<(DisplayPoint, Hsla)> {
         let editor = self.editor.read(cx);
@@ -970,6 +973,7 @@ impl EditorElement {
             for remote_selection in snapshot.remote_selections_in_range(
                 &(Anchor::Min..Anchor::Max),
                 collaboration_hub.deref(),
+                window,
                 cx,
             ) {
                 add_cursor(
@@ -983,7 +987,7 @@ impl EditorElement {
         }
         // Local cursors
         if !skip_local {
-            let color = cx.theme().players().local().cursor;
+            let color = window.theme(cx).players().local().cursor;
             editor
                 .selections
                 .disjoint_anchors()
@@ -2056,7 +2060,7 @@ impl EditorElement {
             })
             .flatten()?;
 
-        let mut element = render_inline_blame_entry(entry.clone(), &self.style, cx)?;
+        let mut element = render_inline_blame_entry(entry.clone(), &self.style, window, cx)?;
 
         let start_y =
             content_origin.y + line_height * ((display_row.as_f64() - scroll_position.y) as f32);
@@ -4582,9 +4586,10 @@ impl EditorElement {
         start_row: DisplayRow,
         snapshot: &EditorSnapshot,
         highlighted_ranges: &mut Vec<(Range<DisplayPoint>, Hsla)>,
+        window: &Window,
         cx: &mut App,
     ) {
-        let colors = cx.theme().colors();
+        let colors = window.theme(cx).colors();
 
         let visible_start =
             DisplayPoint::new(start_row, 0).to_offset(&snapshot.display_snapshot, Bias::Left);
@@ -5289,8 +5294,8 @@ impl EditorElement {
                 if let Some((hunk_bounds, background_color, corner_radii, status)) = hunk_to_paint {
                     // Flatten the background color with the editor color to prevent
                     // elements below transparent hunks from showing through
-                    let flattened_background_color = cx
-                        .theme()
+                    let flattened_background_color = window
+                        .theme(cx)
                         .colors()
                         .editor_background
                         .blend(background_color);
@@ -5305,8 +5310,8 @@ impl EditorElement {
                             BorderStyle::default(),
                         ));
                     } else {
-                        let flattened_unstaged_background_color = cx
-                            .theme()
+                        let flattened_unstaged_background_color = window
+                            .theme(cx)
                             .colors()
                             .editor_background
                             .blend(background_color.opacity(0.3));
@@ -6623,9 +6628,10 @@ impl EditorElement {
         selections: &mut Vec<(PlayerColor, Vec<SelectionLayout>)>,
         anchor_range: Range<Anchor>,
         display_snapshot: &DisplaySnapshot,
+        window: &Window,
         cx: &App,
     ) {
-        let theme = cx.theme();
+        let theme = window.theme(cx);
         text::debug::GlobalDebugRanges::with_locked(|debug_ranges| {
             if debug_ranges.ranges.is_empty() {
                 return;
@@ -6802,7 +6808,8 @@ pub fn render_breadcrumb_text(
         if index == 0
             && !workspace::TabBarSettings::get_global(cx).show
             && active_item.is_dirty(cx)
-            && let Some(styled_element) = apply_dirty_filename_style(&segment, &text_style, cx)
+            && let Some(styled_element) =
+                apply_dirty_filename_style(&segment, &text_style, window, cx)
         {
             return styled_element;
         }
@@ -6920,6 +6927,7 @@ pub fn render_breadcrumb_text(
 fn apply_dirty_filename_style(
     segment: &HighlightedText,
     text_style: &gpui::TextStyle,
+    window: &Window,
     cx: &App,
 ) -> Option<gpui::AnyElement> {
     let text = segment.text.replace('\n', " ");
@@ -6932,7 +6940,7 @@ fn apply_dirty_filename_style(
         })?;
 
     let bold_weight = FontWeight::BOLD;
-    let default_color = Color::Default.color(cx.theme());
+    let default_color = Color::Default.color(window.theme(cx));
 
     if filename_position == 0 {
         let mut filename_style = text_style.clone();
@@ -6963,10 +6971,11 @@ fn apply_dirty_filename_style(
 fn render_inline_blame_entry(
     blame_entry: BlameEntry,
     style: &EditorStyle,
+    window: &Window,
     cx: &mut App,
 ) -> Option<AnyElement> {
     let renderer = cx.global::<GlobalBlameRenderer>().0.clone();
-    renderer.render_inline_blame_entry(&style.text, blame_entry, cx)
+    renderer.render_inline_blame_entry(&style.text, blame_entry, window, cx)
 }
 
 fn render_blame_entry_popover(
@@ -8568,6 +8577,7 @@ impl Element for EditorElement {
                         start_row,
                         &snapshot,
                         &mut highlighted_ranges,
+                        window,
                         cx,
                     );
 
@@ -8643,7 +8653,8 @@ impl Element for EditorElement {
                                     blame.blame_for_rows(&[row_infos], cx).next()
                                 })
                                 .flatten()?;
-                            let mut element = render_inline_blame_entry(blame_entry, style, cx)?;
+                            let mut element =
+                                render_inline_blame_entry(blame_entry, style, window, cx)?;
                             let inline_blame_padding =
                                 ProjectSettings::get_global(cx).git.inline_blame.padding as f32
                                     * em_advance;
@@ -9028,7 +9039,7 @@ impl Element for EditorElement {
                         );
                     });
 
-                    let cursors = self.collect_cursors(&snapshot, cx);
+                    let cursors = self.collect_cursors(&snapshot, window, cx);
                     let visible_row_range = start_row..end_row;
                     let non_visible_cursors = cursors
                         .iter()
@@ -9216,7 +9227,12 @@ impl Element for EditorElement {
 
                             let button = self.editor.update(cx, |editor, cx| {
                                 editor
-                                    .render_diff_review_button(display_row, button_width, cx)
+                                    .render_diff_review_button(
+                                        display_row,
+                                        button_width,
+                                        window,
+                                        cx,
+                                    )
                                     .into_any_element()
                             });
                             gutter.prepaint_button(button, display_row, window, cx)
@@ -10992,7 +11008,8 @@ mod tests {
         });
         let cx = &mut VisualTestContext::from_window(*window, cx);
         let editor = window.root(cx).unwrap();
-        let style = cx.update(|_, cx| editor.update(cx, |editor, cx| editor.style(cx).clone()));
+        let style = cx
+            .update(|window, cx| editor.update(cx, |editor, cx| editor.style(window, cx).clone()));
 
         for x in 1..=100 {
             let (_, state) = cx.draw(
@@ -11019,7 +11036,8 @@ mod tests {
         });
         let cx = &mut VisualTestContext::from_window(*window, cx);
         let editor = window.root(cx).unwrap();
-        let style = cx.update(|_, cx| editor.update(cx, |editor, cx| editor.style(cx).clone()));
+        let style = cx
+            .update(|window, cx| editor.update(cx, |editor, cx| editor.style(window, cx).clone()));
 
         for x in 1..=100 {
             let (_, state) = cx.draw(
@@ -11236,7 +11254,11 @@ mod tests {
 
         let cx = &mut VisualTestContext::from_window(*window, cx);
         let editor = window.root(cx).unwrap();
-        let style = editor.update(cx, |editor, cx| editor.style(cx).clone());
+        let style = window
+            .update(cx, |_, window, cx| {
+                editor.update(cx, |editor, cx| editor.style(window, cx).clone())
+            })
+            .unwrap();
         let line_height = window
             .update(cx, |_, window, _| {
                 style.text.line_height_in_pixels(window.rem_size())
@@ -11341,7 +11363,8 @@ mod tests {
             );
         });
 
-        let style = cx.update(|_, cx| editor.update(cx, |editor, cx| editor.style(cx).clone()));
+        let style = cx
+            .update(|window, cx| editor.update(cx, |editor, cx| editor.style(window, cx).clone()));
         let (_, wide_state) = cx.draw(Default::default(), size(px(520.), px(260.)), |_, _| {
             EditorElement::new(&editor, style.clone())
         });
@@ -11377,7 +11400,11 @@ mod tests {
         });
 
         let editor = window.root(cx).unwrap();
-        let style = editor.update(cx, |editor, cx| editor.style(cx).clone());
+        let style = window
+            .update(cx, |_, window, cx| {
+                editor.update(cx, |editor, cx| editor.style(window, cx).clone())
+            })
+            .unwrap();
         let line_height = window
             .update(cx, |_, window, _| {
                 style.text.line_height_in_pixels(window.rem_size())
@@ -11514,7 +11541,11 @@ mod tests {
         });
 
         let editor = window.root(cx).unwrap();
-        let style = editor.update(cx, |editor, cx| editor.style(cx).clone());
+        let style = window
+            .update(cx, |_, window, cx| {
+                editor.update(cx, |editor, cx| editor.style(window, cx).clone())
+            })
+            .unwrap();
         let line_height = window
             .update(cx, |_, window, _| {
                 style.text.line_height_in_pixels(window.rem_size())
@@ -11574,7 +11605,11 @@ mod tests {
         });
 
         let editor = window.root(cx).unwrap();
-        let style = editor.update(cx, |editor, cx| editor.style(cx).clone());
+        let style = window
+            .update(cx, |_, window, cx| {
+                editor.update(cx, |editor, cx| editor.style(window, cx).clone())
+            })
+            .unwrap();
         let line_height = window
             .update(cx, |_, window, _| {
                 style.text.line_height_in_pixels(window.rem_size())
@@ -11726,7 +11761,8 @@ mod tests {
         });
         let cx = &mut VisualTestContext::from_window(*window, cx);
         let editor = window.root(cx).unwrap();
-        let style = cx.update(|_, cx| editor.update(cx, |editor, cx| editor.style(cx).clone()));
+        let style = cx
+            .update(|window, cx| editor.update(cx, |editor, cx| editor.style(window, cx).clone()));
 
         window
             .update(cx, |editor, window, cx| {
@@ -11797,7 +11833,8 @@ mod tests {
         });
         let cx = &mut VisualTestContext::from_window(*window, cx);
         let editor = window.root(cx).unwrap();
-        let style = cx.update(|_, cx| editor.update(cx, |editor, cx| editor.style(cx).clone()));
+        let style = cx
+            .update(|window, cx| editor.update(cx, |editor, cx| editor.style(window, cx).clone()));
         window
             .update(cx, |editor, window, cx| {
                 editor.set_placeholder_text("hello", window, cx);
@@ -11936,7 +11973,8 @@ mod tests {
         });
         let cx = &mut VisualTestContext::from_window(*window, cx);
         let editor = window.root(cx).unwrap();
-        let style = cx.update(|_, cx| editor.update(cx, |editor, cx| editor.style(cx).clone()));
+        let style = cx
+            .update(|window, cx| editor.update(cx, |editor, cx| editor.style(window, cx).clone()));
         let editor_mode = EditorMode::full();
         let max_line_len = "\u{00a0}abcdef".len();
 
@@ -12134,7 +12172,11 @@ mod tests {
         let cx = &mut VisualTestContext::from_window(*window, cx);
         let editor = window.root(cx).unwrap();
 
-        let style = editor.update(cx, |editor, cx| editor.style(cx).clone());
+        let style = window
+            .update(cx, |_, window, cx| {
+                editor.update(cx, |editor, cx| editor.style(window, cx).clone())
+            })
+            .unwrap();
         window
             .update(cx, |editor, _, cx| {
                 editor.set_soft_wrap_mode(language_settings::SoftWrap::EditorWidth, cx);

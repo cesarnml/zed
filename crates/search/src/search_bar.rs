@@ -1,7 +1,8 @@
 use editor::{Editor, EditorElement, EditorStyle, MultiBufferOffset, ToOffset};
-use gpui::{Action, App, Entity, FocusHandle, Hsla, IntoElement, TextStyle};
+use gpui::{Action, App, Entity, FocusHandle, Hsla, IntoElement, TextStyle, Window};
 use settings::Settings;
 use theme_settings::ThemeSettings;
+use ui::WindowTheme as _;
 use ui::{IconButton, IconButtonShape};
 use ui::{Tooltip, prelude::*};
 
@@ -80,6 +81,7 @@ pub(crate) fn input_base_styles(border_color: Hsla, map: impl FnOnce(Div) -> Div
 pub(crate) fn filter_search_results_input(
     border_color: Hsla,
     map: impl FnOnce(Div) -> Div,
+    window: &Window,
     cx: &App,
 ) -> Div {
     input_base_styles(border_color, map).pl_0().child(
@@ -88,8 +90,8 @@ pub(crate) fn filter_search_results_input(
             .px_2()
             .h_full()
             .border_r_1()
-            .border_color(cx.theme().colors().border)
-            .bg(cx.theme().colors().text_accent.opacity(0.05))
+            .border_color(window.theme(cx).colors().border)
+            .bg(window.theme(cx).colors().text_accent.opacity(0.05))
             .child(Label::new("Find in Results").color(Color::Muted)),
     )
 }
@@ -97,14 +99,15 @@ pub(crate) fn filter_search_results_input(
 pub(crate) fn render_text_input(
     editor: &Entity<Editor>,
     color_override: Option<Color>,
+    window: &Window,
     app: &App,
 ) -> impl IntoElement {
     let (color, use_syntax) = if editor.read(app).read_only(app) {
-        (app.theme().colors().text_disabled, false)
+        (window.theme(app).colors().text_disabled, false)
     } else {
         match color_override {
-            Some(color_override) => (color_override.color(app), false),
-            None => (app.theme().colors().text, true),
+            Some(color_override) => (color_override.color(window.theme(app)), false),
+            None => (window.theme(app).colors().text, true),
         }
     };
 
@@ -121,13 +124,13 @@ pub(crate) fn render_text_input(
     };
 
     let mut editor_style = EditorStyle {
-        background: app.theme().colors().toolbar_background,
-        local_player: app.theme().players().local(),
+        background: window.theme(app).colors().toolbar_background,
+        local_player: window.theme(app).players().local(),
         text: text_style,
         ..EditorStyle::default()
     };
     if use_syntax {
-        editor_style.syntax = app.theme().syntax().clone();
+        editor_style.syntax = window.theme(app).syntax().clone();
     }
 
     EditorElement::new(editor, editor_style)

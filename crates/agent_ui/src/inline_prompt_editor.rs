@@ -785,7 +785,7 @@ impl<T: 'static> PromptEditor<T> {
         }
     }
 
-    fn render_buttons(&self, _window: &mut Window, cx: &mut Context<Self>) -> Vec<AnyElement> {
+    fn render_buttons(&self, window: &mut Window, cx: &mut Context<Self>) -> Vec<AnyElement> {
         let mode = match &self.mode {
             PromptEditorMode::Buffer { codegen, .. } => {
                 let codegen = codegen.read(cx);
@@ -873,7 +873,7 @@ impl<T: 'static> PromptEditor<T> {
                                 .pl_1()
                                 .gap_1()
                                 .border_l_1()
-                                .border_color(cx.theme().colors().border_variant)
+                                .border_color(window.theme(cx).colors().border_variant)
                                 .child(
                                     IconButton::new("thumbs-up", IconName::ThumbsUp)
                                         .shape(IconButtonShape::Square)
@@ -974,7 +974,7 @@ impl<T: 'static> PromptEditor<T> {
     fn cycle_prev(
         &mut self,
         _: &CyclePreviousInlineAssist,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         match &self.mode {
@@ -987,7 +987,12 @@ impl<T: 'static> PromptEditor<T> {
         }
     }
 
-    fn cycle_next(&mut self, _: &CycleNextInlineAssist, _: &mut Window, cx: &mut Context<Self>) {
+    fn cycle_next(
+        &mut self,
+        _: &CycleNextInlineAssist,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         match &self.mode {
             PromptEditorMode::Buffer { codegen, .. } => {
                 codegen.update(cx, |codegen, cx| codegen.cycle_next(cx));
@@ -1123,8 +1128,8 @@ impl<T: 'static> PromptEditor<T> {
             .into_any_element()
     }
 
-    fn render_editor(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> AnyElement {
-        let colors = cx.theme().colors();
+    fn render_editor(&mut self, window: &mut Window, cx: &mut Context<Self>) -> AnyElement {
+        let colors = window.theme(cx).colors();
 
         div()
             .size_full()
@@ -1148,8 +1153,8 @@ impl<T: 'static> PromptEditor<T> {
                     &self.editor,
                     EditorStyle {
                         background: colors.editor_background,
-                        local_player: cx.theme().players().local(),
-                        syntax: cx.theme().syntax().clone(),
+                        local_player: window.theme(cx).players().local(),
+                        syntax: window.theme(cx).syntax().clone(),
                         text: text_style,
                         ..Default::default()
                     },

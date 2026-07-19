@@ -6,6 +6,7 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
+use ui::WindowTheme as _;
 
 mod action_completion_provider;
 mod ui_components;
@@ -31,9 +32,9 @@ use settings::{
     BaseKeymap, KeybindSource, KeymapFile, Settings as _, SettingsAssets, infer_json_indent_size,
 };
 use ui::{
-    ActiveTheme as _, App, Banner, BorrowAppContext, ColumnWidthConfig, ContextMenu,
-    IconButtonShape, IconPosition, Indicator, Modal, ModalFooter, ModalHeader, ParentElement as _,
-    PopoverMenu, RedistributableColumnsState, Render, Section, SharedString, Styled as _, Table,
+    App, Banner, BorrowAppContext, ColumnWidthConfig, ContextMenu, IconButtonShape, IconPosition,
+    Indicator, Modal, ModalFooter, ModalHeader, ParentElement as _, PopoverMenu,
+    RedistributableColumnsState, Render, Section, SharedString, Styled as _, Table,
     TableInteractionState, TableResizeBehavior, Tooltip, Window, prelude::*,
 };
 use ui_input::InputField;
@@ -1488,7 +1489,7 @@ impl KeymapEditor {
     fn toggle_conflict_filter(
         &mut self,
         _: &ToggleConflictFilter,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.set_filter_state(self.filter_state.invert(), cx);
@@ -1497,7 +1498,7 @@ impl KeymapEditor {
     fn toggle_no_action_bindings(
         &mut self,
         _: &ToggleNoActionBindings,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.show_no_action_bindings = !self.show_no_action_bindings;
@@ -1554,7 +1555,7 @@ impl KeymapEditor {
     fn toggle_exact_keystroke_matching(
         &mut self,
         _: &ToggleExactKeystrokeMatching,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         let SearchMode::KeyStroke { exact_match } = &mut self.search_mode else {
@@ -1568,7 +1569,7 @@ impl KeymapEditor {
     fn show_matching_keystrokes(
         &mut self,
         _: &ShowMatchingKeybinds,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         let Some(selected_binding) = self.selected_binding() else {
@@ -1926,10 +1927,10 @@ impl KeybindContextString {
 }
 
 impl RenderOnce for KeybindContextString {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         match self {
             KeybindContextString::Global => {
-                muted_styled_text(KeybindContextString::GLOBAL, cx).into_any_element()
+                muted_styled_text(KeybindContextString::GLOBAL, window, cx).into_any_element()
             }
             KeybindContextString::Local(name, language) => {
                 SyntaxHighlightedText::new(name, language).into_any_element()
@@ -1938,11 +1939,11 @@ impl RenderOnce for KeybindContextString {
     }
 }
 
-fn muted_styled_text(text: SharedString, cx: &App) -> StyledText {
+fn muted_styled_text(text: SharedString, window: &Window, cx: &App) -> StyledText {
     let len = text.len();
     StyledText::new(text).with_highlights([(
         0..len,
-        gpui::HighlightStyle::color(cx.theme().colors().text_muted),
+        gpui::HighlightStyle::color(window.theme(cx).colors().text_muted),
     )])
 }
 
@@ -1955,7 +1956,7 @@ impl Item for KeymapEditor {
 }
 
 impl Render for KeymapEditor {
-    fn render(&mut self, _window: &mut Window, cx: &mut ui::Context<Self>) -> impl ui::IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut ui::Context<Self>) -> impl ui::IntoElement {
         if let SearchMode::KeyStroke { exact_match } = self.search_mode {
             let button = IconButton::new("keystrokes-exact-match", IconName::CaseSensitive)
                 .tooltip(move |_window, cx| {
@@ -1982,7 +1983,7 @@ impl Render for KeymapEditor {
 
         let row_count = self.matches.len();
         let focus_handle = &self.focus_handle;
-        let theme = cx.theme();
+        let theme = window.theme(cx);
         let search_mode = self.search_mode;
 
         v_flex()
@@ -2128,7 +2129,7 @@ impl Render for KeymapEditor {
                     .uniform_list(
                         "keymap-editor-table",
                         row_count,
-                        cx.processor(move |this, range: Range<usize>, _window, cx| {
+                        cx.processor(move |this, range: Range<usize>, window, cx| {
                             let context_menu_deployed = this.context_menu_deployed();
                             range
                                 .filter_map(|index| {
@@ -2161,7 +2162,7 @@ impl Render for KeymapEditor {
                                             } else {
                                                 const NULL: SharedString =
                                                     SharedString::new_static("<null>");
-                                                muted_styled_text(NULL, cx)
+                                                muted_styled_text(NULL, window, cx)
                                                     .into_any_element()
                                             }
                                         })
@@ -2202,7 +2203,7 @@ impl Render for KeymapEditor {
                                         Some(arguments) => arguments.into_any_element(),
                                         None => {
                                             if binding.action().has_schema {
-                                                muted_styled_text(NO_ACTION_ARGUMENTS_TEXT, cx)
+                                                muted_styled_text(NO_ACTION_ARGUMENTS_TEXT, window, cx)
                                                     .into_any_element()
                                             } else {
                                                 gpui::Empty.into_any_element()
@@ -2253,8 +2254,7 @@ impl Render for KeymapEditor {
                                 .collect()
                         }),
                     )
-                    .map_row(cx.processor(
-                        |this, (row_index, row): (usize, Stateful<Div>), _window, cx| {
+                    .map_row(cx.processor(                        |this, (row_index, row): (usize, Stateful<Div>), window, cx| {
                         let conflict = this.get_conflict(row_index);
                             let candidate_id = this.matches.get(row_index).map(|candidate| candidate.candidate_id);
                             let is_unbound_by_unbind = candidate_id
@@ -2342,10 +2342,10 @@ impl Render for KeymapEditor {
                                     conflict.is_some_and(|conflict| {
                                         conflict.is_user_keybind_conflict()
                                     }),
-                                    |row| row.bg(cx.theme().status().error_background),
+                                    |row| row.bg(window.theme(cx).status().error_background),
                                 )
                                 .when(is_selected, |row| {
-                                    row.border_color(cx.theme().colors().panel_focused_border)
+                                    row.border_color(window.theme(cx).colors().panel_focused_border)
                                 })
                                 .into_any_element()
                         }),
@@ -3005,7 +3005,7 @@ impl KeybindingEditorModal {
         self.save_or_display_error(cx);
     }
 
-    fn cancel(&mut self, _: &menu::Cancel, _: &mut Window, cx: &mut Context<Self>) {
+    fn cancel(&mut self, _: &menu::Cancel, _window: &mut Window, cx: &mut Context<Self>) {
         cx.emit(DismissEvent);
     }
 

@@ -1,14 +1,14 @@
 use super::*;
 use theme::WindowTheme;
 
-pub fn make_suggestion_styles(cx: &App) -> EditPredictionStyles {
+pub fn make_suggestion_styles(window: &Window, cx: &App) -> EditPredictionStyles {
     EditPredictionStyles {
         insertion: HighlightStyle {
-            color: Some(cx.theme().status().predictive),
+            color: Some(window.theme(cx).status().predictive),
             ..HighlightStyle::default()
         },
         whitespace: HighlightStyle {
-            background_color: Some(cx.theme().status().created_background),
+            background_color: Some(window.theme(cx).status().created_background),
             ..HighlightStyle::default()
         },
     }
@@ -132,7 +132,7 @@ pub(super) fn edit_prediction_edit_text(
     edit_preview: &EditPreview,
     include_deletions: bool,
     multibuffer_snapshot: &MultiBufferSnapshot,
-    cx: &App,
+    theme: &theme::Theme,
 ) -> HighlightedText {
     let edits = edits
         .iter()
@@ -146,7 +146,7 @@ pub(super) fn edit_prediction_edit_text(
         })
         .collect::<Vec<_>>();
 
-    edit_preview.highlight_edits(current_snapshot, &edits, include_deletions, cx)
+    edit_preview.highlight_edits(current_snapshot, &edits, include_deletions, theme)
 }
 
 impl Editor {
@@ -800,7 +800,7 @@ impl Editor {
 
     pub(super) fn update_visible_edit_prediction(
         &mut self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Option<()> {
         if self.ime_transaction.is_some() {
@@ -1024,7 +1024,7 @@ impl Editor {
 
                     self.splice_inlays(&[], inlays, cx);
                 } else {
-                    let background_color = cx.theme().status().deleted_background;
+                    let background_color = window.theme(cx).status().deleted_background;
                     self.highlight_text(
                         HighlightKey::EditPredictionHighlight,
                         edits.iter().map(|(range, _)| range.clone()).collect(),
@@ -1268,7 +1268,9 @@ impl Editor {
                                     .rounded_r(RADIUS - BORDER_WIDTH)
                                     .border_l_1()
                                     .border_color(window.theme(cx).colors().border)
-                                    .bg(Self::edit_prediction_line_popover_bg_color(cx))
+                                    .bg(Self::edit_prediction_line_popover_bg_color(
+                                        window.theme(cx),
+                                    ))
                                     .when(keybind_display.show_hold_label, |el| {
                                         el.child(
                                             Label::new("Hold")
@@ -1312,6 +1314,7 @@ impl Editor {
                     prediction,
                     cursor_point,
                     style,
+                    window,
                     cx,
                 )?
             }
@@ -1321,6 +1324,7 @@ impl Editor {
                     stale_completion,
                     cursor_point,
                     style,
+                    window,
                     cx,
                 )?,
 
@@ -1384,7 +1388,9 @@ impl Editor {
                                     .border_l_1()
                                     .rounded_r_lg()
                                     .border_color(window.theme(cx).colors().border)
-                                    .bg(Self::edit_prediction_line_popover_bg_color(cx))
+                                    .bg(Self::edit_prediction_line_popover_bg_color(
+                                        window.theme(cx),
+                                    ))
                                     .gap_1()
                                     .py_1()
                                     .px_2()
@@ -1401,7 +1407,9 @@ impl Editor {
                                     .border_l_1()
                                     .rounded_r_lg()
                                     .border_color(window.theme(cx).colors().border)
-                                    .bg(Self::edit_prediction_line_popover_bg_color(cx))
+                                    .bg(Self::edit_prediction_line_popover_bg_color(
+                                        window.theme(cx),
+                                    ))
                                     .gap_1()
                                     .py_1()
                                     .px_2()
@@ -1738,7 +1746,7 @@ impl Editor {
 
         let flag_on_right = target_x < text_bounds.size.width / 2.;
 
-        let mut border_color = Self::edit_prediction_callout_popover_border_color(cx);
+        let mut border_color = Self::edit_prediction_callout_popover_border_color(window.theme(cx));
         border_color.l += 0.001;
 
         let mut element = v_flex()
@@ -1980,11 +1988,11 @@ impl Editor {
                 edit_preview,
                 false,
                 editor_snapshot.buffer_snapshot(),
-                cx,
+                window.theme(cx),
             )
         } else {
             // Fallback for providers without edit_preview
-            edit_prediction_fallback_text(edits, cx)
+            edit_prediction_fallback_text(edits, window, cx)
         };
 
         let styled_text = highlighted_edits.to_styled_text(&style.text);
@@ -2020,7 +2028,9 @@ impl Editor {
                         gpui::BoxShadow::new(px(1.), px(1.), gpui::black().opacity(0.05))
                             .blur_radius(px(2.)),
                     ])
-                    .bg(Editor::edit_prediction_line_popover_bg_color(cx))
+                    .bg(Editor::edit_prediction_line_popover_bg_color(
+                        window.theme(cx),
+                    ))
                     .border(BORDER_WIDTH)
                     .border_color(window.theme(cx).colors().border)
                     .rounded_r_lg()
@@ -2240,8 +2250,12 @@ impl Editor {
             .gap_1()
             .rounded_md()
             .border_1()
-            .bg(Self::edit_prediction_line_popover_bg_color(cx))
-            .border_color(Self::edit_prediction_callout_popover_border_color(cx))
+            .bg(Self::edit_prediction_line_popover_bg_color(
+                window.theme(cx),
+            ))
+            .border_color(Self::edit_prediction_callout_popover_border_color(
+                window.theme(cx),
+            ))
             .shadow_xs()
             .when(!has_keybind, |el| {
                 let status_colors = window.theme(cx).status();
@@ -2304,8 +2318,12 @@ impl Editor {
             .gap_1()
             .rounded_md()
             .border_1()
-            .bg(Self::edit_prediction_line_popover_bg_color(cx))
-            .border_color(Self::edit_prediction_callout_popover_border_color(cx))
+            .bg(Self::edit_prediction_line_popover_bg_color(
+                window.theme(cx),
+            ))
+            .border_color(Self::edit_prediction_callout_popover_border_color(
+                window.theme(cx),
+            ))
             .shadow_xs()
             .when(!has_keybind, |el| {
                 let status_colors = window.theme(cx).status();
@@ -2345,15 +2363,15 @@ impl Editor {
             )
     }
 
-    fn edit_prediction_line_popover_bg_color(cx: &App) -> Hsla {
-        let accent_color = cx.theme().colors().text_accent;
-        let editor_bg_color = cx.theme().colors().editor_background;
+    fn edit_prediction_line_popover_bg_color(theme: &theme::Theme) -> Hsla {
+        let accent_color = theme.colors().text_accent;
+        let editor_bg_color = theme.colors().editor_background;
         editor_bg_color.blend(accent_color.opacity(0.1))
     }
 
-    fn edit_prediction_callout_popover_border_color(cx: &App) -> Hsla {
-        let accent_color = cx.theme().colors().text_accent;
-        let editor_bg_color = cx.theme().colors().editor_background;
+    fn edit_prediction_callout_popover_border_color(theme: &theme::Theme) -> Hsla {
+        let accent_color = theme.colors().text_accent;
+        let editor_bg_color = theme.colors().editor_background;
         editor_bg_color.blend(accent_color.opacity(0.6))
     }
 
@@ -2372,6 +2390,7 @@ impl Editor {
         completion: &EditPredictionState,
         cursor_point: Point,
         style: &EditorStyle,
+        window: &mut Window,
         cx: &mut Context<Editor>,
     ) -> Option<Div> {
         use text::ToPoint as _;
@@ -2461,11 +2480,11 @@ impl Editor {
                             edit_preview,
                             true,
                             &self.display_snapshot(cx),
-                            cx,
+                            window.theme(cx),
                         )
                         .first_line_preview()
                     } else {
-                        edit_prediction_fallback_text(edits, cx).first_line_preview()
+                        edit_prediction_fallback_text(edits, window, cx).first_line_preview()
                     };
 
                 let styled_text = gpui::StyledText::new(highlighted_edits.text)
@@ -2514,8 +2533,8 @@ impl Editor {
 struct MissingEditPredictionKeybindingTooltip;
 
 impl Render for MissingEditPredictionKeybindingTooltip {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        ui::tooltip_container(cx, |container, cx| {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        ui::tooltip_container(window, cx, |container, cx| {
             container
                 .flex_shrink_0()
                 .max_w_80()
@@ -2545,14 +2564,18 @@ impl Render for MissingEditPredictionKeybindingTooltip {
     }
 }
 
-fn edit_prediction_fallback_text(edits: &[(Range<Anchor>, Arc<str>)], cx: &App) -> HighlightedText {
+fn edit_prediction_fallback_text(
+    edits: &[(Range<Anchor>, Arc<str>)],
+    window: &Window,
+    cx: &App,
+) -> HighlightedText {
     // Fallback for providers that don't provide edit_preview (like Copilot)
     // Just show the raw edit text with basic styling
     let mut text = String::new();
     let mut highlights = Vec::new();
 
     let insertion_highlight_style = HighlightStyle {
-        color: Some(cx.theme().colors().text),
+        color: Some(window.theme(cx).colors().text),
         ..Default::default()
     };
 

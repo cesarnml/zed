@@ -10,7 +10,7 @@ use gpui::{
 };
 use language::{Buffer, OwnedSyntaxLayer};
 use std::{any::TypeId, mem, ops::Range};
-use theme::{ActiveTheme, WindowTheme};
+use theme::WindowTheme;
 use tree_sitter::{Node, TreeCursor};
 use ui::{
     ButtonCommon, ButtonLike, Clickable, Color, ContextMenu, FluentBuilder as _, IconButton,
@@ -366,8 +366,14 @@ impl SyntaxTreeView {
         Some(())
     }
 
-    fn render_node(cursor: &TreeCursor, depth: u32, selected: bool, cx: &App) -> Div {
-        let colors = cx.theme().colors();
+    fn render_node(
+        cursor: &TreeCursor,
+        depth: u32,
+        selected: bool,
+        window: &Window,
+        cx: &App,
+    ) -> Div {
+        let colors = window.theme(cx).colors();
         let mut row = h_flex();
         if let Some(field_name) = cursor.field_name() {
             row = row.children([Label::new(field_name).color(Color::Info), Label::new(": ")]);
@@ -397,6 +403,7 @@ impl SyntaxTreeView {
         &mut self,
         layer: &OwnedSyntaxLayer,
         range: Range<usize>,
+        window: &Window,
         cx: &Context<Self>,
     ) -> Vec<Div> {
         let mut items = Vec::new();
@@ -420,6 +427,7 @@ impl SyntaxTreeView {
                         &cursor,
                         depth,
                         Some(descendant_ix) == self.selected_descendant_ix,
+                        window,
                         cx,
                     )
                     .on_mouse_down(
@@ -512,8 +520,8 @@ impl Render for SyntaxTreeView {
                         uniform_list(
                             "SyntaxTreeView",
                             layer.node().descendant_count(),
-                            cx.processor(move |this, range: Range<usize>, _, cx| {
-                                this.compute_items(&layer, range, cx)
+                            cx.processor(move |this, range: Range<usize>, window, cx| {
+                                this.compute_items(&layer, range, window, cx)
                             }),
                         )
                         .size_full()
@@ -724,7 +732,7 @@ fn format_anonymous_node_kind(kind: &str) -> String {
 }
 
 impl Render for SyntaxTreeToolbarItemView {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         h_flex()
             .gap_1()
             .children(self.render_menu(cx))

@@ -197,7 +197,7 @@ impl StashList {
     pub fn handle_modifiers_changed(
         &mut self,
         ev: &ModifiersChangedEvent,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.picker
@@ -214,7 +214,7 @@ impl Focusable for StashList {
 }
 
 impl Render for StashList {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .key_context("StashList")
             .w(self.width)
@@ -490,7 +490,7 @@ impl PickerDelegate for StashListDelegate {
         }
     }
 
-    fn dismissed(&mut self, _: &mut Window, cx: &mut Context<Picker<Self>>) {
+    fn dismissed(&mut self, _window: &mut Window, cx: &mut Context<Picker<Self>>) {
         cx.emit(DismissEvent);
     }
 
@@ -626,7 +626,11 @@ impl PickerDelegate for StashListDelegate {
         Some("No stashes found".into())
     }
 
-    fn render_footer(&self, _: &mut Window, cx: &mut Context<Picker<Self>>) -> Option<AnyElement> {
+    fn render_footer(
+        &self,
+        window: &mut Window,
+        cx: &mut Context<Picker<Self>>,
+    ) -> Option<AnyElement> {
         if !self.show_footer || self.matches.is_empty() {
             return None;
         }
@@ -641,7 +645,7 @@ impl PickerDelegate for StashListDelegate {
                 .justify_end()
                 .flex_wrap()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(
                     Button::new("drop-stash", "Drop")
                         .key_binding(

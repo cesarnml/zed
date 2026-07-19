@@ -296,8 +296,8 @@ impl Onboarding {
         cx.open_url(&zed_urls::account_url(cx))
     }
 
-    fn render_page(&mut self, cx: &mut Context<Self>) -> AnyElement {
-        crate::basics_page::render_basics_page(&self.user_store, cx).into_any_element()
+    fn render_page(&mut self, window: &Window, cx: &mut Context<Self>) -> AnyElement {
+        crate::basics_page::render_basics_page(&self.user_store, window, cx).into_any_element()
     }
 }
 
@@ -378,7 +378,7 @@ impl Render for Onboarding {
                                     }),
                             )
                             .child(Divider::horizontal().color(ui::DividerColor::BorderVariant))
-                            .child(self.render_page(cx)),
+                            .child(self.render_page(window, cx)),
                     )
                     .track_scroll(&self.scroll_handle),
             )

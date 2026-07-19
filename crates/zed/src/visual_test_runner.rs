@@ -2830,7 +2830,7 @@ struct ErrorWrappingTestView;
 impl gpui::Render for ErrorWrappingTestView {
     fn render(
         &mut self,
-        _window: &mut gpui::Window,
+        window: &mut gpui::Window,
         cx: &mut gpui::Context<Self>,
     ) -> impl gpui::IntoElement {
         use ui::{Button, Callout, IconName, LabelSize, Severity, prelude::*, v_flex};
@@ -2879,7 +2879,7 @@ struct ThreadItemBranchNameTestView;
 impl gpui::Render for ThreadItemBranchNameTestView {
     fn render(
         &mut self,
-        _window: &mut gpui::Window,
+        window: &mut gpui::Window,
         cx: &mut gpui::Context<Self>,
     ) -> impl gpui::IntoElement {
         use ui::{
@@ -3132,7 +3132,7 @@ struct ThreadItemIconDecorationsTestView;
 impl gpui::Render for ThreadItemIconDecorationsTestView {
     fn render(
         &mut self,
-        _window: &mut gpui::Window,
+        window: &mut gpui::Window,
         cx: &mut gpui::Context<Self>,
     ) -> impl gpui::IntoElement {
         use ui::{IconName, Label, LabelSize, ThreadItem, prelude::*};

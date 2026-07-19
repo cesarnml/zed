@@ -623,7 +623,7 @@ fn build_code_lens_renderer(line: CodeLensLine, editor: WeakEntity<Editor>) -> R
                     div()
                         .font(font.clone())
                         .text_size(font_size)
-                        .text_color(cx.app.theme().colors().text_muted)
+                        .text_color(cx.window.theme(cx.app).colors().text_muted)
                         .child(CODE_LENS_SEPARATOR)
                         .into_any_element(),
                 );
@@ -634,7 +634,7 @@ fn build_code_lens_renderer(line: CodeLensLine, editor: WeakEntity<Editor>) -> R
                     .id(ElementId::from(i))
                     .font(font.clone())
                     .text_size(font_size)
-                    .text_color(cx.app.theme().colors().text_muted)
+                    .text_color(cx.window.theme(cx.app).colors().text_muted)
                     .child(title.clone())
                     .when_some(action, |code_lens_div, action| {
                         let position = line.position;
@@ -642,7 +642,7 @@ fn build_code_lens_renderer(line: CodeLensLine, editor: WeakEntity<Editor>) -> R
 
                         code_lens_div
                             .cursor_pointer()
-                            .hover(|style| style.text_color(cx.app.theme().colors().text))
+                            .hover(|style| style.text_color(cx.window.theme(cx.app).colors().text))
                             .on_mouse_down(MouseButton::Left, |_, _, cx| {
                                 cx.stop_propagation();
                             })

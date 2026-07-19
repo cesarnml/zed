@@ -1165,10 +1165,11 @@ impl Editor {
         &self,
         display_row: DisplayRow,
         width: Pixels,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
-        let text_color = cx.theme().colors().text;
-        let icon_color = cx.theme().colors().icon_accent;
+        let text_color = window.theme(cx).colors().text;
+        let icon_color = window.theme(cx).colors().icon_accent;
 
         h_flex()
             .id("diff_review_button")
@@ -2445,7 +2446,7 @@ impl Editor {
             Some(formatted.join(" ⋯ "))
         }
 
-        let theme = cx.theme();
+        let theme = cx.window.theme(cx.app);
         let colors = theme.colors();
 
         let (comments, comments_expanded, inline_editors, user_avatar_uri, line_ranges) =
@@ -2955,7 +2956,7 @@ pub fn render_diff_hunk_controls(
     is_created_file: bool,
     line_height: Pixels,
     editor: &Entity<Editor>,
-    _window: &mut Window,
+    window: &mut Window,
     cx: &mut App,
 ) -> AnyElement {
     let stageable = hunk_range
@@ -2976,9 +2977,9 @@ pub fn render_diff_hunk_controls(
         .pb_1()
         .border_x_1()
         .border_b_1()
-        .border_color(cx.theme().colors().border_variant)
+        .border_color(window.theme(cx).colors().border_variant)
         .rounded_b_lg()
-        .bg(cx.theme().colors().editor_background)
+        .bg(window.theme(cx).colors().editor_background)
         .gap_1()
         .block_mouse_except_scroll()
         .shadow_md()

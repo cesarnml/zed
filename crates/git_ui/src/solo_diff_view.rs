@@ -27,6 +27,7 @@ use std::{
     ops::Range,
     sync::Arc,
 };
+use ui::WindowTheme as _;
 use ui::{DiffStat, Divider, Tooltip, prelude::*};
 use util::paths::{PathExt as _, PathStyle};
 use workspace::{
@@ -466,7 +467,7 @@ impl Item for SoloDiffView {
     fn set_nav_history(
         &mut self,
         nav_history: ItemNavHistory,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.editor.update(cx, |editor, cx| {
@@ -493,7 +494,11 @@ impl Item for SoloDiffView {
         ToolbarItemLocation::PrimaryLeft
     }
 
-    fn breadcrumbs(&self, cx: &App) -> Option<(Vec<HighlightedText>, Option<gpui::Font>)> {
+    fn breadcrumbs(
+        &self,
+        window: &Window,
+        cx: &App,
+    ) -> Option<(Vec<HighlightedText>, Option<gpui::Font>)> {
         let text: SharedString = self
             .repo_path
             .as_ref()
@@ -513,7 +518,9 @@ impl Item for SoloDiffView {
         {
             highlights.push((
                 0..text.len(),
-                HighlightStyle::color(file_status_label_color(Some(status)).color(cx.theme())),
+                HighlightStyle::color(
+                    file_status_label_color(Some(status)).color(window.theme(cx)),
+                ),
             ));
         }
 
@@ -556,7 +563,7 @@ impl Item for SoloDiffView {
 }
 
 impl Render for SoloDiffView {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
         self.editor.clone()
     }
 }
@@ -593,7 +600,7 @@ impl ToolbarItemView for SoloDiffStyleToolbar {
     fn set_active_pane_item(
         &mut self,
         active_pane_item: Option<&dyn ItemHandle>,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) -> ToolbarItemLocation {
         self.solo_diff = active_pane_item
@@ -608,7 +615,7 @@ impl ToolbarItemView for SoloDiffStyleToolbar {
 }
 
 impl Render for SoloDiffStyleToolbar {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let Some(solo_diff) = self.solo_diff() else {
             return Empty.into_any_element();
         };
@@ -696,7 +703,7 @@ impl ToolbarItemView for SoloDiffGitToolbar {
     fn set_active_pane_item(
         &mut self,
         active_pane_item: Option<&dyn ItemHandle>,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) -> ToolbarItemLocation {
         self.solo_diff = active_pane_item
@@ -762,7 +769,7 @@ mod tests {
 }
 
 impl Render for SoloDiffGitToolbar {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let Some(solo_diff) = self.solo_diff() else {
             return gpui::Empty.into_any_element();
         };

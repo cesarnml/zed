@@ -391,8 +391,8 @@ impl MarkdownStyle {
         self
     }
 
-    pub fn with_muted_text(mut self, cx: &App) -> Self {
-        let colors = cx.theme().colors();
+    pub fn with_muted_text(mut self, theme: &impl ActiveTheme) -> Self {
+        let colors = theme.theme().colors();
         self.base_text_style.color = colors.text_muted;
         self
     }
@@ -1102,7 +1102,7 @@ impl Markdown {
         self.active_search_highlight
     }
 
-    fn copy(&self, text: &RenderedText, _: &mut Window, cx: &mut Context<Self>) {
+    fn copy(&self, text: &RenderedText, _window: &mut Window, cx: &mut Context<Self>) {
         if self.selection.end <= self.selection.start {
             return;
         }
@@ -1110,7 +1110,7 @@ impl Markdown {
         cx.write_to_clipboard(ClipboardItem::new_string(text));
     }
 
-    fn copy_as_markdown(&mut self, _: &mut Window, cx: &mut Context<Self>) {
+    fn copy_as_markdown(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
         if let Some(text) = self.context_menu_selected_markdown.take() {
             cx.write_to_clipboard(ClipboardItem::new_string(text.to_string()));
             return;
@@ -1893,6 +1893,7 @@ impl MarkdownElement {
         source: &str,
         metadata_block: &ParsedMetadataBlock,
         markdown_end: usize,
+        window: &Window,
         cx: &App,
     ) {
         let content_range = &metadata_block.content_range;
@@ -1904,7 +1905,7 @@ impl MarkdownElement {
                     .w_full()
                     .mb_2()
                     .border_1()
-                    .border_color(cx.theme().colors().border)
+                    .border_color(window.theme(cx).colors().border)
                     .rounded_sm()
                     .overflow_hidden(),
                 content_range,
@@ -1922,6 +1923,7 @@ impl MarkdownElement {
                         row_index,
                         is_key: true,
                     },
+                    window,
                     cx,
                 );
                 self.push_metadata_cell(
@@ -1934,6 +1936,7 @@ impl MarkdownElement {
                         row_index,
                         is_key: false,
                     },
+                    window,
                     cx,
                 );
             }
@@ -1961,6 +1964,7 @@ impl MarkdownElement {
         block_range: &Range<usize>,
         markdown_end: usize,
         cell_style: MetadataCellStyle,
+        window: &Window,
         cx: &App,
     ) {
         builder.push_div(
@@ -1970,11 +1974,11 @@ impl MarkdownElement {
                 .min_w_0()
                 .px_2()
                 .py_1()
-                .border_color(cx.theme().colors().border)
+                .border_color(window.theme(cx).colors().border)
                 .when(cell_style.row_index > 0, |this| this.border_t_1())
                 .when(!cell_style.is_key, |this| this.border_l_1())
                 .when(cell_style.is_key, |this| {
-                    this.bg(cx.theme().colors().panel_background)
+                    this.bg(window.theme(cx).colors().panel_background)
                 }),
             block_range,
             markdown_end,
@@ -1982,7 +1986,7 @@ impl MarkdownElement {
 
         let text_style = if cell_style.is_key {
             TextStyleRefinement {
-                color: Some(cx.theme().colors().text_muted),
+                color: Some(window.theme(cx).colors().text_muted),
                 font_weight: Some(FontWeight::SEMIBOLD),
                 ..Default::default()
             }
@@ -2672,7 +2676,13 @@ impl Element for MarkdownElement {
                         MarkdownTag::HtmlBlock => {
                             builder.push_div(div(), range, markdown_end);
                             if let Some(block) = parsed_markdown.html_blocks.get(&range.start) {
-                                self.render_html_block(block, &mut builder, markdown_end, cx);
+                                self.render_html_block(
+                                    block,
+                                    &mut builder,
+                                    markdown_end,
+                                    window,
+                                    cx,
+                                );
                                 handled_html_block = true;
                             }
                         }
@@ -2791,6 +2801,7 @@ impl Element for MarkdownElement {
                                     &parsed_markdown.source,
                                     metadata_block,
                                     markdown_end,
+                                    window,
                                     cx,
                                 );
                                 rendered_metadata_block = true;
@@ -4471,7 +4482,7 @@ mod tests {
     struct TestWindow;
 
     impl Render for TestWindow {
-        fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+        fn render(&mut self, _window: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
             div()
         }
     }
@@ -4616,7 +4627,7 @@ mod tests {
         struct TestWindow;
 
         impl Render for TestWindow {
-            fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+            fn render(&mut self, _window: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
                 div()
             }
         }
@@ -4627,7 +4638,7 @@ mod tests {
         }
 
         impl Render for TestMarkdowns {
-            fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+            fn render(&mut self, _window: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
                 div()
                     .child(MarkdownElement::new(
                         self.first_markdown.clone(),
@@ -5963,7 +5974,7 @@ mod tests {
         }
 
         impl Render for ImageTestView {
-            fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+            fn render(&mut self, _window: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
                 let image_source = self.image_source.clone();
                 div().size_full().child(
                     MarkdownElement::new(self.markdown.clone(), MarkdownStyle::default())

@@ -519,6 +519,7 @@ impl CsvPreviewView {
     pub(crate) fn create_header_element_with_sort_button(
         &self,
         header_text: SharedString,
+        window: &Window,
         cx: &mut Context<'_, CsvPreviewView>,
         col_idx: AnyColumn,
     ) -> AnyElement {
@@ -530,7 +531,7 @@ impl CsvPreviewView {
         let always_show_buttons = has_active_filter || has_active_sort;
         let group_name = SharedString::from(format!("csv-col-header-{}", col_idx.get()));
 
-        let colors = cx.theme().colors();
+        let colors = window.theme(cx).colors();
         let base_bg = colors.editor_background;
         let grad_width_hovered = px(100.);
         let grad_width = if always_show_buttons {

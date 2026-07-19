@@ -300,9 +300,9 @@ pub trait RenderableCell: Render {
     fn source(&self) -> &String;
     fn selected(&self) -> bool;
     fn set_selected(&mut self, selected: bool) -> &mut Self;
-    fn selected_bg_color(&self, _window: &mut Window, cx: &mut Context<Self>) -> Hsla {
+    fn selected_bg_color(&self, window: &mut Window, cx: &mut Context<Self>) -> Hsla {
         if self.selected() {
-            let mut color = cx.theme().colors().element_hover;
+            let mut color = window.theme(cx).colors().element_hover;
             color.fade_out(0.5);
             color
         } else {
@@ -902,7 +902,7 @@ impl CodeCell {
         cx.notify();
     }
 
-    pub fn gutter_output(&self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    pub fn gutter_output(&self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let is_selected = self.selected();
 
         div()
@@ -921,8 +921,12 @@ impl CodeCell {
                             .flex_none()
                             .w(px(1.))
                             .h_full()
-                            .when(is_selected, |this| this.bg(cx.theme().colors().icon_accent))
-                            .when(!is_selected, |this| this.bg(cx.theme().colors().border)),
+                            .when(is_selected, |this| {
+                                this.bg(window.theme(cx).colors().icon_accent)
+                            })
+                            .when(!is_selected, |this| {
+                                this.bg(window.theme(cx).colors().border)
+                            }),
                     ),
             )
             .when(self.has_outputs(), |this| {
@@ -937,7 +941,7 @@ impl CodeCell {
                         .h(px(GUTTER_WIDTH + 12.0))
                         .items_center()
                         .justify_center()
-                        .bg(cx.theme().colors().tab_bar_background)
+                        .bg(window.theme(cx).colors().tab_bar_background)
                         .child(IconButton::new("control", IconName::Ellipsis)),
                 )
             })

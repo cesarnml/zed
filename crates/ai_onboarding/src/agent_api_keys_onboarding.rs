@@ -40,7 +40,7 @@ impl ApiKeysWithProviders {
 }
 
 impl Render for ApiKeysWithProviders {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let configured_providers_list =
             self.configured_providers
                 .iter()
@@ -66,8 +66,8 @@ impl Render for ApiKeysWithProviders {
             .rounded_t_lg()
             .border_t_1()
             .border_x_1()
-            .border_color(cx.theme().colors().border.opacity(0.5))
-            .bg(cx.theme().colors().background.alpha(0.5))
+            .border_color(window.theme(cx).colors().border.opacity(0.5))
+            .bg(window.theme(cx).colors().background.alpha(0.5))
             .shadow(vec![
                 gpui::BoxShadow::new(px(1.), px(-1.), gpui::black().opacity(0.15)).blur_radius(px(3.)),
             ])
@@ -81,8 +81,8 @@ impl Render for ApiKeysWithProviders {
                     .overflow_hidden()
                     .border_t_1()
                     .border_x_1()
-                    .border_color(cx.theme().colors().border)
-                    .bg(cx.theme().colors().panel_background)
+                    .border_color(window.theme(cx).colors().border)
+                    .bg(window.theme(cx).colors().panel_background)
                     .child(
                         h_flex()
                             .min_w_0()

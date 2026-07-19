@@ -3,9 +3,8 @@ use super::data_table::{
     table_row::{IntoTableRow as _, TableRow},
 };
 use crate::{
-    ActiveTheme as _, AnyElement, App, Context, Div, FluentBuilder as _, InteractiveElement,
-    IntoElement, ParentElement, Pixels, StatefulInteractiveElement, Styled, Window, div, h_flex,
-    px,
+    AnyElement, App, Context, Div, FluentBuilder as _, InteractiveElement, IntoElement,
+    ParentElement, Pixels, StatefulInteractiveElement, Styled, Window, div, h_flex, px,
 };
 use gpui::{
     AbsoluteLength, AppContext as _, Bounds, DefiniteLength, DragMoveEvent, Empty, Entity,
@@ -674,8 +673,8 @@ pub(crate) fn render_column_resize_divider(
     cx: &mut App,
 ) -> AnyElement {
     window.with_id(col_idx, |window| {
-        let mut resize_divider = divider.w(px(RESIZE_DIVIDER_WIDTH)).h_full().bg(cx
-            .theme()
+        let mut resize_divider = divider.w(px(RESIZE_DIVIDER_WIDTH)).h_full().bg(window
+            .theme(cx)
             .colors()
             .border
             .opacity(0.8));

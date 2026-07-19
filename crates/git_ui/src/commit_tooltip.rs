@@ -347,88 +347,89 @@ impl Render for CommitTooltip {
             has_parent: false,
         };
 
-        tooltip_container(cx, move |this, cx| {
-            this.occlude()
-                .on_mouse_move(|_, _, cx| cx.stop_propagation())
-                .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-                .child(
-                    v_flex()
-                        .w(gpui::rems(30.))
-                        .child(
-                            h_flex()
-                                .pb_1()
-                                .gap_2()
-                                .overflow_x_hidden()
-                                .flex_wrap()
-                                .child(avatar)
-                                .child(author)
-                                .when(!author_email.is_empty(), |this| {
-                                    this.child(
-                                        div()
-                                            .text_color(window.theme(cx).colors().text_muted)
-                                            .child(author_email),
-                                    )
-                                })
-                                .border_b_1()
-                                .border_color(window.theme(cx).colors().border_variant),
-                        )
-                        .child(
-                            div()
-                                .id("inline-blame-commit-message")
-                                .track_scroll(&self.scroll_handle)
-                                .py_1p5()
-                                .max_h(message_max_height)
-                                .overflow_y_scroll()
-                                .child(message),
-                        )
-                        .child(
-                            h_flex()
-                                .text_color(window.theme(cx).colors().text_muted)
-                                .w_full()
-                                .justify_between()
-                                .pt_1()
-                                .gap_1()
-                                .flex_wrap()
-                                .border_t_1()
-                                .border_color(window.theme(cx).colors().border_variant)
-                                .child(absolute_timestamp)
-                                .child(
-                                    h_flex()
-                                        .gap_1()
-                                        .min_w_0()
-                                        .children(commit_tag_chips(&tag_names))
-                                        .when_some(pull_request, |this, pr| {
-                                            this.child(
+        {
+            let theme = window.theme(cx).clone();
+            tooltip_container(window, cx, move |this, _cx| {
+                this.occlude()
+                    .on_mouse_move(|_, _, cx| cx.stop_propagation())
+                    .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                    .child(
+                        v_flex()
+                            .w(gpui::rems(30.))
+                            .child(
+                                h_flex()
+                                    .pb_1()
+                                    .gap_2()
+                                    .overflow_x_hidden()
+                                    .flex_wrap()
+                                    .child(avatar)
+                                    .child(author)
+                                    .when(!author_email.is_empty(), |this| {
+                                        this.child(
+                                            div()
+                                                .text_color(theme.colors().text_muted)
+                                                .child(author_email),
+                                        )
+                                    })
+                                    .border_b_1()
+                                    .border_color(theme.colors().border_variant),
+                            )
+                            .child(
+                                div()
+                                    .id("inline-blame-commit-message")
+                                    .track_scroll(&self.scroll_handle)
+                                    .py_1p5()
+                                    .max_h(message_max_height)
+                                    .overflow_y_scroll()
+                                    .child(message),
+                            )
+                            .child(
+                                h_flex()
+                                    .text_color(theme.colors().text_muted)
+                                    .w_full()
+                                    .justify_between()
+                                    .pt_1()
+                                    .gap_1()
+                                    .flex_wrap()
+                                    .border_t_1()
+                                    .border_color(theme.colors().border_variant)
+                                    .child(absolute_timestamp)
+                                    .child(
+                                        h_flex()
+                                            .gap_1()
+                                            .min_w_0()
+                                            .children(commit_tag_chips(&tag_names))
+                                            .when_some(pull_request, |this, pr| {
+                                                this.child(
+                                                    Button::new(
+                                                        "pull-request-button",
+                                                        format!("#{}", pr.number),
+                                                    )
+                                                    .color(Color::Muted)
+                                                    .start_icon(
+                                                        Icon::new(IconName::PullRequest)
+                                                            .size(IconSize::Small)
+                                                            .color(Color::Muted),
+                                                    )
+                                                    .on_click(move |_, _, cx| {
+                                                        cx.stop_propagation();
+                                                        cx.open_url(pr.url.as_str())
+                                                    }),
+                                                )
+                                                .child(Divider::vertical())
+                                            })
+                                            .child(
                                                 Button::new(
-                                                    "pull-request-button",
-                                                    format!("#{}", pr.number),
+                                                    "commit-sha-button",
+                                                    short_commit_id.clone(),
                                                 )
                                                 .color(Color::Muted)
                                                 .start_icon(
-                                                    Icon::new(IconName::PullRequest)
+                                                    Icon::new(IconName::FileGit)
                                                         .size(IconSize::Small)
                                                         .color(Color::Muted),
                                                 )
-                                                .on_click(move |_, _, cx| {
-                                                    cx.stop_propagation();
-                                                    cx.open_url(pr.url.as_str())
-                                                }),
-                                            )
-                                            .child(Divider::vertical())
-                                        })
-                                        .child(
-                                            Button::new(
-                                                "commit-sha-button",
-                                                short_commit_id.clone(),
-                                            )
-                                            .color(Color::Muted)
-                                            .start_icon(
-                                                Icon::new(IconName::FileGit)
-                                                    .size(IconSize::Small)
-                                                    .color(Color::Muted),
-                                            )
-                                            .on_click(
-                                                move |_, window, cx| {
+                                                .on_click(move |_, window, cx| {
                                                     CommitView::open(
                                                         commit_summary.sha.to_string(),
                                                         repo.downgrade(),
@@ -439,18 +440,18 @@ impl Render for CommitTooltip {
                                                         cx,
                                                     );
                                                     cx.stop_propagation();
-                                                },
+                                                }),
+                                            )
+                                            .child(Divider::vertical())
+                                            .child(
+                                                CopyButton::new("copy-commit-sha", full_sha)
+                                                    .tooltip_label("Copy SHA"),
                                             ),
-                                        )
-                                        .child(Divider::vertical())
-                                        .child(
-                                            CopyButton::new("copy-commit-sha", full_sha)
-                                                .tooltip_label("Copy SHA"),
-                                        ),
-                                ),
-                        ),
-                )
-        })
+                                    ),
+                            ),
+                    )
+            })
+        }
     }
 }
 

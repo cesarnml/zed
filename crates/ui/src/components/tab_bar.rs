@@ -90,7 +90,7 @@ impl ParentElement for TabBar {
 }
 
 impl RenderOnce for TabBar {
-    fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         div()
             .id(self.id)
             .group("tab_bar")
@@ -98,7 +98,7 @@ impl RenderOnce for TabBar {
             .flex_none()
             .w_full()
             .h(Tab::container_height(cx))
-            .bg(cx.theme().colors().tab_bar_background)
+            .bg(window.theme(cx).colors().tab_bar_background)
             .when(!self.start_children.is_empty(), |this| {
                 this.child(
                     h_flex()
@@ -107,7 +107,7 @@ impl RenderOnce for TabBar {
                         .px(DynamicSpacing::Base06.rems(cx))
                         .border_b_1()
                         .border_r_1()
-                        .border_color(cx.theme().colors().border)
+                        .border_color(window.theme(cx).colors().border)
                         .children(self.start_children),
                 )
             })
@@ -124,7 +124,7 @@ impl RenderOnce for TabBar {
                             .left_0()
                             .size_full()
                             .border_b_1()
-                            .border_color(cx.theme().colors().border),
+                            .border_color(window.theme(cx).colors().border),
                     )
                     .child(
                         h_flex()
@@ -143,7 +143,7 @@ impl RenderOnce for TabBar {
                         .flex_none()
                         .gap(DynamicSpacing::Base04.rems(cx))
                         .px(DynamicSpacing::Base06.rems(cx))
-                        .border_color(cx.theme().colors().border)
+                        .border_color(window.theme(cx).colors().border)
                         .border_b_1()
                         .border_l_1()
                         .children(self.end_children),

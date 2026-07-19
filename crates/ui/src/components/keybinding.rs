@@ -415,7 +415,7 @@ pub struct Key {
 }
 
 impl RenderOnce for Key {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let single_char = self.key.len() == 1;
         let size = self
             .size
@@ -433,7 +433,7 @@ impl RenderOnce for Key {
             .h(size)
             .text_size(size)
             .line_height(relative(1.))
-            .text_color(self.color.unwrap_or(Color::Muted).color(cx.theme()))
+            .text_color(self.color.unwrap_or(Color::Muted).color(window.theme(cx)))
             .child(self.key)
     }
 }

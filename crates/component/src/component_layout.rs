@@ -2,7 +2,7 @@ use gpui::{
     AnyElement, App, IntoElement, Pixels, RenderOnce, SharedString, Window, div, pattern_slash,
     prelude::*, px, rems,
 };
-use theme::ActiveTheme;
+use theme::WindowTheme;
 
 /// A single example of a component.
 #[derive(IntoElement)]
@@ -14,7 +14,7 @@ pub struct ComponentExample {
 }
 
 impl RenderOnce for ComponentExample {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         div()
             .pt_2()
             .map(|this| {
@@ -35,13 +35,13 @@ impl RenderOnce for ComponentExample {
                         div()
                             .child(self.variant_name.clone())
                             .text_size(rems(1.0))
-                            .text_color(cx.theme().colors().text),
+                            .text_color(window.theme(cx).colors().text),
                     )
                     .when_some(self.description, |this, description| {
                         this.child(
                             div()
                                 .text_size(rems(0.875))
-                                .text_color(cx.theme().colors().text_muted)
+                                .text_color(window.theme(cx).colors().text_muted)
                                 .child(description),
                         )
                     }),
@@ -56,9 +56,9 @@ impl RenderOnce for ComponentExample {
                     .justify_center()
                     .rounded_xl()
                     .border_1()
-                    .border_color(cx.theme().colors().border.opacity(0.5))
+                    .border_color(window.theme(cx).colors().border.opacity(0.5))
                     .bg(pattern_slash(
-                        cx.theme().colors().surface_background.opacity(0.25),
+                        window.theme(cx).colors().surface_background.opacity(0.25),
                         12.0,
                         12.0,
                     ))
@@ -100,11 +100,11 @@ pub struct ComponentExampleGroup {
 }
 
 impl RenderOnce for ComponentExampleGroup {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         div()
             .flex_col()
             .text_sm()
-            .text_color(cx.theme().colors().text_muted)
+            .text_color(window.theme(cx).colors().text_muted)
             .map(|this| {
                 if let Some(width) = self.width {
                     this.w(width)
@@ -131,7 +131,7 @@ impl RenderOnce for ComponentExampleGroup {
                                 .h_px()
                                 .w_full()
                                 .flex_1()
-                                .bg(cx.theme().colors().border),
+                                .bg(window.theme(cx).colors().border),
                         ),
                 )
             })

@@ -2381,6 +2381,7 @@ impl ConversationView {
         &self,
         connection: &Rc<dyn AgentConnection>,
         view: WeakEntity<Self>,
+        window: &Window,
         cx: &App,
     ) -> Vec<AnyElement> {
         let Some(store) = connection.request_elicitations() else {
@@ -2408,7 +2409,7 @@ impl ConversationView {
                     self.request_elicitation_form_states.get(&elicitation.id),
                     handlers.clone(),
                 )
-                .render(cx)
+                .render(window, cx)
                 .into_any_element()
             })
             .collect()
@@ -2748,7 +2749,7 @@ impl ConversationView {
         path: &SharedString,
         version: &SharedString,
         minimum_version: &SharedString,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let (heading_label, description_label) = (
@@ -2771,11 +2772,11 @@ impl ConversationView {
             .p_3p5()
             .gap_2p5()
             .border_t_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .bg(linear_gradient(
                 180.,
-                linear_color_stop(cx.theme().colors().editor_background.opacity(0.4), 4.),
-                linear_color_stop(cx.theme().status().info_background.opacity(0.), 0.),
+                linear_color_stop(window.theme(cx).colors().editor_background.opacity(0.4), 4.),
+                linear_color_stop(window.theme(cx).status().info_background.opacity(0.), 0.),
             ))
             .child(
                 v_flex().gap_0p5().child(Label::new(heading_label)).child(
@@ -3137,8 +3138,8 @@ impl ConversationView {
         }
     }
 
-    fn invalidate_mermaid_caches(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
-        let current_theme_id = cx.theme().id.clone();
+    fn invalidate_mermaid_caches(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        let current_theme_id = window.theme(cx).id.clone();
         if self.last_theme_id.as_ref() == Some(&current_theme_id) {
             return;
         }
@@ -3442,7 +3443,12 @@ impl Render for ConversationView {
                 this.children(request_elicitation_connection.as_ref().map_or_else(
                     Vec::new,
                     |connection| {
-                        self.render_request_elicitations(connection, cx.entity().downgrade(), cx)
+                        self.render_request_elicitations(
+                            connection,
+                            cx.entity().downgrade(),
+                            window,
+                            cx,
+                        )
                     },
                 ))
             })
@@ -8781,7 +8787,7 @@ pub(crate) mod tests {
             let selection = workspace
                 .update(cx, |workspace, cx| {
                     AgentContextSource::from_active(workspace, cx)?
-                        .read_selection(workspace, false, cx)
+                        .read_selection(workspace, false, window, cx)
                 })
                 .unwrap();
             view.insert_selection(selection, window, cx);
@@ -8851,7 +8857,7 @@ pub(crate) mod tests {
             let selection = workspace
                 .update(cx, |workspace, cx| {
                     AgentContextSource::from_active(workspace, cx)?
-                        .read_selection(workspace, false, cx)
+                        .read_selection(workspace, false, window, cx)
                 })
                 .unwrap();
             view.insert_selection(selection, window, cx);

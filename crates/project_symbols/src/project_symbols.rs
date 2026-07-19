@@ -9,7 +9,6 @@ use picker::{Picker, PickerDelegate, PreviewUpdate};
 use project::{Project, Symbol, lsp_store::SymbolLocation};
 use settings::Settings;
 use std::{cmp::Reverse, sync::Arc};
-use theme::ActiveTheme;
 use theme_settings::ThemeSettings;
 use util::ResultExt;
 use workspace::{
@@ -188,7 +187,7 @@ impl PickerDelegate for ProjectSymbolsDelegate {
         self.selected_match_index = ix;
     }
 
-    fn try_get_preview_data_for_match(&self, _cx: &App) -> Option<PreviewUpdate> {
+    fn try_get_preview_data_for_match(&self, _window: &Window, _cx: &App) -> Option<PreviewUpdate> {
         let candidate_id = self.matches.get(self.selected_match_index)?.candidate_id;
         let symbol = self.symbols.get(candidate_id)?.clone();
         Some(PreviewUpdate::from_symbol(symbol))
@@ -249,13 +248,13 @@ impl PickerDelegate for ProjectSymbolsDelegate {
         &self,
         ix: usize,
         selected: bool,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         let path_style = self.project.read(cx).path_style(cx);
         let string_match = &self.matches.get(ix)?;
         let symbol = &self.symbols.get(string_match.candidate_id)?;
-        let theme = cx.theme();
+        let theme = window.theme(cx);
         let local_player = theme.players().local();
         let syntax_runs = styled_runs_for_code_label(&symbol.label, theme.syntax(), &local_player);
 
@@ -282,7 +281,7 @@ impl PickerDelegate for ProjectSymbolsDelegate {
         let settings = ThemeSettings::get_global(cx);
 
         let text_style = TextStyle {
-            color: cx.theme().colors().text,
+            color: window.theme(cx).colors().text,
             font_family: settings.buffer_font.family.clone(),
             font_features: settings.buffer_font.features.clone(),
             font_fallbacks: settings.buffer_font.fallbacks.clone(),
@@ -293,7 +292,7 @@ impl PickerDelegate for ProjectSymbolsDelegate {
         };
 
         let highlight_style = HighlightStyle {
-            background_color: Some(cx.theme().colors().text_accent.alpha(0.3)),
+            background_color: Some(window.theme(cx).colors().text_accent.alpha(0.3)),
             ..Default::default()
         };
         let custom_highlights = string_match

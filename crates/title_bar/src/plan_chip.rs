@@ -15,15 +15,15 @@ impl PlanChip {
 
 impl RenderOnce for PlanChip {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let free_chip_bg = cx
-            .theme()
+        let free_chip_bg = window
+            .theme(cx)
             .colors()
             .editor_background
             .opacity(0.5)
             .blend(window.theme(cx).colors().text_accent.opacity(0.05));
 
-        let pro_chip_bg = cx
-            .theme()
+        let pro_chip_bg = window
+            .theme(cx)
             .colors()
             .editor_background
             .opacity(0.5)

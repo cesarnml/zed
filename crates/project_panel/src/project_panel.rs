@@ -1,3 +1,4 @@
+use ui::WindowTheme as _;
 pub mod project_panel_settings;
 mod undo;
 mod utils;
@@ -608,8 +609,8 @@ struct ItemColors {
     focused: Hsla,
 }
 
-fn get_item_color(is_sticky: bool, cx: &App) -> ItemColors {
-    let colors = cx.theme().colors();
+fn get_item_color(is_sticky: bool, window: &Window, cx: &App) -> ItemColors {
+    let colors = window.theme(cx).colors();
 
     ItemColors {
         default: if is_sticky {
@@ -2916,7 +2917,7 @@ impl ProjectPanel {
     fn scroll_cursor_center(
         &mut self,
         _: &ScrollCursorCenter,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some((_, _, index)) = self.selection.and_then(|s| self.index_for_selection(s)) {
@@ -2926,7 +2927,12 @@ impl ProjectPanel {
         }
     }
 
-    fn scroll_cursor_top(&mut self, _: &ScrollCursorTop, _: &mut Window, cx: &mut Context<Self>) {
+    fn scroll_cursor_top(
+        &mut self,
+        _: &ScrollCursorTop,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         if let Some((_, _, index)) = self.selection.and_then(|s| self.index_for_selection(s)) {
             self.scroll_handle
                 .scroll_to_item_strict(index, ScrollStrategy::Top);
@@ -2937,7 +2943,7 @@ impl ProjectPanel {
     fn scroll_cursor_bottom(
         &mut self,
         _: &ScrollCursorBottom,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some((_, _, index)) = self.selection.and_then(|s| self.index_for_selection(s)) {
@@ -3122,7 +3128,7 @@ impl ProjectPanel {
     fn select_prev_directory(
         &mut self,
         _: &SelectPrevDirectory,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         let selection = self.find_visible_entry(
@@ -3150,7 +3156,7 @@ impl ProjectPanel {
     fn select_next_directory(
         &mut self,
         _: &SelectNextDirectory,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         let selection = self.find_visible_entry(
@@ -3250,7 +3256,7 @@ impl ProjectPanel {
         }
     }
 
-    fn select_last(&mut self, _: &SelectLast, _: &mut Window, cx: &mut Context<Self>) {
+    fn select_last(&mut self, _: &SelectLast, _window: &mut Window, cx: &mut Context<Self>) {
         if let Some(VisibleEntriesForWorktree {
             worktree_id,
             entries,
@@ -3284,7 +3290,7 @@ impl ProjectPanel {
         }
     }
 
-    fn cut(&mut self, _: &Cut, _: &mut Window, cx: &mut Context<Self>) {
+    fn cut(&mut self, _: &Cut, _window: &mut Window, cx: &mut Context<Self>) {
         let entries = self.disjoint_effective_entries_excluding_roots(cx);
         if !entries.is_empty() {
             self.write_entries_to_system_clipboard(&entries, cx);
@@ -3293,7 +3299,7 @@ impl ProjectPanel {
         }
     }
 
-    fn copy(&mut self, _: &Copy, _: &mut Window, cx: &mut Context<Self>) {
+    fn copy(&mut self, _: &Copy, _window: &mut Window, cx: &mut Context<Self>) {
         let entries = self.disjoint_effective_entries_excluding_roots(cx);
         if !entries.is_empty() {
             self.write_entries_to_system_clipboard(&entries, cx);
@@ -3691,7 +3697,7 @@ impl ProjectPanel {
     fn copy_path(
         &mut self,
         _: &zed_actions::workspace::CopyPath,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         let abs_file_paths = {
@@ -3719,7 +3725,7 @@ impl ProjectPanel {
     fn copy_relative_path(
         &mut self,
         _: &zed_actions::workspace::CopyRelativePath,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         let path_style = self.project.read(cx).path_style(cx);
@@ -3746,7 +3752,7 @@ impl ProjectPanel {
     fn reveal_in_finder(
         &mut self,
         _: &RevealInFileManager,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(path) = self.reveal_in_file_manager_path(cx) {
@@ -3812,7 +3818,7 @@ impl ProjectPanel {
         }
     }
 
-    fn open_system(&mut self, _: &OpenWithSystem, _: &mut Window, cx: &mut Context<Self>) {
+    fn open_system(&mut self, _: &OpenWithSystem, _window: &mut Window, cx: &mut Context<Self>) {
         if let Some((worktree, entry)) = self.selected_entry(cx) {
             let abs_path = worktree.absolutize(&entry.path);
             cx.open_with_system(&abs_path);
@@ -5657,7 +5663,7 @@ impl ProjectPanel {
         let filename_text_color = details.filename_text_color;
         let diagnostic_severity = details.diagnostic_severity;
         let diagnostic_count = details.diagnostic_count;
-        let item_colors = get_item_color(is_sticky, cx);
+        let item_colors = get_item_color(is_sticky, window, cx);
 
         let canonical_path = details.canonical_path.clone();
         let path_style = self.project.read(cx).path_style(cx);
@@ -6201,7 +6207,7 @@ impl ProjectPanel {
                                                 IconDecorationKind::Dot
                                             },
                                             bg_color,
-                                            cx,
+                                            window.theme(cx),
                                         )
                                         .group_name(Some(GROUP_NAME.into()))
                                         .knockout_hover_color(bg_hover_color)
@@ -6249,6 +6255,7 @@ impl ProjectPanel {
                                         item_colors.drag_over,
                                         folded_directory_drag_target,
                                         filename_text_color,
+                                        window,
                                         cx,
                                     ))
                                 }
@@ -6318,6 +6325,7 @@ impl ProjectPanel {
         drag_over_color: Hsla,
         folded_directory_drag_target: Option<FoldedDirectoryDragTarget>,
         filename_text_color: Color,
+        window: &Window,
         cx: &Context<Self>,
     ) -> impl Iterator<Item = AnyElement> {
         let components = Path::new(&file_name)
@@ -6341,7 +6349,7 @@ impl ProjectPanel {
                         .when(index == 0, |this| this.ml_neg_0p5())
                         .px_0p5()
                         .rounded_xs()
-                        .hover(|style| style.bg(cx.theme().colors().element_active))
+                        .hover(|style| style.bg(window.theme(cx).colors().element_active))
                         .when(!is_sticky, |div| {
                             div.when(index != components_len - 1, |div| {
                                 let target_entry_id = folded_ancestors
@@ -7124,7 +7132,7 @@ impl Render for ProjectPanel {
                                 list.with_decoration(
                                     ui::indent_guides(
                                         px(indent_size),
-                                        IndentGuideColors::panel(cx),
+                                        IndentGuideColors::panel(window.theme(cx)),
                                     )
                                     .with_compute_indents_fn(
                                         cx.entity(),
@@ -7272,7 +7280,7 @@ impl Render for ProjectPanel {
                                     sticky_items.with_decoration(
                                         ui::indent_guides(
                                             px(indent_size),
-                                            IndentGuideColors::panel(cx),
+                                            IndentGuideColors::panel(window.theme(cx)),
                                         )
                                         .with_render_fn(
                                             cx.entity(),
@@ -7575,7 +7583,7 @@ impl Render for ProjectPanel {
 }
 
 impl Render for DraggedProjectEntryView {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let ui_font = ThemeSettings::get_global(cx).ui_font.clone();
         h_flex()
             .font(ui_font)
@@ -7589,7 +7597,7 @@ impl Render for DraggedProjectEntryView {
                     .py_1()
                     .px_2()
                     .rounded_lg()
-                    .bg(cx.theme().colors().background)
+                    .bg(window.theme(cx).colors().background)
                     .map(|this| {
                         if self.selections.len() > 1 && self.selections.contains(&self.selection) {
                             this.child(Label::new(format!("{} entries", self.selections.len())))
@@ -7611,7 +7619,7 @@ impl EventEmitter<Event> for ProjectPanel {}
 impl EventEmitter<PanelEvent> for ProjectPanel {}
 
 impl Panel for ProjectPanel {
-    fn position(&self, _: &Window, cx: &App) -> DockPosition {
+    fn position(&self, _window: &Window, cx: &App) -> DockPosition {
         match ProjectPanelSettings::get_global(cx).dock {
             DockSide::Left => DockPosition::Left,
             DockSide::Right => DockPosition::Right,
@@ -7622,7 +7630,12 @@ impl Panel for ProjectPanel {
         matches!(position, DockPosition::Left | DockPosition::Right)
     }
 
-    fn set_position(&mut self, position: DockPosition, _: &mut Window, cx: &mut Context<Self>) {
+    fn set_position(
+        &mut self,
+        position: DockPosition,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         settings::update_settings_file(self.fs.clone(), cx, move |settings, _| {
             let dock = match position {
                 DockPosition::Left | DockPosition::Bottom => DockSide::Left,
@@ -7632,11 +7645,11 @@ impl Panel for ProjectPanel {
         });
     }
 
-    fn default_size(&self, _: &Window, cx: &App) -> Pixels {
+    fn default_size(&self, _window: &Window, cx: &App) -> Pixels {
         ProjectPanelSettings::get_global(cx).default_width
     }
 
-    fn icon(&self, _: &Window, cx: &App) -> Option<IconName> {
+    fn icon(&self, _window: &Window, cx: &App) -> Option<IconName> {
         ProjectPanelSettings::get_global(cx)
             .button
             .then_some(IconName::FileTree)
@@ -7658,7 +7671,7 @@ impl Panel for ProjectPanel {
         PROJECT_PANEL_KEY
     }
 
-    fn starts_open(&self, _: &Window, cx: &App) -> bool {
+    fn starts_open(&self, _window: &Window, cx: &App) -> bool {
         if !ProjectPanelSettings::get_global(cx).starts_open {
             return false;
         }

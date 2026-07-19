@@ -33,4 +33,5 @@ pub use crate::{
     h_group, h_group_lg, h_group_sm, h_group_xl, v_group, v_group_lg, v_group_sm, v_group_xl,
 };
 pub use theme::ActiveTheme;
+pub use theme::ConfiguredTheme;
 pub use theme::WindowTheme;

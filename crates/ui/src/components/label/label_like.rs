@@ -66,7 +66,7 @@ pub trait LabelCommon {
     fn buffer_font(self, cx: &App) -> Self;
 
     /// Styles the label to look like inline code.
-    fn inline_code(self, cx: &App) -> Self;
+    fn inline_code(self, theme: &impl ActiveTheme, cx: &App) -> Self;
 }
 
 /// A label-like element that can be used to create a custom label when
@@ -213,11 +213,11 @@ impl LabelCommon for LabelLike {
         self
     }
 
-    fn inline_code(mut self, cx: &App) -> Self {
+    fn inline_code(mut self, theme: &impl ActiveTheme, cx: &App) -> Self {
         self.base = self
             .base
             .font(theme::theme_settings(cx).buffer_font(cx).clone())
-            .bg(cx.theme().colors().element_background)
+            .bg(theme.theme().colors().element_background)
             .rounded_sm()
             .px_0p5();
         self
@@ -231,8 +231,8 @@ impl ParentElement for LabelLike {
 }
 
 impl RenderOnce for LabelLike {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let mut color = self.color.color(cx.theme());
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let mut color = self.color.color(window.theme(cx));
         if let Some(alpha) = self.alpha {
             color.fade_out(1.0 - alpha);
         }
@@ -252,7 +252,7 @@ impl RenderOnce for LabelLike {
             .when(self.underline, |mut this| {
                 this.text_style().underline = Some(UnderlineStyle {
                     thickness: px(1.),
-                    color: Some(cx.theme().colors().text_muted.opacity(0.4)),
+                    color: Some(window.theme(cx).colors().text_muted.opacity(0.4)),
                     wavy: false,
                 });
                 this
@@ -300,7 +300,7 @@ impl Component for LabelLike {
         that serves as a base for other label types."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         v_flex()
                 .gap_6()
                 .children(vec![
@@ -320,7 +320,7 @@ impl Component for LabelLike {
                             single_example("Italic", LabelLike::new().italic().child("Italic text").into_any_element()),
                             single_example("Underline", LabelLike::new().underline().child("Underlined text").into_any_element()),
                             single_example("Strikethrough", LabelLike::new().strikethrough().child("Strikethrough text").into_any_element()),
-                            single_example("Inline Code", LabelLike::new().inline_code(cx).child("const value = 42;").into_any_element()),
+                            single_example("Inline Code", LabelLike::new().inline_code(window.theme(cx), cx).child("const value = 42;").into_any_element()),
                         ],
                     ),
                     example_group_with_title(

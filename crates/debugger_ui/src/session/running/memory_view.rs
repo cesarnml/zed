@@ -6,6 +6,7 @@ use std::{
     sync::{Arc, LazyLock},
     time::Duration,
 };
+use ui::WindowTheme as _;
 
 use editor::{Editor, EditorElement, EditorStyle};
 use gpui::{
@@ -205,7 +206,7 @@ impl MemoryView {
         uniform_list(
             "debugger-memory-view",
             view_state.row_count() as usize,
-            move |range, _, cx| {
+            move |range, window, cx| {
                 let mut line_buffer = Vec::with_capacity(view_state.line_width.width as usize);
                 let memory_start =
                     (view_state.base_row + range.start as u64) * view_state.line_width.width as u64;
@@ -222,6 +223,7 @@ impl MemoryView {
                         &line_buffer,
                         ix as u64,
                         weak.clone(),
+                        window,
                         cx,
                     ));
                     line_buffer.clear();
@@ -239,10 +241,10 @@ impl MemoryView {
                 .set_offset(current_offset.apply_along(Axis::Vertical, |offset| offset + delta.y));
         }))
     }
-    fn render_query_bar(&self, cx: &Context<Self>) -> impl IntoElement {
+    fn render_query_bar(&self, window: &mut Window, cx: &Context<Self>) -> impl IntoElement {
         EditorElement::new(
             &self.query_editor,
-            Self::editor_style(&self.query_editor, cx),
+            Self::editor_style(&self.query_editor, window, cx),
         )
     }
     pub(super) fn go_to_memory_reference(
@@ -298,10 +300,10 @@ impl MemoryView {
         }
     }
 
-    fn editor_style(editor: &Entity<Editor>, cx: &Context<Self>) -> EditorStyle {
+    fn editor_style(editor: &Entity<Editor>, window: &Window, cx: &Context<Self>) -> EditorStyle {
         let is_read_only = editor.read(cx).read_only(cx);
         let settings = ThemeSettings::get_global(cx);
-        let theme = cx.theme();
+        let theme = window.theme(cx);
         let text_style = TextStyle {
             color: if is_read_only {
                 theme.colors().text_muted
@@ -373,7 +375,7 @@ impl MemoryView {
         .attach(gpui::Anchor::BottomLeft)
     }
 
-    fn page_down(&mut self, _: &menu::SelectLast, _: &mut Window, cx: &mut Context<Self>) {
+    fn page_down(&mut self, _: &menu::SelectLast, _window: &mut Window, cx: &mut Context<Self>) {
         let mut view_state = self.view_state();
         view_state.base_row = view_state
             .base_row
@@ -381,7 +383,7 @@ impl MemoryView {
             .0;
         cx.notify();
     }
-    fn page_up(&mut self, _: &menu::SelectFirst, _: &mut Window, cx: &mut Context<Self>) {
+    fn page_up(&mut self, _: &menu::SelectFirst, _window: &mut Window, cx: &mut Context<Self>) {
         let mut view_state = self.view_state();
         view_state.base_row = view_state
             .base_row
@@ -418,7 +420,7 @@ impl MemoryView {
     fn toggle_data_breakpoint(
         &mut self,
         _: &crate::ToggleDataBreakpoint,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         let Some(SelectedMemoryRange::DragComplete(selection)) =
@@ -572,7 +574,7 @@ impl MemoryView {
         .detach();
     }
 
-    fn cancel(&mut self, _: &menu::Cancel, _: &mut Window, cx: &mut Context<Self>) {
+    fn cancel(&mut self, _: &menu::Cancel, _window: &mut Window, cx: &mut Context<Self>) {
         self.view_state().selection = None;
         cx.notify();
     }
@@ -694,6 +696,7 @@ fn render_single_memory_view_line(
     memory: &[MemoryCell],
     ix: u64,
     weak: gpui::WeakEntity<MemoryView>,
+    window: &Window,
     cx: &mut App,
 ) -> AnyElement {
     let Ok(view_state) = weak.update(cx, |this, _| this.view_state().clone()) else {
@@ -718,7 +721,7 @@ fn render_single_memory_view_line(
                 )
                 .px_1()
                 .border_r_1()
-                .border_color(Color::Muted.color(cx.theme())),
+                .border_color(Color::Muted.color(window.theme(cx))),
         )
         .child(
             h_flex()
@@ -736,7 +739,7 @@ fn render_single_memory_view_line(
                             this.when(selection.contains(base_address + cell_ix as u64), |this| {
                                 let weak = weak.clone();
 
-                                this.bg(Color::Selected.color(cx.theme()).opacity(0.2))
+                                this.bg(Color::Selected.color(window.theme(cx)).opacity(0.2))
                                     .when(!selection.is_dragging(), |this| {
                                         let selection = selection.drag().memory_range();
                                         this.on_mouse_down(
@@ -819,7 +822,7 @@ fn render_single_memory_view_line(
                 .mr_4()
                 // .gap_x_1p5()
                 .border_x_1()
-                .border_color(Color::Muted.color(cx.theme()))
+                .border_color(Color::Muted.color(window.theme(cx)))
                 .children(memory.iter().enumerate().map(|(ix, cell)| {
                     let as_character = char::from(cell.0.unwrap_or(0));
                     let as_visible = if as_character.is_ascii_graphic() {
@@ -831,7 +834,7 @@ fn render_single_memory_view_line(
                         .px_0p5()
                         .when_some(view_state.selection.as_ref(), |this, selection| {
                             this.when(selection.contains(base_address + ix as u64), |this| {
-                                this.bg(Color::Selected.color(cx.theme()).opacity(0.2))
+                                this.bg(Color::Selected.color(window.theme(cx)).opacity(0.2))
                             })
                         })
                         .child(
@@ -895,7 +898,7 @@ impl Render for MemoryView {
                                     .tooltip(Tooltip::text(tooltip_text)),
                             )
                             .child(Divider::vertical())
-                            .child(self.render_query_bar(cx)),
+                            .child(self.render_query_bar(window, cx)),
                     )
                     .child(self.render_width_picker(window, cx)),
             )

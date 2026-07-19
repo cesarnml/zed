@@ -136,14 +136,14 @@ impl DisconnectedOverlay {
         .detach_and_prompt_err("Failed to reconnect", window, cx, |_, _, _| None);
     }
 
-    fn cancel(&mut self, _: &menu::Cancel, _: &mut Window, cx: &mut Context<Self>) {
+    fn cancel(&mut self, _: &menu::Cancel, _window: &mut Window, cx: &mut Context<Self>) {
         self.finished = true;
         cx.emit(DismissEvent)
     }
 }
 
 impl Render for DisconnectedOverlay {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let can_reconnect = matches!(self.host, Host::RemoteServerProject(..));
 
         let message = match &self.host {
@@ -173,7 +173,7 @@ impl Render for DisconnectedOverlay {
 
         div()
             .track_focus(&self.focus_handle(cx))
-            .elevation_3(cx.theme())
+            .elevation_3(window.theme(cx))
             .on_action(cx.listener(Self::cancel))
             .occlude()
             .w(rems(24.))

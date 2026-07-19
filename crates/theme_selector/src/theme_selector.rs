@@ -653,7 +653,7 @@ impl PickerDelegate for ThemeSelectorDelegate {
 
     fn render_footer(
         &self,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<gpui::AnyElement> {
         Some(
@@ -663,7 +663,7 @@ impl PickerDelegate for ThemeSelectorDelegate {
                 .justify_between()
                 .gap_2()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(
                     Button::new("docs", "View Theme Docs")
                         .end_icon(
@@ -843,7 +843,7 @@ mod tests {
         let workspace =
             multi_workspace.read_with(cx, |multi_workspace, _| multi_workspace.workspace().clone());
 
-        let global_theme = cx.update(|_, cx| cx.theme().name.to_string());
+        let global_theme = cx.update(|_, cx| cx.configured_theme().name.to_string());
 
         let picker = open_window_theme_selector(&workspace, cx);
         select_and_confirm(&picker, "Test Dark A", cx);
@@ -851,7 +851,7 @@ mod tests {
         let (window_theme, global_theme_now) = cx.update(|window, cx| {
             (
                 window.theme(cx).name.to_string(),
-                cx.theme().name.to_string(),
+                cx.configured_theme().name.to_string(),
             )
         });
         assert_eq!(

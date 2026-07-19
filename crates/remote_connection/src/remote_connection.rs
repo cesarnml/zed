@@ -15,8 +15,7 @@ use semver::Version;
 use settings::Settings;
 use theme_settings::ThemeSettings;
 use ui::{
-    ActiveTheme, CommonAnimationExt, Context, InteractiveElement, KeyBinding, ListItem, Tooltip,
-    prelude::*,
+    CommonAnimationExt, Context, InteractiveElement, KeyBinding, ListItem, Tooltip, prelude::*,
 };
 use ui_input::{ERASED_EDITOR_FACTORY, ErasedEditor};
 use workspace::{DismissDecision, ModalView, Workspace};
@@ -272,7 +271,7 @@ impl RemoteConnectionModal {
         cx.emit(DismissEvent);
     }
 
-    fn dismiss(&mut self, _: &menu::Cancel, _: &mut Window, cx: &mut Context<Self>) {
+    fn dismiss(&mut self, _: &menu::Cancel, _window: &mut Window, cx: &mut Context<Self>) {
         if let Some(tx) = self
             .prompt
             .update(cx, |prompt, _cx| prompt.cancellation.take())
@@ -293,8 +292,8 @@ pub struct SshConnectionHeader {
 }
 
 impl RenderOnce for SshConnectionHeader {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = cx.theme();
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = window.theme(cx);
 
         let mut header_color = theme.colors().text;
         header_color.fade_out(0.96);

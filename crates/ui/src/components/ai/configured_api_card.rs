@@ -55,7 +55,7 @@ impl ConfiguredApiCard {
 }
 
 impl RenderOnce for ConfiguredApiCard {
-    fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let button_label = self.button_label.unwrap_or("Reset Key".into());
         let button_id = self.id;
 
@@ -67,8 +67,8 @@ impl RenderOnce for ConfiguredApiCard {
             .justify_between()
             .rounded_md()
             .border_1()
-            .border_color(cx.theme().colors().border_variant)
-            .bg(cx.theme().colors().background.opacity(0.5))
+            .border_color(window.theme(cx).colors().border_variant)
+            .bg(window.theme(cx).colors().background.opacity(0.5))
             .child(
                 h_flex()
                     .min_w_0()
@@ -109,15 +109,15 @@ impl Component for ConfiguredApiCard {
         configured, with an optional action button to manage or reconfigure it."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let container = || {
             v_flex()
                 .w_72()
                 .p_2()
                 .gap_2()
                 .border_1()
-                .border_color(cx.theme().colors().border_variant)
-                .bg(cx.theme().colors().panel_background)
+                .border_color(window.theme(cx).colors().border_variant)
+                .bg(window.theme(cx).colors().panel_background)
         };
 
         let examples = vec![

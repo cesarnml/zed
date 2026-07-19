@@ -506,7 +506,7 @@ impl NotebookEditor {
     fn interrupt_kernel(
         &mut self,
         _: &InterruptKernel,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Kernel::RunningKernel(kernel) = &self.kernel {
@@ -738,7 +738,7 @@ impl NotebookEditor {
         }
     }
 
-    fn open_notebook(&mut self, _: &OpenNotebook, _window: &mut Window, _cx: &mut Context<Self>) {
+    fn open_notebook(&mut self, _: &OpenNotebook, window: &mut Window, _cx: &mut Context<Self>) {
         println!("Open notebook triggered");
     }
 
@@ -1000,7 +1000,7 @@ impl NotebookEditor {
         }
     }
 
-    fn jump_to_cell(&mut self, index: usize, _window: &mut Window, _cx: &mut Context<Self>) {
+    fn jump_to_cell(&mut self, index: usize, window: &mut Window, _cx: &mut Context<Self>) {
         self.cell_list.scroll_to_reveal_item(index);
     }
 
@@ -1020,7 +1020,7 @@ impl NotebookEditor {
     fn render_notebook_control(
         id: impl Into<SharedString>,
         icon: IconName,
-        _window: &mut Window,
+        window: &mut Window,
         _cx: &mut Context<Self>,
     ) -> IconButton {
         let id: ElementId = ElementId::Name(id.into());
@@ -1199,7 +1199,7 @@ impl NotebookEditor {
 
     fn render_kernel_status_bar(
         &self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         let kernel_status = self.kernel.status();
@@ -1251,7 +1251,7 @@ impl NotebookEditor {
             .gap_2()
             .items_center()
             .justify_between()
-            .bg(cx.theme().colors().status_bar_background)
+            .bg(window.theme(cx).colors().status_bar_background)
             .child(
                 KernelSelector::new(
                     Box::new(move |spec: KernelSpecification, window, cx| {
@@ -1304,7 +1304,7 @@ impl NotebookEditor {
             )
     }
 
-    fn cell_list(&self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn cell_list(&self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let view = cx.entity();
         list(self.cell_list.clone(), move |index, window, cx| {
             view.update(cx, |this, cx| {
@@ -1767,7 +1767,7 @@ impl EventEmitter<()> for NotebookEditor {}
 //         ToolbarItemLocation::PrimaryLeft
 //     }
 
-//     fn pane_focus_update(&mut self, pane_focused: bool, _window: &mut Window, _cx: &mut Context<Self>) {
+//     fn pane_focus_update(&mut self, pane_focused: bool, window: &mut Window, _cx: &mut Context<Self>) {
 //         self.pane_focused = pane_focused;
 //     }
 // }
@@ -1824,7 +1824,7 @@ impl Item for NotebookEditor {
             .into_any_element()
     }
 
-    fn tab_icon(&self, _window: &Window, _cx: &App) -> Option<Icon> {
+    fn tab_icon(&self, window: &Window, _cx: &App) -> Option<Icon> {
         Some(IconName::Book.into())
     }
 
@@ -1845,7 +1845,7 @@ impl Item for NotebookEditor {
     fn set_nav_history(
         &mut self,
         _: workspace::ItemNavHistory,
-        _window: &mut Window,
+        window: &mut Window,
         _: &mut Context<Self>,
     ) {
         // TODO
@@ -1859,7 +1859,7 @@ impl Item for NotebookEditor {
         &mut self,
         _options: SaveOptions,
         project: Entity<Project>,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Task<Result<()>> {
         let notebook = self.to_notebook(cx);
@@ -1880,7 +1880,7 @@ impl Item for NotebookEditor {
         &mut self,
         project: Entity<Project>,
         path: ProjectPath,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Task<Result<()>> {
         let notebook = self.to_notebook(cx);

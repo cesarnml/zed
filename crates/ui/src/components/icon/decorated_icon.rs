@@ -34,13 +34,13 @@ impl Component for DecoratedIcon {
         that can be positioned relative to the icon"
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let decoration_x = IconDecoration::new(
             IconDecorationKind::X,
-            cx.theme().colors().surface_background,
-            cx,
+            window.theme(cx).colors().surface_background,
+            window.theme(cx),
         )
-        .color(cx.theme().status().error)
+        .color(window.theme(cx).status().error)
         .position(Point {
             x: px(-2.),
             y: px(-2.),
@@ -48,10 +48,10 @@ impl Component for DecoratedIcon {
 
         let decoration_triangle = IconDecoration::new(
             IconDecorationKind::Triangle,
-            cx.theme().colors().surface_background,
-            cx,
+            window.theme(cx).colors().surface_background,
+            window.theme(cx),
         )
-        .color(cx.theme().status().error)
+        .color(window.theme(cx).status().error)
         .position(Point {
             x: px(-2.),
             y: px(-2.),
@@ -59,10 +59,10 @@ impl Component for DecoratedIcon {
 
         let decoration_dot = IconDecoration::new(
             IconDecorationKind::Dot,
-            cx.theme().colors().surface_background,
-            cx,
+            window.theme(cx).colors().surface_background,
+            window.theme(cx),
         )
-        .color(cx.theme().status().error)
+        .color(window.theme(cx).status().error)
         .position(Point {
             x: px(-2.),
             y: px(-2.),

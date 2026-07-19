@@ -322,7 +322,7 @@ impl PickerDelegate for IconThemeSelectorDelegate {
 
     fn render_footer(
         &self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<gpui::AnyElement> {
         Some(
@@ -332,7 +332,7 @@ impl PickerDelegate for IconThemeSelectorDelegate {
                 .justify_between()
                 .gap_2()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(
                     Button::new("docs", "View Icon Theme Docs")
                         .end_icon(

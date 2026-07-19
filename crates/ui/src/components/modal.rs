@@ -2,7 +2,6 @@ use crate::{IconButtonShape, prelude::*};
 
 use gpui::{prelude::FluentBuilder, *};
 use smallvec::SmallVec;
-use theme::ActiveTheme;
 
 #[derive(IntoElement)]
 pub struct Modal {
@@ -279,7 +278,7 @@ impl ModalFooter {
 }
 
 impl RenderOnce for ModalFooter {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         h_flex()
             .w_full()
             .p(DynamicSpacing::Base08.rems(cx))
@@ -287,7 +286,7 @@ impl RenderOnce for ModalFooter {
             .justify_between()
             .gap_1()
             .border_t_1()
-            .border_color(cx.theme().colors().border_variant)
+            .border_color(window.theme(cx).colors().border_variant)
             .child(div().when_some(self.start_slot, |this, start_slot| this.child(start_slot)))
             .child(div().when_some(self.end_slot, |this, end_slot| this.child(end_slot)))
     }
@@ -356,8 +355,8 @@ impl ParentElement for Section {
 }
 
 impl RenderOnce for Section {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let mut section_bg = cx.theme().colors().text;
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let mut section_bg = window.theme(cx).colors().text;
         section_bg.fade_out(0.96);
 
         let children = if self.contained {
@@ -369,7 +368,7 @@ impl RenderOnce for Section {
                         .w_full()
                         .rounded_sm()
                         .border_1()
-                        .border_color(cx.theme().colors().border)
+                        .border_color(window.theme(cx).colors().border)
                         .bg(section_bg)
                         .child(
                             div()

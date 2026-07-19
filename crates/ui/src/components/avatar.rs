@@ -254,7 +254,7 @@ impl Component for Avatar {
         Avatar::DOCS
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let example_avatar = "https://avatars.githubusercontent.com/u/1714999?v=4";
 
         v_flex()
@@ -271,7 +271,7 @@ impl Component for Avatar {
                         single_example(
                             "Border",
                             Avatar::new(example_avatar)
-                                .border_color(cx.theme().colors().border)
+                                .border_color(window.theme(cx).colors().border)
                                 .into_any_element(),
                         ).description("Can be used to create visual space by setting the border color to match the background, which creates the appearance of a gap around the avatar."),
                     ]),

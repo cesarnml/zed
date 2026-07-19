@@ -7,6 +7,7 @@ use futures::channel::oneshot;
 use gpui::{AnyElement, App, Div, Empty, Entity, Hsla, SharedString, Window, div};
 use std::collections::BTreeMap;
 use std::rc::Rc;
+use ui::WindowTheme as _;
 use ui::{
     Button, Checkbox, Color, Icon, IconName, IconSize, Indicator, Label, LabelSize, ToggleState,
     prelude::*,
@@ -923,7 +924,7 @@ fn render_form_preview(
         }
     }
 
-    render_preview_card(entry_ix, request, status, form_state.as_ref(), cx)
+    render_preview_card(entry_ix, request, status, form_state.as_ref(), window, cx)
 }
 
 fn preview_url() -> &'static str {
@@ -933,7 +934,7 @@ fn preview_url() -> &'static str {
 fn render_url_preview(
     entry_ix: usize,
     status: ElicitationStatus,
-    _window: &mut Window,
+    window: &mut Window,
     cx: &mut App,
 ) -> AnyElement {
     let request = acp::CreateElicitationRequest::new(
@@ -945,7 +946,7 @@ fn render_url_preview(
         "Authorize Zed in your browser to finish signing in.",
     );
 
-    render_preview_card(entry_ix, request, status, None, cx)
+    render_preview_card(entry_ix, request, status, None, window, cx)
 }
 
 fn render_preview_card(
@@ -953,6 +954,7 @@ fn render_preview_card(
     request: acp::CreateElicitationRequest,
     status: ElicitationStatus,
     form_state: Option<&ElicitationFormState>,
+    window: &Window,
     cx: &App,
 ) -> AnyElement {
     let elicitation = Elicitation {
@@ -972,7 +974,7 @@ fn render_preview_card(
                 form_state,
                 ElicitationCardHandlers::noop(),
             )
-            .render(cx),
+            .render(window, cx),
         )
         .into_any_element()
 }
@@ -1450,13 +1452,13 @@ impl<'a> ElicitationCard<'a> {
         }
     }
 
-    pub(crate) fn render(self, cx: &App) -> Div {
-        let border_color = cx.theme().colors().border.opacity(0.8);
-        let header_background = cx
-            .theme()
+    pub(crate) fn render(self, window: &Window, cx: &App) -> Div {
+        let border_color = window.theme(cx).colors().border.opacity(0.8);
+        let header_background = window
+            .theme(cx)
             .colors()
             .element_background
-            .blend(cx.theme().colors().editor_foreground.opacity(0.025));
+            .blend(window.theme(cx).colors().editor_foreground.opacity(0.025));
         let tool_name_font_size = rems_from_px(13.);
         let is_pending = matches!(&self.elicitation.status, ElicitationStatus::Pending { .. });
         let is_accepted_url = matches!(
@@ -1480,7 +1482,7 @@ impl<'a> ElicitationCard<'a> {
             .child(Label::new(self.elicitation.request.message.clone()).size(LabelSize::Small));
         let body = match &self.elicitation.request.mode {
             acp::ElicitationMode::Form(mode) if is_pending => {
-                body.child(self.render_form(mode, cx))
+                body.child(self.render_form(mode, window, cx))
             }
             acp::ElicitationMode::Url(mode) if is_pending || is_accepted_url => {
                 body.child(self.render_url_elicitation(mode))
@@ -1526,11 +1528,16 @@ impl<'a> ElicitationCard<'a> {
             )
             .child(body)
             .when(is_pending || is_accepted_url, |this| {
-                this.child(self.render_actions(cx))
+                this.child(self.render_actions(window, cx))
             })
     }
 
-    fn render_form(&self, mode: &acp::ElicitationFormMode, cx: &App) -> AnyElement {
+    fn render_form(
+        &self,
+        mode: &acp::ElicitationFormMode,
+        window: &Window,
+        cx: &App,
+    ) -> AnyElement {
         let Some(state) = self.form_state else {
             return Empty.into_any_element();
         };
@@ -1558,6 +1565,7 @@ impl<'a> ElicitationCard<'a> {
                         property,
                         field,
                         state.field_errors.get(field_name),
+                        window,
                         cx,
                     ))
                 },
@@ -1571,17 +1579,18 @@ impl<'a> ElicitationCard<'a> {
         property: &acp::ElicitationPropertySchema,
         field: &ElicitationFieldState,
         error: Option<&SharedString>,
+        window: &Window,
         cx: &App,
     ) -> AnyElement {
         let label = property_title(field_name, property);
         let description = property_description(property);
-        let border_color = cx.theme().colors().border.opacity(0.8);
+        let border_color = window.theme(cx).colors().border.opacity(0.8);
         let field_border_color = if error.is_some() {
-            Color::Error.color(cx.theme())
+            Color::Error.color(window.theme(cx))
         } else {
             border_color
         };
-        let editor_background = cx.theme().colors().editor_background;
+        let editor_background = window.theme(cx).colors().editor_background;
         let label_color = if error.is_some() {
             Color::Error
         } else {
@@ -1678,6 +1687,7 @@ impl<'a> ElicitationCard<'a> {
                         value.as_ref(),
                         options,
                         error.is_some(),
+                        window,
                         cx,
                     )
                 }
@@ -1697,9 +1707,10 @@ impl<'a> ElicitationCard<'a> {
                             } else {
                                 ToggleState::Unselected
                             };
-                            let row_background = Self::option_row_background(is_selected, cx);
+                            let row_background =
+                                Self::option_row_background(is_selected, window, cx);
                             let hover_background =
-                                Self::option_row_hover_background(is_selected, cx);
+                                Self::option_row_hover_background(is_selected, window, cx);
                             let on_multi_select_change =
                                 self.handlers.on_multi_select_change.clone();
                             let elicitation_id = self.elicitation.id.clone();
@@ -1752,13 +1763,14 @@ impl<'a> ElicitationCard<'a> {
         selected_value: Option<&String>,
         options: Vec<ElicitationOption>,
         has_error: bool,
+        window: &Window,
         cx: &App,
     ) -> AnyElement {
         let entry_ix = self.entry_ix;
         let border_color = if has_error {
-            Color::Error.color(cx.theme())
+            Color::Error.color(window.theme(cx))
         } else {
-            cx.theme().colors().border.opacity(0.8)
+            window.theme(cx).colors().border.opacity(0.8)
         };
         let elicitation_id = self.elicitation.id.clone();
         let field_name = field_name.to_string();
@@ -1772,9 +1784,9 @@ impl<'a> ElicitationCard<'a> {
                     format!("elicitation-select-option-{entry_ix}-{field_name}-{option_value}");
                 let is_selected =
                     selected_value.is_some_and(|selected_value| selected_value == &option.value);
-                let row_background = Self::option_row_background(is_selected, cx);
-                let hover_background = Self::option_row_hover_background(is_selected, cx);
-                let control_background = Self::option_control_background(cx);
+                let row_background = Self::option_row_background(is_selected, window, cx);
+                let hover_background = Self::option_row_hover_background(is_selected, window, cx);
+                let control_background = Self::option_control_background(window, cx);
                 let elicitation_id = elicitation_id.clone();
                 let field_name = field_name.clone();
                 let on_single_select_change = on_single_select_change.clone();
@@ -1833,29 +1845,30 @@ impl<'a> ElicitationCard<'a> {
             })
     }
 
-    fn option_row_background(is_selected: bool, cx: &App) -> Hsla {
-        let editor_background = cx.theme().colors().editor_background;
+    fn option_row_background(is_selected: bool, window: &Window, cx: &App) -> Hsla {
+        let editor_background = window.theme(cx).colors().editor_background;
         if is_selected {
-            editor_background.blend(Color::Accent.color(cx.theme()).opacity(0.08))
+            editor_background.blend(Color::Accent.color(window.theme(cx)).opacity(0.08))
         } else {
             editor_background
         }
     }
 
-    fn option_row_hover_background(is_selected: bool, cx: &App) -> Hsla {
-        let editor_background = cx.theme().colors().editor_background;
+    fn option_row_hover_background(is_selected: bool, window: &Window, cx: &App) -> Hsla {
+        let editor_background = window.theme(cx).colors().editor_background;
         if is_selected {
-            editor_background.blend(Color::Accent.color(cx.theme()).opacity(0.1))
+            editor_background.blend(Color::Accent.color(window.theme(cx)).opacity(0.1))
         } else {
-            cx.theme()
+            window
+                .theme(cx)
                 .colors()
                 .element_background
-                .blend(cx.theme().colors().editor_foreground.opacity(0.025))
+                .blend(window.theme(cx).colors().editor_foreground.opacity(0.025))
         }
     }
 
-    fn option_control_background(cx: &App) -> Hsla {
-        cx.theme().colors().editor_background
+    fn option_control_background(window: &Window, cx: &App) -> Hsla {
+        window.theme(cx).colors().editor_background
     }
 
     fn render_radio_indicator(is_selected: bool, border_color: Hsla, background: Hsla) -> Div {
@@ -1941,7 +1954,7 @@ impl<'a> ElicitationCard<'a> {
             .into_any_element()
     }
 
-    fn render_actions(&self, cx: &App) -> AnyElement {
+    fn render_actions(&self, window: &Window, cx: &App) -> AnyElement {
         let open_url = match &self.elicitation.request.mode {
             acp::ElicitationMode::Url(mode) => Some(mode.url.clone()),
             _ => None,
@@ -1956,7 +1969,7 @@ impl<'a> ElicitationCard<'a> {
         } else {
             ("Submit", IconName::Check, Color::Success)
         };
-        let border_color = cx.theme().colors().border.opacity(0.8);
+        let border_color = window.theme(cx).colors().border.opacity(0.8);
         let on_submit = self.handlers.on_submit.clone();
         let on_open_url = self.handlers.on_open_url.clone();
         let on_decline = self.handlers.on_decline.clone();

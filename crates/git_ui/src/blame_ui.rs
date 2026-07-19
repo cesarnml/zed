@@ -16,6 +16,7 @@ use project::{
 use settings::Settings as _;
 use theme_settings::ThemeSettings;
 use time::OffsetDateTime;
+use ui::WindowTheme as _;
 use ui::{ContextMenu, CopyButton, Divider, prelude::*, tooltip_container};
 use workspace::Workspace;
 
@@ -262,6 +263,7 @@ impl BlameRenderer for GitBlameRenderer {
         &self,
         style: &TextStyle,
         blame_entry: BlameEntry,
+        window: &Window,
         cx: &mut App,
     ) -> Option<AnyElement> {
         let text = format_blame_text(&blame_entry, cx);
@@ -271,7 +273,7 @@ impl BlameRenderer for GitBlameRenderer {
                 .id("inline-blame")
                 .w_full()
                 .font(style.font())
-                .text_color(cx.theme().status().hint)
+                .text_color(window.theme(cx).status().hint)
                 .line_height(style.line_height)
                 .child(Icon::new(IconName::FileGit).color(Color::Hint))
                 .child(text)
@@ -381,8 +383,9 @@ impl BlameRenderer for GitBlameRenderer {
             has_parent: false,
         };
 
+        let theme = window.theme(cx).clone();
         Some(
-            tooltip_container(cx, |this, cx| {
+            tooltip_container(window, cx, move |this, _cx| {
                 this.occlude()
                     .on_mouse_move(|_, _, cx| cx.stop_propagation())
                     .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
@@ -396,13 +399,13 @@ impl BlameRenderer for GitBlameRenderer {
                                     .overflow_x_hidden()
                                     .flex_wrap()
                                     .border_b_1()
-                                    .border_color(window.theme(cx).colors().border_variant)
+                                    .border_color(theme.colors().border_variant)
                                     .child(avatar)
                                     .child(author)
                                     .when(!author_email.is_empty(), |this| {
                                         this.child(
                                             div()
-                                                .text_color(window.theme(cx).colors().text_muted)
+                                                .text_color(theme.colors().text_muted)
                                                 .child(author_email.to_owned()),
                                         )
                                     }),
@@ -418,14 +421,14 @@ impl BlameRenderer for GitBlameRenderer {
                             )
                             .child(
                                 h_flex()
-                                    .text_color(window.theme(cx).colors().text_muted)
+                                    .text_color(theme.colors().text_muted)
                                     .w_full()
                                     .justify_between()
                                     .pt_1()
                                     .gap_1()
                                     .flex_wrap()
                                     .border_t_1()
-                                    .border_color(window.theme(cx).colors().border_variant)
+                                    .border_color(theme.colors().border_variant)
                                     .child(absolute_timestamp)
                                     .child(
                                         h_flex()

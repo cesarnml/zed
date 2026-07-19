@@ -630,7 +630,11 @@ impl PickerDelegate for LspLocationsDelegate {
         cx.emit(DismissEvent);
     }
 
-    fn try_get_preview_data_for_match(&self, _cx: &App) -> Option<picker::PreviewUpdate> {
+    fn try_get_preview_data_for_match(
+        &self,
+        _window: &Window,
+        _cx: &App,
+    ) -> Option<picker::PreviewUpdate> {
         let location_match = self.selected_location_match()?;
         Some(picker::PreviewUpdate::from_buffer(
             location_match.buffer.clone(),
@@ -645,7 +649,7 @@ impl PickerDelegate for LspLocationsDelegate {
         &self,
         ix: usize,
         selected: bool,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         match self.entries.get(ix)? {
@@ -723,7 +727,11 @@ impl PickerDelegate for LspLocationsDelegate {
                                         .child(
                                             Label::new(location_match.line_number.to_string())
                                                 .color(Color::Custom(
-                                                    cx.theme().colors().text_muted.opacity(0.5),
+                                                    window
+                                                        .theme(cx)
+                                                        .colors()
+                                                        .text_muted
+                                                        .opacity(0.5),
                                                 )),
                                         ),
                                 )
@@ -732,7 +740,7 @@ impl PickerDelegate for LspLocationsDelegate {
                                         .flex_1()
                                         .min_w_0()
                                         .truncate()
-                                        .child(render_matched_line(location_match, cx)),
+                                        .child(render_matched_line(location_match, window, cx)),
                                 ),
                         )
                         .into_any_element(),
@@ -745,10 +753,10 @@ impl PickerDelegate for LspLocationsDelegate {
 /// Renders the precomputed displayed line, resolving the stored syntax highlight
 /// ids against the current theme and overlaying the match with a highlighted
 /// background and bold weight.
-fn render_matched_line(location_match: &LocationMatch, cx: &App) -> StyledText {
+fn render_matched_line(location_match: &LocationMatch, window: &Window, cx: &App) -> StyledText {
     let settings = ThemeSettings::get_global(cx);
     let text_style = TextStyle {
-        color: cx.theme().colors().text,
+        color: window.theme(cx).colors().text,
         font_family: settings.buffer_font.family.clone(),
         font_features: settings.buffer_font.features.clone(),
         font_fallbacks: settings.buffer_font.fallbacks.clone(),
@@ -758,7 +766,7 @@ fn render_matched_line(location_match: &LocationMatch, cx: &App) -> StyledText {
         ..Default::default()
     };
 
-    let syntax_theme = cx.theme().syntax();
+    let syntax_theme = window.theme(cx).syntax();
     let syntax_highlights = location_match
         .syntax_highlights
         .iter()
@@ -771,7 +779,7 @@ fn render_matched_line(location_match: &LocationMatch, cx: &App) -> StyledText {
         .collect::<Vec<_>>();
 
     let match_style = HighlightStyle {
-        background_color: Some(cx.theme().colors().search_match_background),
+        background_color: Some(window.theme(cx).colors().search_match_background),
         font_weight: Some(gpui::FontWeight::BOLD),
         ..Default::default()
     };

@@ -42,6 +42,7 @@ impl MarkdownElement {
         block: &ParsedHtmlBlock,
         builder: &mut MarkdownElementBuilder,
         markdown_end: usize,
+        window: &mut Window,
         cx: &mut App,
     ) {
         let mut source_allocator = HtmlSourceAllocator::new(block.source_range.clone());
@@ -50,6 +51,7 @@ impl MarkdownElement {
             &mut source_allocator,
             builder,
             markdown_end,
+            window,
             cx,
         );
     }
@@ -60,10 +62,11 @@ impl MarkdownElement {
         source_allocator: &mut HtmlSourceAllocator,
         builder: &mut MarkdownElementBuilder,
         markdown_end: usize,
+        window: &mut Window,
         cx: &mut App,
     ) {
         for element in elements {
-            self.render_html_element(element, source_allocator, builder, markdown_end, cx);
+            self.render_html_element(element, source_allocator, builder, markdown_end, window, cx);
         }
     }
 
@@ -73,6 +76,7 @@ impl MarkdownElement {
         source_allocator: &mut HtmlSourceAllocator,
         builder: &mut MarkdownElementBuilder,
         markdown_end: usize,
+        window: &mut Window,
         cx: &mut App,
     ) {
         let Some(source_range) = element.source_range() else {
@@ -114,7 +118,7 @@ impl MarkdownElement {
                 self.pop_markdown_heading(builder);
             }
             ParsedHtmlElement::List(list) => {
-                self.render_html_list(list, source_allocator, builder, markdown_end, cx);
+                self.render_html_list(list, source_allocator, builder, markdown_end, window, cx);
             }
             ParsedHtmlElement::BlockQuote(block_quote) => {
                 self.push_markdown_block_quote(
@@ -128,12 +132,13 @@ impl MarkdownElement {
                     source_allocator,
                     builder,
                     markdown_end,
+                    window,
                     cx,
                 );
                 self.pop_markdown_block_quote(builder);
             }
             ParsedHtmlElement::Table(table) => {
-                self.render_html_table(table, source_allocator, builder, markdown_end, cx);
+                self.render_html_table(table, source_allocator, builder, markdown_end, window, cx);
             }
             ParsedHtmlElement::Image(image) => {
                 self.render_html_image(image, builder);
@@ -147,6 +152,7 @@ impl MarkdownElement {
         source_allocator: &mut HtmlSourceAllocator,
         builder: &mut MarkdownElementBuilder,
         markdown_end: usize,
+        window: &mut Window,
         cx: &mut App,
     ) {
         builder.push_div(div().pl_2p5(), &list.source_range, markdown_end);
@@ -174,6 +180,7 @@ impl MarkdownElement {
                 source_allocator,
                 builder,
                 markdown_end,
+                window,
                 cx,
             );
             self.pop_markdown_list_item(builder);
@@ -188,6 +195,7 @@ impl MarkdownElement {
         source_allocator: &mut HtmlSourceAllocator,
         builder: &mut MarkdownElementBuilder,
         markdown_end: usize,
+        window: &mut Window,
         cx: &mut App,
     ) {
         if let Some(caption) = &table.caption {
@@ -227,7 +235,7 @@ impl MarkdownElement {
                 .w_full()
                 .mb_2()
                 .border(px(1.5))
-                .border_color(cx.theme().colors().border)
+                .border_color(window.theme(cx).colors().border)
                 .rounded_sm()
                 .overflow_hidden(),
             &table.source_range,
@@ -261,15 +269,15 @@ impl MarkdownElement {
                     .flex_col()
                     .when(column_index > 0, |this| this.border_l_1())
                     .when(row_index > 0, |this| this.border_t_1())
-                    .border_color(cx.theme().colors().border)
+                    .border_color(window.theme(cx).colors().border)
                     .px_2()
                     .py_1()
                     .h_full()
                     .when(cell.is_header, |this| {
-                        this.bg(cx.theme().colors().title_bar_background)
+                        this.bg(window.theme(cx).colors().title_bar_background)
                     })
                     .when(!cell.is_header && row_index % 2 == 1, |this| {
-                        this.bg(cx.theme().colors().panel_background)
+                        this.bg(window.theme(cx).colors().panel_background)
                     });
 
                 cell_div = match cell.alignment {
@@ -329,9 +337,9 @@ impl MarkdownElement {
                     div()
                         .when(column_index > 0, |this| this.border_l_1())
                         .when(row_index > 0, |this| this.border_t_1())
-                        .border_color(cx.theme().colors().border)
+                        .border_color(window.theme(cx).colors().border)
                         .when(row_index % 2 == 1, |this| {
-                            this.bg(cx.theme().colors().panel_background)
+                            this.bg(window.theme(cx).colors().panel_background)
                         }),
                     &table.source_range,
                     markdown_end,
@@ -565,7 +573,7 @@ mod tests {
         struct TestWindow;
 
         impl Render for TestWindow {
-            fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+            fn render(&mut self, _window: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
                 div()
             }
         }
@@ -615,7 +623,7 @@ mod tests {
         struct TestWindow;
 
         impl Render for TestWindow {
-            fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+            fn render(&mut self, _window: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
                 div()
             }
         }

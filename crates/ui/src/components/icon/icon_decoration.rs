@@ -70,8 +70,8 @@ pub struct IconDecoration {
 
 impl IconDecoration {
     /// Creates a new [`IconDecoration`].
-    pub fn new(kind: IconDecorationKind, knockout_color: Hsla, cx: &App) -> Self {
-        let color = cx.theme().colors().icon;
+    pub fn new(kind: IconDecorationKind, knockout_color: Hsla, theme: &impl ActiveTheme) -> Self {
+        let color = theme.theme().colors().icon;
         let position = Point::default();
 
         Self {

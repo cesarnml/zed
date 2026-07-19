@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use ui::WindowTheme as _;
 
 use collections::HashMap;
 use context_server::ContextServerId;
@@ -32,12 +33,12 @@ pub(crate) fn render_mcp_servers_page(
         let server_ids = store.read(cx).server_ids().to_vec();
 
         if server_ids.is_empty() {
-            render_empty_state(cx)
+            render_empty_state(window, cx)
         } else {
             render_server_list(&server_ids, store, cx)
         }
     } else {
-        render_no_project_state(cx)
+        render_no_project_state(window, cx)
     };
 
     let timeout_setting = render_context_server_timeout(settings_window, window, cx);
@@ -99,13 +100,13 @@ fn get_context_server_store(
     Some(project.read(cx).context_server_store())
 }
 
-fn render_empty_state(cx: &App) -> AnyElement {
+fn render_empty_state(window: &Window, cx: &App) -> AnyElement {
     h_flex()
         .p_4()
         .justify_center()
         .border_1()
         .border_dashed()
-        .border_color(cx.theme().colors().border.opacity(0.6))
+        .border_color(window.theme(cx).colors().border.opacity(0.6))
         .rounded_sm()
         .child(
             Label::new("No MCP servers added yet. Click \"Add Server\" to get started.")
@@ -115,13 +116,13 @@ fn render_empty_state(cx: &App) -> AnyElement {
         .into_any_element()
 }
 
-fn render_no_project_state(cx: &App) -> AnyElement {
+fn render_no_project_state(window: &Window, cx: &App) -> AnyElement {
     h_flex()
         .p_4()
         .justify_center()
         .border_1()
         .border_dashed()
-        .border_color(cx.theme().colors().border.opacity(0.6))
+        .border_color(window.theme(cx).colors().border.opacity(0.6))
         .rounded_sm()
         .child(
             Label::new("No active project found. Open a workspace to manage MCP servers.")
@@ -889,7 +890,7 @@ pub(crate) fn open_mcp_server_form(
 fn render_mcp_server_form_page(
     settings_window: &SettingsWindow,
     scroll_handle: &ScrollHandle,
-    _window: &mut Window,
+    window: &mut Window,
     cx: &mut Context<SettingsWindow>,
 ) -> AnyElement {
     let Some(form) = settings_window.mcp_server_form.as_ref() else {
@@ -906,6 +907,7 @@ fn render_mcp_server_form_page(
             "Server Name",
             "Required. A unique name used to identify this MCP server.",
             &form.name,
+            window,
             cx,
         ))
         .map(|this| match transport {
@@ -915,6 +917,7 @@ fn render_mcp_server_form_page(
                     "Command",
                     "Required. Path to the executable that launches the server.",
                     &form.command,
+                    window,
                     cx,
                 ))
                 .child(render_form_field(
@@ -922,6 +925,7 @@ fn render_mcp_server_form_page(
                     "Arguments",
                     "Space-separated arguments passed to the command.",
                     &form.args,
+                    window,
                     cx,
                 ))
                 .child(render_kv_section(
@@ -930,6 +934,7 @@ fn render_mcp_server_form_page(
                     "Environment variables provided to the server process.",
                     &form.env,
                     McpKvKind::Env,
+                    window,
                     cx,
                 ))
                 .child(render_form_field(
@@ -937,6 +942,7 @@ fn render_mcp_server_form_page(
                     "Timeout (seconds)",
                     "How long to wait for the server to respond before timing out.",
                     &form.timeout,
+                    window,
                     cx,
                 )),
             McpTransport::Http => this
@@ -945,6 +951,7 @@ fn render_mcp_server_form_page(
                     "URL",
                     "Required. The base URL of the remote MCP server.",
                     &form.url,
+                    window,
                     cx,
                 ))
                 .child(render_kv_section(
@@ -953,6 +960,7 @@ fn render_mcp_server_form_page(
                     "HTTP headers sent with each request to the server.",
                     &form.headers,
                     McpKvKind::Header,
+                    window,
                     cx,
                 ))
                 .child(render_form_field(
@@ -960,6 +968,7 @@ fn render_mcp_server_form_page(
                     "Timeout (seconds)",
                     "How long to wait for the server to respond before timing out.",
                     &form.timeout,
+                    window,
                     cx,
                 ))
                 .child(render_form_field(
@@ -967,6 +976,7 @@ fn render_mcp_server_form_page(
                     "OAuth Client ID",
                     "Optional OAuth client ID used to authenticate with the server.",
                     &form.oauth_client_id,
+                    window,
                     cx,
                 )),
         })
@@ -985,8 +995,8 @@ fn render_mcp_server_form_page(
         .into_any_element()
 }
 
-fn input_box(editor: &Entity<Editor>, cx: &App) -> impl IntoElement {
-    let colors = cx.theme().colors();
+fn input_box(editor: &Entity<Editor>, window: &Window, cx: &App) -> impl IntoElement {
+    let colors = window.theme(cx).colors();
     // All form inputs share tab index 0, so tab order follows render (insertion)
     // order. Tracking the editor's focus handle makes the field a tab stop and
     // routes keyboard focus into the editor when tabbed to.
@@ -1010,9 +1020,10 @@ fn render_form_field(
     title: &'static str,
     description: &'static str,
     editor: &Entity<Editor>,
+    window: &Window,
     cx: &mut Context<SettingsWindow>,
 ) -> AnyElement {
-    let control = input_box(editor, cx).into_any_element();
+    let control = input_box(editor, window, cx).into_any_element();
     crate::render_settings_item_layout(
         settings_window,
         title,
@@ -1033,6 +1044,7 @@ fn render_kv_section(
     description: &'static str,
     rows: &[KeyValueRow],
     kind: McpKvKind,
+    window: &Window,
     cx: &mut Context<SettingsWindow>,
 ) -> AnyElement {
     let control = v_flex()
@@ -1045,7 +1057,7 @@ fn render_kv_section(
                     h_flex()
                         .gap_1()
                         .items_center()
-                        .child(input_box(&row.key, cx))
+                        .child(input_box(&row.key, window, cx))
                         .child(
                             IconButton::new((kind.remove_id(), ix), IconName::Close)
                                 .icon_size(IconSize::Small)
@@ -1062,7 +1074,7 @@ fn render_kv_section(
                                 })),
                         ),
                 )
-                .child(input_box(&row.value, cx))
+                .child(input_box(&row.value, window, cx))
         }))
         .child(
             Button::new(kind.add_id(), "Add")

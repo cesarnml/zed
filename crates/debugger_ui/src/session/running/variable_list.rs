@@ -1,4 +1,5 @@
 use crate::session::running::{RunningState, memory_view::MemoryView};
+use ui::WindowTheme as _;
 
 use super::stack_frame_list::{StackFrameList, StackFrameListEvent};
 use dap::{
@@ -450,7 +451,7 @@ impl VariableList {
                         Some(self.render_watcher(entry, *state, window, cx))
                     }
                     DapEntry::Variable(_) => Some(self.render_variable(entry, *state, window, cx)),
-                    DapEntry::Scope(_) => Some(self.render_scope(entry, *state, cx)),
+                    DapEntry::Scope(_) => Some(self.render_scope(entry, *state, window, cx)),
                 }
             })
             .collect()
@@ -919,7 +920,7 @@ impl VariableList {
         cx.notify();
     }
 
-    fn add_watcher(&mut self, _: &AddWatch, _: &mut Window, cx: &mut Context<Self>) {
+    fn add_watcher(&mut self, _: &AddWatch, _window: &mut Window, cx: &mut Context<Self>) {
         let Some(selection) = self.selection.as_ref() else {
             return;
         };
@@ -955,7 +956,7 @@ impl VariableList {
         .detach_and_log_err(cx);
     }
 
-    fn remove_watcher(&mut self, _: &RemoveWatch, _: &mut Window, cx: &mut Context<Self>) {
+    fn remove_watcher(&mut self, _: &RemoveWatch, _window: &mut Window, cx: &mut Context<Self>) {
         let Some(selection) = self.selection.as_ref() else {
             return;
         };
@@ -1077,16 +1078,18 @@ impl VariableList {
     fn variable_color(
         &self,
         presentation_hint: Option<&VariablePresentationHint>,
+        window: &Window,
         cx: &Context<Self>,
     ) -> VariableColor {
         let syntax_color_for = |name| {
-            cx.theme()
+            window
+                .theme(cx)
                 .syntax()
                 .style_for_name(name)
                 .and_then(|style| style.color)
         };
         let name = if self.disabled {
-            Some(Color::Disabled.color(cx.theme()))
+            Some(Color::Disabled.color(window.theme(cx)))
         } else {
             match presentation_hint
                 .as_ref()
@@ -1103,7 +1106,7 @@ impl VariableList {
         };
         let value = self
             .disabled
-            .then(|| Color::Disabled.color(cx.theme()))
+            .then(|| Color::Disabled.color(window.theme(cx)))
             .or_else(|| syntax_color_for("variable.special"));
 
         VariableColor { name, value }
@@ -1114,6 +1117,7 @@ impl VariableList {
         entry: &ListEntry,
         variable_color: &VariableColor,
         value: String,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
         if !value.is_empty() {
@@ -1128,7 +1132,7 @@ impl VariableList {
                     {
                         this.child(div().size_full().px_2().child(editor.clone()))
                     } else {
-                        this.text_color(cx.theme().colors().text_muted)
+                        this.text_color(window.theme(cx).colors().text_muted)
                             .when(
                                 !self.disabled
                                     && self
@@ -1221,7 +1225,7 @@ impl VariableList {
         &self,
         entry: &ListEntry,
         state: EntryState,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let Some(watcher) = &entry.as_watcher() else {
@@ -1229,7 +1233,7 @@ impl VariableList {
             return div().into_any_element();
         };
 
-        let variable_color = self.variable_color(watcher.presentation_hint.as_ref(), cx);
+        let variable_color = self.variable_color(watcher.presentation_hint.as_ref(), window, cx);
 
         let is_selected = self
             .selection
@@ -1237,7 +1241,7 @@ impl VariableList {
             .is_some_and(|selection| selection == &entry.path);
         let var_ref = watcher.variables_reference;
 
-        let colors = get_entry_color(cx);
+        let colors = get_entry_color(window, cx);
         let bg_hover_color = if !is_selected {
             colors.hover
         } else {
@@ -1328,6 +1332,7 @@ impl VariableList {
                             entry,
                             &variable_color,
                             watcher.value.to_string(),
+                            window,
                             cx,
                         )),
                 )
@@ -1358,6 +1363,7 @@ impl VariableList {
         &self,
         entry: &ListEntry,
         state: EntryState,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let Some(scope) = entry.as_scope() else {
@@ -1371,7 +1377,7 @@ impl VariableList {
             .as_ref()
             .is_some_and(|selection| selection == &entry.path);
 
-        let colors = get_entry_color(cx);
+        let colors = get_entry_color(window, cx);
         let bg_hover_color = if !is_selected {
             colors.hover
         } else {
@@ -1419,7 +1425,7 @@ impl VariableList {
                             .w_full()
                             .truncate()
                             .when(self.disabled, |this| {
-                                this.text_color(Color::Disabled.color(cx.theme()))
+                                this.text_color(Color::Disabled.color(window.theme(cx)))
                             })
                             .child(scope.name.clone()),
                     ),
@@ -1439,10 +1445,10 @@ impl VariableList {
             return div().into_any_element();
         };
 
-        let variable_color = self.variable_color(dap.presentation_hint.as_ref(), cx);
+        let variable_color = self.variable_color(dap.presentation_hint.as_ref(), window, cx);
 
         let var_ref = dap.variables_reference;
-        let colors = get_entry_color(cx);
+        let colors = get_entry_color(window, cx);
         let is_selected = self
             .selection
             .as_ref()
@@ -1525,6 +1531,7 @@ impl VariableList {
                             variable,
                             &variable_color,
                             dap.value.clone(),
+                            window,
                             cx,
                         )),
                 ),
@@ -1605,8 +1612,8 @@ struct EntryColors {
     marked_active: Hsla,
 }
 
-fn get_entry_color(cx: &Context<VariableList>) -> EntryColors {
-    let colors = cx.theme().colors();
+fn get_entry_color(window: &Window, cx: &Context<VariableList>) -> EntryColors {
+    let colors = window.theme(cx).colors();
 
     EntryColors {
         default: colors.panel_background,

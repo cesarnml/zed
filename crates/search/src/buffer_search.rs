@@ -224,7 +224,7 @@ impl Render for BufferSearchBar {
             |border_color| input_base_styles(border_color, |div| div.w(input_width));
 
         let input_style = if find_in_results {
-            filter_search_results_input(query_border, |div| div.w(input_width), cx)
+            filter_search_results_input(query_border, |div| div.w(input_width), window, cx)
         } else {
             input_base_styles(query_border)
         };
@@ -233,6 +233,7 @@ impl Render for BufferSearchBar {
             .child(div().flex_1().min_w_0().py_1().child(render_text_input(
                 &self.query_editor,
                 color_override,
+                window,
                 cx,
             )))
             .child(
@@ -378,12 +379,10 @@ impl Render for BufferSearchBar {
             .child(mode_column);
 
         let replace_line = should_show_replace_input.then(|| {
-            let replace_column = input_base_styles(replacement_border).child(
-                div()
-                    .flex_1()
-                    .py_1()
-                    .child(render_text_input(&self.replacement_editor, None, cx)),
-            );
+            let replace_column =
+                input_base_styles(replacement_border).child(div().flex_1().py_1().child(
+                    render_text_input(&self.replacement_editor, None, window, cx),
+                ));
             let focus_handle = self.replacement_editor.read(cx).focus_handle(cx);
 
             let replace_actions = h_flex()

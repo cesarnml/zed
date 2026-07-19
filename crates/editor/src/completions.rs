@@ -12,7 +12,10 @@ impl Editor {
     pub fn text_layout_details(&self, window: &mut Window, cx: &mut App) -> TextLayoutDetails {
         TextLayoutDetails {
             text_system: window.text_system().clone(),
-            editor_style: self.style.clone().unwrap_or_else(|| self.create_style(cx)),
+            editor_style: self
+                .style
+                .clone()
+                .unwrap_or_else(|| self.create_style(window, cx)),
             rem_size: window.rem_size(),
             scroll_anchor: self.scroll_manager.shared_scroll_anchor(cx),
             visible_rows: self.visible_line_count(),

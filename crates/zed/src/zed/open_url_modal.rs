@@ -1,9 +1,9 @@
 use editor::Editor;
 use gpui::{AppContext as _, DismissEvent, Entity, EventEmitter, Focusable, ReadGlobal, Styled};
+use ui::WindowTheme as _;
 use ui::{
-    ActiveTheme, App, Color, Context, FluentBuilder, InteractiveElement, IntoElement, Label,
-    LabelCommon, LabelSize, ParentElement, Render, SharedString, StyledExt, Window, div, h_flex,
-    v_flex,
+    App, Color, Context, FluentBuilder, InteractiveElement, IntoElement, Label, LabelCommon,
+    LabelSize, ParentElement, Render, SharedString, StyledExt, Window, div, h_flex, v_flex,
 };
 use workspace::ModalView;
 
@@ -77,14 +77,14 @@ impl OpenUrlModal {
 }
 
 impl Render for OpenUrlModal {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = cx.theme();
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = window.theme(cx);
 
         v_flex()
             .key_context("OpenUrlModal")
             .on_action(cx.listener(Self::cancel))
             .on_action(cx.listener(Self::confirm))
-            .elevation_3(cx.theme())
+            .elevation_3(window.theme(cx))
             .w_96()
             .overflow_hidden()
             .child(

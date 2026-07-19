@@ -1,6 +1,7 @@
 use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
+use ui::WindowTheme as _;
 
 use anyhow::{Context as _, Result, anyhow};
 use dap::StackFrameId;
@@ -567,6 +568,7 @@ impl StackFrameList {
         &self,
         ix: usize,
         stack_frame: &dap::StackFrame,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let source = stack_frame.source.clone();
@@ -604,7 +606,7 @@ impl StackFrameList {
             .id(("stack-frame", stack_frame.id))
             .p_1()
             .when(is_selected_frame, |this| {
-                this.bg(cx.theme().colors().element_hover)
+                this.bg(window.theme(cx).colors().element_hover)
             })
             .on_any_mouse_down(|_, _, cx| {
                 cx.stop_propagation();
@@ -613,7 +615,11 @@ impl StackFrameList {
                 this.selected_ix = Some(ix);
                 this.activate_selected_entry(window, cx);
             }))
-            .hover(|style| style.bg(cx.theme().colors().element_hover).cursor_pointer())
+            .hover(|style| {
+                style
+                    .bg(window.theme(cx).colors().element_hover)
+                    .cursor_pointer()
+            })
             .overflow_x_scroll()
             .child(
                 v_flex()
@@ -638,11 +644,11 @@ impl StackFrameList {
                             .overflow_hidden()
                             .rounded_md()
                             .border_1()
-                            .border_color(cx.theme().colors().element_selected)
-                            .bg(cx.theme().colors().element_background)
+                            .border_color(window.theme(cx).colors().element_selected)
+                            .bg(window.theme(cx).colors().element_background)
                             .hover(|style| {
                                 style
-                                    .bg(cx.theme().colors().ghost_element_hover)
+                                    .bg(window.theme(cx).colors().ghost_element_hover)
                                     .cursor_pointer()
                             })
                             .child(
@@ -694,6 +700,7 @@ impl StackFrameList {
         &self,
         ix: usize,
         stack_frames: &Vec<dap::StackFrame>,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let first_stack_frame = &stack_frames[0];
@@ -707,7 +714,7 @@ impl StackFrameList {
             .id(("stack-frame", first_stack_frame.id))
             .p_1()
             .when(is_selected, |this| {
-                this.bg(cx.theme().colors().element_hover)
+                this.bg(window.theme(cx).colors().element_hover)
             })
             .on_any_mouse_down(|_, _, cx| {
                 cx.stop_propagation();
@@ -716,12 +723,16 @@ impl StackFrameList {
                 this.selected_ix = Some(ix);
                 this.activate_selected_entry(window, cx);
             }))
-            .hover(|style| style.bg(cx.theme().colors().element_hover).cursor_pointer())
+            .hover(|style| {
+                style
+                    .bg(window.theme(cx).colors().element_hover)
+                    .cursor_pointer()
+            })
             .child(
                 v_flex()
                     .text_ui_sm(cx)
                     .truncate()
-                    .text_color(cx.theme().colors().text_muted)
+                    .text_color(window.theme(cx).colors().text_muted)
                     .child(format!(
                         "Show {} more{}",
                         stack_frames.len(),
@@ -735,7 +746,7 @@ impl StackFrameList {
             .into_any()
     }
 
-    fn render_entry(&self, ix: usize, cx: &mut Context<Self>) -> AnyElement {
+    fn render_entry(&self, ix: usize, window: &mut Window, cx: &mut Context<Self>) -> AnyElement {
         let ix = match self.list_filter {
             StackFrameFilter::All => ix,
             StackFrameFilter::OnlyUserFrames => self.filter_entries_indices[ix],
@@ -743,9 +754,11 @@ impl StackFrameList {
 
         match &self.entries[ix] {
             StackFrameEntry::Label(stack_frame) => self.render_label_entry(stack_frame, cx),
-            StackFrameEntry::Normal(stack_frame) => self.render_normal_entry(ix, stack_frame, cx),
+            StackFrameEntry::Normal(stack_frame) => {
+                self.render_normal_entry(ix, stack_frame, window, cx)
+            }
             StackFrameEntry::Collapsed(stack_frames) => {
-                self.render_collapsed_entry(ix, stack_frames, cx)
+                self.render_collapsed_entry(ix, stack_frames, window, cx)
             }
         }
     }
@@ -898,7 +911,7 @@ impl StackFrameList {
         div().p_1().size_full().child(
             list(
                 self.list_state.clone(),
-                cx.processor(|this, ix, _window, cx| this.render_entry(ix, cx)),
+                cx.processor(|this, ix, window, cx| this.render_entry(ix, window, cx)),
             )
             .size_full(),
         )

@@ -185,7 +185,7 @@ impl ToolbarItemView for MigrationBanner {
 }
 
 impl Render for MigrationBanner {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let migration_type = self.migration_type;
         let settings = ThemeSettings::get_global(cx);
         let ui_font_family = settings.ui_font.family.clone();
@@ -195,9 +195,9 @@ impl Render for MigrationBanner {
             .pl_2()
             .pr_1()
             .justify_between()
-            .bg(cx.theme().status().info_background.opacity(0.6))
+            .bg(window.theme(cx).status().info_background.opacity(0.6))
             .border_1()
-            .border_color(cx.theme().colors().border_variant)
+            .border_color(window.theme(cx).colors().border_variant)
             .rounded_sm()
             .child(
                 h_flex()
@@ -219,13 +219,13 @@ impl Render for MigrationBanner {
                                         markdown.clone(),
                                         MarkdownStyle {
                                             base_text_style: TextStyle {
-                                                color: cx.theme().colors().text,
+                                                color: window.theme(cx).colors().text,
                                                 font_family: ui_font_family,
                                                 ..Default::default()
                                             },
                                             inline_code: TextStyleRefinement {
                                                 background_color: Some(
-                                                    cx.theme().colors().background,
+                                                    window.theme(cx).colors().background,
                                                 ),
                                                 ..Default::default()
                                             },

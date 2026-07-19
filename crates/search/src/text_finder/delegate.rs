@@ -26,6 +26,7 @@ use std::ops::ControlFlow;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::{ops::Range, time::Duration};
+use ui::WindowTheme as _;
 
 use collections::{HashMap, HashSet};
 use editor::{MultiBufferSnapshot, PathKey, multibuffer_context_lines};
@@ -995,7 +996,11 @@ impl PickerDelegate for Delegate {
         cx.emit(DismissEvent);
     }
 
-    fn try_get_preview_data_for_match(&self, _cx: &App) -> Option<picker::PreviewUpdate> {
+    fn try_get_preview_data_for_match(
+        &self,
+        _window: &Window,
+        _cx: &App,
+    ) -> Option<picker::PreviewUpdate> {
         let m = self.selected_search_match()?;
         Some(picker::PreviewUpdate::from_buffer(
             m.buffer.clone(),
@@ -1034,7 +1039,7 @@ impl Delegate {
         ix: usize,
         selected: bool,
         checkbox: Option<AnyElement>,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<AnyElement> {
         match self.entries.get(ix)? {
@@ -1081,7 +1086,7 @@ impl Delegate {
                                 .gap_1p5()
                                 .rounded_sm()
                                 .when(selected, |this| {
-                                    this.bg(cx.theme().colors().ghost_element_selected)
+                                    this.bg(window.theme(cx).colors().ghost_element_selected)
                                 })
                                 .child(
                                     h_flex()
@@ -1170,7 +1175,11 @@ impl Delegate {
                                         .child(
                                             Label::new(search_match.line_number.to_string()).color(
                                                 Color::Custom(
-                                                    cx.theme().colors().text_muted.opacity(0.5),
+                                                    window
+                                                        .theme(cx)
+                                                        .colors()
+                                                        .text_muted
+                                                        .opacity(0.5),
                                                 ),
                                             ),
                                         ),
@@ -1180,7 +1189,7 @@ impl Delegate {
                                         .flex_1()
                                         .min_w_0()
                                         .truncate()
-                                        .child(render_matched_line(search_match, cx)),
+                                        .child(render_matched_line(search_match, window, cx)),
                                 ),
                         )
                         .into_any_element(),
@@ -1312,10 +1321,10 @@ fn matched_line_window(
 
 /// Renders the matched source line with syntax highlighting, overlaying the
 /// search match with a highlighted background and bold weight.
-fn render_matched_line(search_match: &SearchMatch, cx: &App) -> StyledText {
+fn render_matched_line(search_match: &SearchMatch, window: &Window, cx: &App) -> StyledText {
     let settings = ThemeSettings::get_global(cx);
     let text_style = TextStyle {
-        color: cx.theme().colors().text,
+        color: window.theme(cx).colors().text,
         font_family: settings.buffer_font.family.clone(),
         font_features: settings.buffer_font.features.clone(),
         font_fallbacks: settings.buffer_font.fallbacks.clone(),
@@ -1325,7 +1334,7 @@ fn render_matched_line(search_match: &SearchMatch, cx: &App) -> StyledText {
         ..Default::default()
     };
     let search_match_style = HighlightStyle {
-        background_color: Some(cx.theme().colors().search_match_background),
+        background_color: Some(window.theme(cx).colors().search_match_background),
         font_weight: Some(gpui::FontWeight::BOLD),
         ..Default::default()
     };
@@ -1338,27 +1347,27 @@ fn render_matched_line(search_match: &SearchMatch, cx: &App) -> StyledText {
         .range
         .start
         .saturating_sub(search_match.match_start_byte_column as usize);
-    let window = matched_line_window(
+    let line_window = matched_line_window(
         &snapshot,
         &search_match.range,
         search_match.match_start_byte_column,
     );
-    let window_text: String = snapshot.text_for_range(window.clone()).collect();
+    let window_text: String = snapshot.text_for_range(line_window.clone()).collect();
 
     // Trim leading indentation only when the window starts at the line start;
     // a mid-line window already begins on content.
-    let trim_offset = if window.start == line_start_abs {
+    let trim_offset = if line_window.start == line_start_abs {
         window_text.len() - window_text.trim_start().len()
     } else {
         0
     };
-    let visible_start_abs = window.start + trim_offset;
-    let visible_end_abs = window.end;
+    let visible_start_abs = line_window.start + trim_offset;
+    let visible_end_abs = line_window.end;
     let line_text = &window_text[trim_offset..];
 
     // Syntax highlights for the visible (trimmed) portion of the line, with
     // ranges relative to the start of the rendered text.
-    let syntax_theme = cx.theme().syntax();
+    let syntax_theme = window.theme(cx).syntax();
     let mut syntax_highlights: Vec<(Range<usize>, HighlightStyle)> = Vec::new();
     let mut current_offset = 0;
     for chunk in snapshot.chunks(

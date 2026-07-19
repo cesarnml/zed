@@ -72,7 +72,11 @@ impl MultibufferHint {
     }
 
     /// Determines the toolbar location for this [`MultibufferHint`].
-    fn determine_toolbar_location(&mut self, cx: &mut Context<Self>) -> ToolbarItemLocation {
+    fn determine_toolbar_location(
+        &mut self,
+        window: &Window,
+        cx: &mut Context<Self>,
+    ) -> ToolbarItemLocation {
         if Self::shown_count(cx) >= NUMBER_OF_HINTS {
             return ToolbarItemLocation::Hidden;
         }
@@ -82,7 +86,7 @@ impl MultibufferHint {
         };
 
         if active_pane_item.buffer_kind(cx) == ItemBufferKind::Singleton
-            || active_pane_item.breadcrumbs(cx).is_none()
+            || active_pane_item.breadcrumbs(window, cx).is_none()
             || !active_pane_item.can_save(cx)
         {
             return ToolbarItemLocation::Hidden;
@@ -116,11 +120,11 @@ impl ToolbarItemView for MultibufferHint {
         self.subscription = Some(active_pane_item.subscribe_to_item_events(
             window,
             cx,
-            Box::new(move |event, _, cx| {
+            Box::new(move |event, window, cx| {
                 if let ItemEvent::UpdateBreadcrumbs = event {
                     this.update(cx, |this, cx| {
                         cx.notify();
-                        let location = this.determine_toolbar_location(cx);
+                        let location = this.determine_toolbar_location(window, cx);
                         cx.emit(ToolbarItemEvent::ChangeLocation(location))
                     })
                     .ok();
@@ -128,19 +132,19 @@ impl ToolbarItemView for MultibufferHint {
             }),
         ));
 
-        self.determine_toolbar_location(cx)
+        self.determine_toolbar_location(window, cx)
     }
 }
 
 impl Render for MultibufferHint {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         h_flex()
             .px_2()
             .py_0p5()
             .justify_between()
-            .bg(cx.theme().status().info_background.opacity(0.5))
+            .bg(window.theme(cx).status().info_background.opacity(0.5))
             .border_1()
-            .border_color(cx.theme().colors().border_variant)
+            .border_color(window.theme(cx).colors().border_variant)
             .rounded_sm()
             .overflow_hidden()
             .child(

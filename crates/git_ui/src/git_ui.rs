@@ -487,12 +487,12 @@ impl Focusable for RenameBranchModal {
 }
 
 impl Render for RenameBranchModal {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .key_context("RenameBranchModal")
             .on_action(cx.listener(Self::cancel))
             .on_action(cx.listener(Self::confirm))
-            .elevation_2(cx.theme())
+            .elevation_2(window.theme(cx))
             .w(rems(34.))
             .child(
                 h_flex()
@@ -705,7 +705,7 @@ impl Focusable for RefPickerModal {
 }
 
 impl Render for RefPickerModal {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let has_commit_details = self.commit_details.is_some();
         let commit_preview = self.commit_details.as_ref().map(|details| {
             let commit_time = OffsetDateTime::from_unix_timestamp(details.commit_timestamp)
@@ -746,7 +746,7 @@ impl Render for RefPickerModal {
             .key_context("RefPickerModal")
             .on_action(cx.listener(Self::cancel))
             .on_action(cx.listener(Self::confirm))
-            .elevation_2(cx.theme())
+            .elevation_2(window.theme(cx))
             .w(rems(34.))
             .child(
                 h_flex()
@@ -1179,28 +1179,28 @@ impl GitStatusIcon {
 }
 
 impl RenderOnce for GitStatusIcon {
-    fn render(self, _window: &mut ui::Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut ui::Window, cx: &mut App) -> impl IntoElement {
         let status = self.status;
 
         let (icon_name, color) = if status.is_conflicted() {
             (
                 IconName::Warning,
-                cx.theme().colors().version_control_conflict,
+                window.theme(cx).colors().version_control_conflict,
             )
         } else if status.is_deleted() {
             (
                 IconName::SquareMinus,
-                cx.theme().colors().version_control_deleted,
+                window.theme(cx).colors().version_control_deleted,
             )
         } else if status.is_modified() {
             (
                 IconName::SquareDot,
-                cx.theme().colors().version_control_modified,
+                window.theme(cx).colors().version_control_modified,
             )
         } else {
             (
                 IconName::SquarePlus,
-                cx.theme().colors().version_control_added,
+                window.theme(cx).colors().version_control_added,
             )
         };
 
@@ -1283,9 +1283,9 @@ impl Focusable for GitCloneModal {
 }
 
 impl Render for GitCloneModal {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
-            .elevation_3(cx.theme())
+            .elevation_3(window.theme(cx))
             .w(rems(34.))
             .flex_1()
             .overflow_hidden()
@@ -1294,7 +1294,7 @@ impl Render for GitCloneModal {
                     .w_full()
                     .p_2()
                     .border_b_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .child(self.repo_input.clone()),
             )
             .child(
@@ -1303,7 +1303,7 @@ impl Render for GitCloneModal {
                     .p_2()
                     .gap_0p5()
                     .rounded_b_sm()
-                    .bg(cx.theme().colors().editor_background)
+                    .bg(window.theme(cx).colors().editor_background)
                     .child(
                         Label::new("Clone a repository from GitHub or other sources.")
                             .color(Color::Muted)

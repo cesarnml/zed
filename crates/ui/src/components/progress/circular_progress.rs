@@ -17,15 +17,15 @@ pub struct CircularProgress {
 }
 
 impl CircularProgress {
-    pub fn new(value: f32, max_value: f32, size: Pixels, cx: &App) -> Self {
+    pub fn new(value: f32, max_value: f32, size: Pixels, theme: &impl ActiveTheme) -> Self {
         Self {
             value,
             max_value,
             size,
             stroke_width: px(4.0),
             radius: None,
-            bg_color: cx.theme().colors().border_variant,
-            progress_color: cx.theme().status().info,
+            bg_color: theme.theme().colors().border_variant,
+            progress_color: theme.theme().status().info,
         }
     }
 
@@ -191,7 +191,7 @@ impl Component for CircularProgress {
         growing clockwise from the top."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let max_value = 100.0;
         let container = || v_flex().items_center().gap_1();
 
@@ -201,27 +201,52 @@ impl Component for CircularProgress {
                 .gap_6()
                 .child(
                     container()
-                        .child(CircularProgress::new(0.0, max_value, px(48.0), cx))
+                        .child(CircularProgress::new(
+                            0.0,
+                            max_value,
+                            px(48.0),
+                            window.theme(cx),
+                        ))
                         .child(Label::new("0%").size(LabelSize::Small)),
                 )
                 .child(
                     container()
-                        .child(CircularProgress::new(25.0, max_value, px(48.0), cx))
+                        .child(CircularProgress::new(
+                            25.0,
+                            max_value,
+                            px(48.0),
+                            window.theme(cx),
+                        ))
                         .child(Label::new("25%").size(LabelSize::Small)),
                 )
                 .child(
                     container()
-                        .child(CircularProgress::new(50.0, max_value, px(48.0), cx))
+                        .child(CircularProgress::new(
+                            50.0,
+                            max_value,
+                            px(48.0),
+                            window.theme(cx),
+                        ))
                         .child(Label::new("50%").size(LabelSize::Small)),
                 )
                 .child(
                     container()
-                        .child(CircularProgress::new(75.0, max_value, px(48.0), cx))
+                        .child(CircularProgress::new(
+                            75.0,
+                            max_value,
+                            px(48.0),
+                            window.theme(cx),
+                        ))
                         .child(Label::new("75%").size(LabelSize::Small)),
                 )
                 .child(
                     container()
-                        .child(CircularProgress::new(100.0, max_value, px(48.0), cx))
+                        .child(CircularProgress::new(
+                            100.0,
+                            max_value,
+                            px(48.0),
+                            window.theme(cx),
+                        ))
                         .child(Label::new("100%").size(LabelSize::Small)),
                 )
                 .into_any_element(),

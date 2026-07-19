@@ -249,13 +249,13 @@ impl ThreadItem {
 }
 
 impl RenderOnce for ThreadItem {
-    fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
-        let color = cx.theme().colors();
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let color = window.theme(cx).colors();
         // The fade gradient paints a solid color over the title to blend it into
         // the row background, but a transparent window has no opaque surface to
         // fade into, so it renders as a visible patch; truncate the title instead.
         let opaque_window =
-            cx.theme().window_background_appearance() == WindowBackgroundAppearance::Opaque;
+            window.theme(cx).window_background_appearance() == WindowBackgroundAppearance::Opaque;
         let sidebar_base_bg = color
             .title_bar_background
             .blend(color.panel_background.opacity(0.25));
@@ -489,11 +489,9 @@ impl RenderOnce for ThreadItem {
                         .gap_1p5()
                         .child(icon_container()) // Icon Spacing
                         .when(self.archived, |this| {
-                            this.child(
-                                Icon::new(IconName::Archive).size(IconSize::XSmall).color(
-                                    Color::Custom(cx.theme().colors().icon_muted.opacity(0.5)),
-                                ),
-                            )
+                            this.child(Icon::new(IconName::Archive).size(IconSize::XSmall).color(
+                                Color::Custom(window.theme(cx).colors().icon_muted.opacity(0.5)),
+                            ))
                         })
                         .when(
                             has_project_name || has_project_paths || has_worktree,
@@ -644,8 +642,8 @@ impl Component for ThreadItem {
         timestamp, and contextual metadata such as worktree and branch information."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
-        let color = cx.theme().colors();
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
+        let color = window.theme(cx).colors();
         let bg = color
             .title_bar_background
             .blend(color.panel_background.opacity(0.25));

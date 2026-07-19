@@ -1,3 +1,4 @@
+use ui::WindowTheme as _;
 #[cfg(test)]
 mod tab_switcher_tests;
 
@@ -319,7 +320,7 @@ impl TabMatch {
                     } else {
                         window.theme(cx).colors().element_background
                     };
-                    IconDecoration::new(icon, knockout_item_color, cx)
+                    IconDecoration::new(icon, knockout_item_color, window.theme(cx))
                         .color(color.color(window.theme(cx)))
                         .position(Point {
                             x: px(-2.),

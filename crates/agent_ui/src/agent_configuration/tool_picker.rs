@@ -334,7 +334,7 @@ impl PickerDelegate for ToolPickerDelegate {
         &self,
         ix: usize,
         selected: bool,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         let item = &self.filtered_items.get(ix)?;
@@ -347,7 +347,7 @@ impl PickerDelegate for ToolPickerDelegate {
                         this.mt_1()
                             .pt_2()
                             .border_t_1()
-                            .border_color(cx.theme().colors().border_variant)
+                            .border_color(window.theme(cx).colors().border_variant)
                     })
                     .child(
                         Label::new(server_id)

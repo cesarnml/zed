@@ -213,7 +213,7 @@ impl Component for SandboxStatusTooltip {
         agent for each of the possible sandbox states."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let settings_section = SandboxSection::new("Defined in your settings:")
             .group(SandboxGroup::new("Write Access").rows([
                 SandboxRow::path("/Users/you/project"),
@@ -239,7 +239,7 @@ impl Component for SandboxStatusTooltip {
                     .row(SandboxRow::message("All domains (unrestricted)")),
             );
 
-        let container = || div().p_2().elevation_2(cx.theme()).max_w_112();
+        let container = || div().p_2().elevation_2(window.theme(cx)).max_w_112();
 
         v_flex()
             .gap_4()

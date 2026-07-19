@@ -3,6 +3,7 @@ use std::ops::Range;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
+use ui::WindowTheme as _;
 
 use crate::DEFAULT_THREAD_TITLE;
 use crate::thread_metadata_store::{ThreadMetadata, ThreadMetadataStore};
@@ -60,6 +61,7 @@ impl AgentContextSource {
         &self,
         workspace: &Workspace,
         include_current_line: bool,
+        _window: &Window,
         cx: &mut App,
     ) -> Option<AgentContextSelection> {
         match self {
@@ -362,8 +364,11 @@ fn skill_completion_icon_path(
     }
 }
 
-fn skill_completion_icon_color(skill: &AvailableSkill, cx: &App) -> Option<Hsla> {
-    skill.warning.is_some().then(|| cx.theme().status().warning)
+fn skill_completion_icon_color(skill: &AvailableSkill, window: &Window, cx: &App) -> Option<Hsla> {
+    skill
+        .warning
+        .is_some()
+        .then(|| window.theme(cx).status().warning)
 }
 
 fn skill_completion_documentation(skill: &AvailableSkill) -> CompletionDocumentation {
@@ -504,6 +509,7 @@ impl<T: PromptCompletionProviderDelegate> PromptCompletionProvider<T> {
         editor: WeakEntity<Editor>,
         mention_set: WeakEntity<MentionSet>,
         workspace: &Entity<Workspace>,
+        window: &Window,
         cx: &mut App,
     ) -> Option<Completion> {
         match entry {
@@ -527,7 +533,7 @@ impl<T: PromptCompletionProviderDelegate> PromptCompletionProvider<T> {
             PromptContextEntry::Action(action) => {
                 let selection = workspace.update(cx, |workspace, cx| {
                     AgentContextSource::from_active(workspace, cx)?
-                        .read_selection(workspace, false, cx)
+                        .read_selection(workspace, false, window, cx)
                 });
                 Self::completion_for_action(
                     action,
@@ -599,6 +605,7 @@ impl<T: PromptCompletionProviderDelegate> PromptCompletionProvider<T> {
         editor: WeakEntity<Editor>,
         mention_set: WeakEntity<MentionSet>,
         workspace: Entity<Workspace>,
+        window: &Window,
         cx: &mut App,
     ) -> Completion {
         let uri = MentionUri::Skill {
@@ -622,7 +629,7 @@ impl<T: PromptCompletionProviderDelegate> PromptCompletionProvider<T> {
             match_start: None,
             snippet_deduplication_key: None,
             icon_path: Some(icon_path),
-            icon_color: skill_completion_icon_color(&skill, cx),
+            icon_color: skill_completion_icon_color(&skill, window, cx),
             confirm: Some(confirm_completion_callback(
                 crease_text,
                 source_range.start,
@@ -1089,6 +1096,7 @@ impl<T: PromptCompletionProviderDelegate> PromptCompletionProvider<T> {
         mode: Option<PromptContextType>,
         query: String,
         cancellation_flag: Arc<AtomicBool>,
+        window: &mut Window,
         cx: &mut App,
     ) -> Task<Vec<Match>> {
         let Some(workspace) = self.workspace.upgrade() else {
@@ -1157,7 +1165,7 @@ impl<T: PromptCompletionProviderDelegate> PromptCompletionProvider<T> {
             None if query.is_empty() => {
                 let recent_task = self.recent_context_picker_entries(&workspace, cx);
                 let entries = self
-                    .available_context_picker_entries(&workspace, cx)
+                    .available_context_picker_entries(&workspace, window, cx)
                     .into_iter()
                     .map(|mode| {
                         Match::Entry(EntryMatch {
@@ -1195,7 +1203,7 @@ impl<T: PromptCompletionProviderDelegate> PromptCompletionProvider<T> {
                 let search_files_task =
                     search_files(query.clone(), cancellation_flag, &workspace, cx);
 
-                let entries = self.available_context_picker_entries(&workspace, cx);
+                let entries = self.available_context_picker_entries(&workspace, window, cx);
                 let entry_candidates = entries
                     .iter()
                     .enumerate()
@@ -1354,6 +1362,7 @@ impl<T: PromptCompletionProviderDelegate> PromptCompletionProvider<T> {
     fn available_context_picker_entries(
         &self,
         workspace: &Entity<Workspace>,
+        window: &Window,
         cx: &mut App,
     ) -> Vec<PromptContextEntry> {
         let mut entries = vec![
@@ -1367,7 +1376,7 @@ impl<T: PromptCompletionProviderDelegate> PromptCompletionProvider<T> {
 
         let has_active_selection = workspace.update(cx, |workspace, cx| {
             AgentContextSource::from_active(workspace, cx)
-                .and_then(|source| source.read_selection(workspace, false, cx))
+                .and_then(|source| source.read_selection(workspace, false, window, cx))
                 .is_some()
         });
         if has_active_selection {
@@ -1456,6 +1465,7 @@ impl<T: PromptCompletionProviderDelegate> CompletionProvider for PromptCompletio
                     Option<Hsla>,
                     Arc<dyn Fn(CompletionIntent, &mut Window, &mut App) -> bool + Send + Sync>,
                 );
+                let warning_color = window.theme(cx).status().warning;
                 let slash_candidates: Task<Vec<(SlashCompletionCandidate, Option<SkillInfo>)>> = {
                     let source = source.clone();
                     cx.spawn(async move |_this, cx| {
@@ -1473,7 +1483,8 @@ impl<T: PromptCompletionProviderDelegate> CompletionProvider for PromptCompletio
                                         let new_text = format!("{} ", uri.as_link());
                                         let new_text_len = new_text.len();
                                         let icon_path = skill_completion_icon_path(skill, &uri, cx);
-                                        let icon_color = skill_completion_icon_color(skill, cx);
+                                        let icon_color =
+                                            skill.warning.is_some().then(|| warning_color);
                                         let crease_text: SharedString = uri.name().into();
                                         let confirm = confirm_completion_callback(
                                             crease_text,
@@ -1688,7 +1699,7 @@ impl<T: PromptCompletionProviderDelegate> CompletionProvider for PromptCompletio
                 let show_section_headers = mode.is_none() && argument.is_none();
                 let query = argument.unwrap_or_default();
                 let search_task =
-                    self.search_mentions(mode, query, Arc::<AtomicBool>::default(), cx);
+                    self.search_mentions(mode, query, Arc::<AtomicBool>::default(), window, cx);
 
                 // Calculate maximum characters available for the full label (file_name + space + directory)
                 // based on maximum menu width after accounting for padding, spacing, and icon width
@@ -1715,7 +1726,7 @@ impl<T: PromptCompletionProviderDelegate> CompletionProvider for PromptCompletio
                     (f32::from(available_pixels) / f32::from(em_width)) as usize
                 };
 
-                cx.spawn(async move |_, cx| {
+                cx.spawn_in(window, async move |_, cx| {
                     let mut matches = search_task.await;
                     if show_section_headers {
                         matches.sort_by_key(|mat| match mat {
@@ -1728,7 +1739,7 @@ impl<T: PromptCompletionProviderDelegate> CompletionProvider for PromptCompletio
                         });
                     }
 
-                    let completions = cx.update(|cx| {
+                    let completions = cx.update(|window, cx| {
                         matches
                             .into_iter()
                             .filter_map(|mat| {
@@ -1829,6 +1840,7 @@ impl<T: PromptCompletionProviderDelegate> CompletionProvider for PromptCompletio
                                         editor.clone(),
                                         mention_set.clone(),
                                         workspace.clone(),
+                                        window,
                                         cx,
                                     )),
                                     Match::Fetch(url) => Self::completion_for_fetch(
@@ -1847,6 +1859,7 @@ impl<T: PromptCompletionProviderDelegate> CompletionProvider for PromptCompletio
                                             editor.clone(),
                                             mention_set.clone(),
                                             &workspace,
+                                            window,
                                             cx,
                                         )
                                     }
@@ -1868,7 +1881,7 @@ impl<T: PromptCompletionProviderDelegate> CompletionProvider for PromptCompletio
                                 completion
                             })
                             .collect::<Vec<_>>()
-                    });
+                    })?;
 
                     Ok(vec![CompletionResponse {
                         completions,
@@ -3387,9 +3400,9 @@ mod tests {
 
         let source = AgentContextSource::Editor(editor.downgrade());
 
-        workspace.update(cx, |workspace, cx| {
+        workspace.update_in(cx, |workspace, window, cx| {
             let selection = source
-                .read_selection(workspace, true, cx)
+                .read_selection(workspace, true, window, cx)
                 .expect("editor source with cursor on a line should yield a selection");
             assert!(
                 matches!(selection, AgentContextSelection::Editor(_)),
@@ -3414,7 +3427,11 @@ mod tests {
 
             // With include_current_line = false and no non-empty selection, the
             // fallback is suppressed and read_selection should return None.
-            assert!(source.read_selection(workspace, false, cx).is_none());
+            assert!(
+                source
+                    .read_selection(workspace, false, window, cx)
+                    .is_none()
+            );
         });
     }
 }

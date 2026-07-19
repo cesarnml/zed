@@ -291,7 +291,7 @@ impl Item for SubView {
     fn tab_content(
         &self,
         params: workspace::item::TabContentParams,
-        _: &Window,
+        _window: &Window,
         cx: &App,
     ) -> AnyElement {
         let label = Label::new(self.kind.to_shared_string())
@@ -401,11 +401,11 @@ struct DraggedTabPreview {
 }
 
 impl Render for DraggedTabPreview {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let ui_font = theme_settings::ThemeSettings::get_global(cx)
             .ui_font
             .clone();
-        let colors = cx.theme().colors();
+        let colors = window.theme(cx).colors();
 
         h_flex()
             .font(ui_font)
@@ -701,11 +701,11 @@ impl DebugTerminal {
 }
 
 impl gpui::Render for DebugTerminal {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
             .track_focus(&self.focus_handle)
             .size_full()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .children(self.terminal.clone())
     }
 }

@@ -87,6 +87,7 @@ use std::{sync::Arc, time::Duration, usize};
 use strum::{IntoEnumIterator, VariantNames};
 use theme_settings::ThemeSettings;
 use time::OffsetDateTime;
+use ui::WindowTheme as _;
 use ui::{
     ButtonLike, Checkbox, Chip, ContextMenu, ContextMenuEntry, Divider, DocumentationSide,
     ElevationIndex, IndentGuideColors, KeyBinding, PopoverMenu, PopoverMenuHandle,
@@ -4124,14 +4125,19 @@ impl GitPanel {
     fn toggle_fill_co_authors(
         &mut self,
         _: &ToggleFillCoAuthors,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.add_coauthors = !self.add_coauthors;
         cx.notify();
     }
 
-    fn set_sort_by_path(&mut self, _: &SetSortByPath, _: &mut Window, cx: &mut Context<Self>) {
+    fn set_sort_by_path(
+        &mut self,
+        _: &SetSortByPath,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         if let Some(workspace) = self.workspace.upgrade() {
             let workspace = workspace.read(cx);
             let fs = workspace.app_state().fs.clone();
@@ -4143,7 +4149,12 @@ impl GitPanel {
         }
     }
 
-    fn set_sort_by_name(&mut self, _: &SetSortByName, _: &mut Window, cx: &mut Context<Self>) {
+    fn set_sort_by_name(
+        &mut self,
+        _: &SetSortByName,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         if let Some(workspace) = self.workspace.upgrade() {
             let workspace = workspace.read(cx);
             let fs = workspace.app_state().fs.clone();
@@ -4155,7 +4166,12 @@ impl GitPanel {
         }
     }
 
-    fn set_group_by_none(&mut self, _: &SetGroupByNone, _: &mut Window, cx: &mut Context<Self>) {
+    fn set_group_by_none(
+        &mut self,
+        _: &SetGroupByNone,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         if let Some(workspace) = self.workspace.upgrade() {
             let workspace = workspace.read(cx);
             let fs = workspace.app_state().fs.clone();
@@ -4171,7 +4187,7 @@ impl GitPanel {
     fn set_group_by_status(
         &mut self,
         _: &SetGroupByStatus,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(workspace) = self.workspace.upgrade() {
@@ -4223,7 +4239,7 @@ impl GitPanel {
     fn set_group_by_staging(
         &mut self,
         _: &SetGroupByStaging,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(workspace) = self.workspace.upgrade() {
@@ -4238,7 +4254,12 @@ impl GitPanel {
         }
     }
 
-    fn toggle_tree_view(&mut self, _: &ToggleTreeView, _: &mut Window, cx: &mut Context<Self>) {
+    fn toggle_tree_view(
+        &mut self,
+        _: &ToggleTreeView,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         let current_setting = GitPanelSettings::get_global(cx).tree_view;
         if let Some(workspace) = self.workspace.upgrade() {
             let workspace = workspace.read(cx);
@@ -4254,7 +4275,7 @@ impl GitPanel {
     pub(crate) fn increase_font_size(
         &mut self,
         action: &IncreaseBufferFontSize,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.handle_font_size_action(action.persist, px(1.0), cx);
@@ -4263,7 +4284,7 @@ impl GitPanel {
     pub(crate) fn decrease_font_size(
         &mut self,
         action: &DecreaseBufferFontSize,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.handle_font_size_action(action.persist, px(-1.0), cx);
@@ -4287,7 +4308,7 @@ impl GitPanel {
     pub(crate) fn reset_font_size(
         &mut self,
         action: &ResetBufferFontSize,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if action.persist {
@@ -5708,7 +5729,7 @@ impl GitPanel {
         let active_repository = self.active_repository.clone()?;
         let settings = ThemeSettings::get_global(cx);
         let panel_editor_style =
-            git_commit_editor_style(settings.git_commit_buffer_font_size(cx), cx);
+            git_commit_editor_style(settings.git_commit_buffer_font_size(cx), window, cx);
         let enable_coauthors = self.render_co_authors(cx);
         let editor_focus_handle = self.commit_editor.focus_handle(cx);
         let branch = active_repository.read(cx).branch.clone();
@@ -5958,14 +5979,14 @@ impl GitPanel {
             ))
     }
 
-    fn render_pending_amend(&self, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render_pending_amend(&self, window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
         h_flex()
             .py_1p5()
             .px_2()
             .gap_1p5()
             .justify_between()
             .border_t_1()
-            .border_color(cx.theme().colors().border.opacity(0.8))
+            .border_color(window.theme(cx).colors().border.opacity(0.8))
             .child(
                 div()
                     .flex_grow_1()
@@ -5987,7 +6008,7 @@ impl GitPanel {
 
     fn render_previous_commit(
         &self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Option<impl IntoElement> {
         let active_repository = self.active_repository.as_ref()?;
@@ -6002,7 +6023,7 @@ impl GitPanel {
                 .gap_1p5()
                 .justify_between()
                 .border_t_1()
-                .border_color(cx.theme().colors().border.opacity(0.8))
+                .border_color(window.theme(cx).colors().border.opacity(0.8))
                 .child(
                     div()
                         .id("commit-msg-hover")
@@ -6010,7 +6031,7 @@ impl GitPanel {
                         .px_1()
                         .rounded_sm()
                         .line_clamp(1)
-                        .hover(|s| s.bg(cx.theme().colors().element_hover))
+                        .hover(|s| s.bg(window.theme(cx).colors().element_hover))
                         .child(
                             Label::new(commit.subject.clone())
                                 .size(LabelSize::Small)
@@ -6090,7 +6111,7 @@ impl GitPanel {
         )
     }
 
-    fn render_tab_bar(&self, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render_tab_bar(&self, window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
         let active_tab = self.active_tab;
 
         let focus_handle = self.focus_handle.clone();
@@ -6110,11 +6131,11 @@ impl GitPanel {
                 .gap_1()
                 .flex_1()
                 .justify_center()
-                .hover(|s| s.bg(cx.theme().colors().element_hover))
+                .hover(|s| s.bg(window.theme(cx).colors().element_hover))
                 .border_b_1()
                 .when(!active, |s| {
-                    s.bg(cx.theme().colors().editor_background.opacity(0.6))
-                        .border_color(cx.theme().colors().border.opacity(0.6))
+                    s.bg(window.theme(cx).colors().editor_background.opacity(0.6))
+                        .border_color(window.theme(cx).colors().border.opacity(0.6))
                 })
                 .child(Label::new(label.clone()).when(!active, |this| this.color(Color::Muted)))
                 .when(show_changes && self.changes_count > 0, |this| {
@@ -6899,7 +6920,7 @@ impl GitPanel {
         &self,
         entity: &Entity<Self>,
         file: &Arc<dyn File>,
-        _: &Window,
+        _window: &Window,
         cx: &App,
     ) -> Option<AnyElement> {
         let repo = self.active_repository.as_ref()?.read(cx);
@@ -7043,14 +7064,15 @@ impl GitPanel {
                         )
                         .when(is_tree_view, |list| {
                             list.with_decoration(
-                                ui::indent_guides(px(TREE_INDENT), IndentGuideColors::panel(cx))
-                                    .with_left_offset(INDENT_GUIDE_LEFT_OFFSET)
-                                    .with_compute_indents_fn(
-                                        cx.entity(),
-                                        |this, range, _window, _cx| {
-                                            this.compute_visible_depths(range)
-                                        },
-                                    ),
+                                ui::indent_guides(
+                                    px(TREE_INDENT),
+                                    IndentGuideColors::panel(window.theme(cx)),
+                                )
+                                .with_left_offset(INDENT_GUIDE_LEFT_OFFSET)
+                                .with_compute_indents_fn(
+                                    cx.entity(),
+                                    |this, range, _window, _cx| this.compute_visible_depths(range),
+                                ),
                             )
                         })
                         .group("entries")
@@ -7091,7 +7113,7 @@ impl GitPanel {
         ix: usize,
         header: &GitHeaderEntry,
         has_write_access: bool,
-        _window: &Window,
+        window: &Window,
         cx: &Context<Self>,
     ) -> AnyElement {
         let id: ElementId = ElementId::Name(format!("header_{}", ix).into());
@@ -7122,7 +7144,7 @@ impl GitPanel {
             .justify_between()
             .when(!section_is_empty && !all_conflicts_resolved, |this| {
                 this.cursor_pointer()
-                    .hover(|s| s.bg(cx.theme().colors().ghost_element_hover))
+                    .hover(|s| s.bg(window.theme(cx).colors().ghost_element_hover))
             })
             .border_1()
             .border_r_2()
@@ -7962,8 +7984,8 @@ impl GitPanel {
 struct GenerateCommitMessageConfigurationTooltip;
 
 impl Render for GenerateCommitMessageConfigurationTooltip {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        ui::tooltip_container(cx, |container, _cx| {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        ui::tooltip_container(window, cx, |container, _cx| {
             container
                 .gap_1p5()
                 .child(Label::new(
@@ -8119,7 +8141,7 @@ impl Render for GitPanel {
                 v_flex()
                     .size_full()
                     .when(!self.commit_editor_expanded, |this| {
-                        this.child(self.render_tab_bar(cx))
+                        this.child(self.render_tab_bar(window, cx))
                     })
                     .map(|this| match self.active_tab {
                         GitPanelTab::Changes => this
@@ -8142,7 +8164,7 @@ impl Render for GitPanel {
                             })
                             .children(self.render_footer(window, cx))
                             .when(self.amend_pending, |this| {
-                                this.child(self.render_pending_amend(cx))
+                                this.child(self.render_pending_amend(window, cx))
                             })
                             .when(!self.amend_pending, |this| {
                                 this.children(self.render_previous_commit(window, cx))
@@ -8217,7 +8239,7 @@ impl Panel for GitPanel {
         GIT_PANEL_KEY
     }
 
-    fn position(&self, _: &Window, cx: &App) -> DockPosition {
+    fn position(&self, _window: &Window, cx: &App) -> DockPosition {
         GitPanelSettings::get_global(cx).dock
     }
 
@@ -8225,17 +8247,22 @@ impl Panel for GitPanel {
         matches!(position, DockPosition::Left | DockPosition::Right)
     }
 
-    fn set_position(&mut self, position: DockPosition, _: &mut Window, cx: &mut Context<Self>) {
+    fn set_position(
+        &mut self,
+        position: DockPosition,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         settings::update_settings_file(self.fs.clone(), cx, move |settings, _| {
             settings.git_panel.get_or_insert_default().dock = Some(position.into())
         });
     }
 
-    fn default_size(&self, _: &Window, cx: &App) -> Pixels {
+    fn default_size(&self, _window: &Window, cx: &App) -> Pixels {
         GitPanelSettings::get_global(cx).default_width
     }
 
-    fn icon(&self, _: &Window, cx: &App) -> Option<ui::IconName> {
+    fn icon(&self, _window: &Window, cx: &App) -> Option<ui::IconName> {
         Some(ui::IconName::GitBranch).filter(|_| GitPanelSettings::get_global(cx).button)
     }
 
@@ -8243,7 +8270,7 @@ impl Panel for GitPanel {
         Some("Git Panel")
     }
 
-    fn icon_label(&self, _: &Window, cx: &App) -> Option<String> {
+    fn icon_label(&self, _window: &Window, cx: &App) -> Option<String> {
         if !GitPanelSettings::get_global(cx).show_count_badge {
             return None;
         }
@@ -8255,7 +8282,7 @@ impl Panel for GitPanel {
         Box::new(ToggleFocus)
     }
 
-    fn starts_open(&self, _: &Window, cx: &App) -> bool {
+    fn starts_open(&self, _window: &Window, cx: &App) -> bool {
         GitPanelSettings::get_global(cx).starts_open
     }
 
@@ -8272,20 +8299,24 @@ impl Panel for GitPanel {
 
 impl PanelHeader for GitPanel {}
 
-pub fn panel_editor_container(_window: &mut Window, cx: &mut App) -> Div {
+pub fn panel_editor_container(window: &mut Window, cx: &mut App) -> Div {
     v_flex()
         .size_full()
-        .bg(cx.theme().colors().editor_background)
+        .bg(window.theme(cx).colors().editor_background)
 }
 
-pub(crate) fn git_commit_editor_style(font_size: gpui::Pixels, cx: &App) -> EditorStyle {
+pub(crate) fn git_commit_editor_style(
+    font_size: gpui::Pixels,
+    window: &Window,
+    cx: &App,
+) -> EditorStyle {
     let settings = ThemeSettings::get_global(cx);
 
     EditorStyle {
-        background: cx.theme().colors().editor_background,
-        local_player: cx.theme().players().local(),
+        background: window.theme(cx).colors().editor_background,
+        local_player: window.theme(cx).players().local(),
         text: TextStyle {
-            color: cx.theme().colors().text,
+            color: window.theme(cx).colors().text,
             font_family: settings.buffer_font.family.clone(),
             font_fallbacks: settings.buffer_font.fallbacks.clone(),
             font_features: settings.buffer_font.features.clone(),
@@ -8294,7 +8325,7 @@ pub(crate) fn git_commit_editor_style(font_size: gpui::Pixels, cx: &App) -> Edit
             line_height: (font_size * settings.buffer_line_height.value()).into(),
             ..Default::default()
         },
-        syntax: cx.theme().syntax().clone(),
+        syntax: window.theme(cx).syntax().clone(),
         ..Default::default()
     }
 }
@@ -8403,7 +8434,7 @@ impl PanelRepoFooter {
 }
 
 impl RenderOnce for PanelRepoFooter {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let project = self
             .git_panel
             .as_ref()
@@ -8517,7 +8548,9 @@ impl RenderOnce for PanelRepoFooter {
                             show_separator,
                             |this| {
                                 this.child(Label::new("/").size(LabelSize::Small).color(
-                                    Color::Custom(cx.theme().colors().text_muted.opacity(0.4)),
+                                    Color::Custom(
+                                        window.theme(cx).colors().text_muted.opacity(0.4),
+                                    ),
                                 ))
                             },
                         )

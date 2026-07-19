@@ -181,8 +181,8 @@ impl Render for StatusBar {
                     .border_b(px(1.0))
                     .border_color(window.theme(cx).colors().status_bar_background),
             })
-            .child(self.render_left_tools(&sidebar, cx))
-            .child(self.render_right_tools(&sidebar, cx))
+            .child(self.render_left_tools(&sidebar, window, cx))
+            .child(self.render_right_tools(&sidebar, window, cx))
     }
 }
 
@@ -190,6 +190,7 @@ impl StatusBar {
     fn render_left_tools(
         &self,
         sidebar: &SidebarStatus,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         h_flex()
@@ -198,7 +199,7 @@ impl StatusBar {
             .overflow_x_hidden()
             .when(
                 sidebar.show_toggle && !sidebar.open && sidebar.side == SidebarSide::Left,
-                |this| this.child(self.render_sidebar_toggle(sidebar, cx)),
+                |this| this.child(self.render_sidebar_toggle(sidebar, window, cx)),
             )
             .children(self.left_items.iter().enumerate().map(|(index, item)| {
                 render_hideable_item("status-bar-left", index, item.as_ref(), cx)
@@ -208,6 +209,7 @@ impl StatusBar {
     fn render_right_tools(
         &self,
         sidebar: &SidebarStatus,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         h_flex()
@@ -225,18 +227,19 @@ impl StatusBar {
             )
             .when(
                 sidebar.show_toggle && !sidebar.open && sidebar.side == SidebarSide::Right,
-                |this| this.child(self.render_sidebar_toggle(sidebar, cx)),
+                |this| this.child(self.render_sidebar_toggle(sidebar, window, cx)),
             )
     }
 
     fn render_sidebar_toggle(
         &self,
         sidebar: &SidebarStatus,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         let on_right = sidebar.side == SidebarSide::Right;
         let has_notifications = sidebar.has_notifications;
-        let indicator_border = cx.theme().colors().status_bar_background;
+        let indicator_border = window.theme(cx).colors().status_bar_background;
 
         let toggle = sidebar_side_context_menu("sidebar-status-toggle-menu", cx)
             .anchor(if on_right {

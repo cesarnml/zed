@@ -88,7 +88,7 @@ impl ModeIndicator {
 }
 
 impl Render for ModeIndicator {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let vim = self.vim();
         let Some(vim) = vim else {
             return div().hidden().into_any_element();
@@ -99,7 +99,7 @@ impl Render for ModeIndicator {
         let temp_mode = vim_readable.temp_mode;
         let mode = vim_readable.mode;
 
-        let theme = cx.theme();
+        let theme = window.theme(cx);
         let colors = theme.colors();
         let system_transparent = gpui::hsla(0.0, 0.0, 0.0, 0.0);
         let vim_mode_text = match mode {

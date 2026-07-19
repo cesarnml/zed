@@ -7,9 +7,10 @@ use gpui::{
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
+use ui::WindowTheme as _;
 use ui::{
-    ActiveTheme, Color, CommonAnimationExt, Icon, IconName, IconSize, IntoElement, Label,
-    LabelCommon, LabelSize, ParentElement, Styled, StyledExt, div, h_flex, v_flex,
+    Color, CommonAnimationExt, Icon, IconName, IconSize, IntoElement, Label, LabelCommon,
+    LabelSize, ParentElement, Styled, StyledExt, div, h_flex, v_flex,
 };
 use util::ResultExt;
 use util::command::new_command;
@@ -165,11 +166,11 @@ impl Focusable for InstallingZedModal {
 }
 
 impl Render for InstallingZedModal {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = cx.theme();
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = window.theme(cx);
 
         v_flex()
-            .elevation_3(cx.theme())
+            .elevation_3(window.theme(cx))
             .w_80()
             .overflow_hidden()
             .child(

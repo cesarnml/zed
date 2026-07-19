@@ -44,7 +44,7 @@ impl Render for CsvPreviewView {
                         .when(!is_parsing, |div| div.child("No CSV content to display"))
                         .into_any_element()
                 } else {
-                    self.create_table(&self.column_widths.widths, cx)
+                    self.create_table(&self.column_widths.widths, window, cx)
                 }
             });
 
@@ -65,7 +65,7 @@ impl Render for CsvPreviewView {
 
         #[cfg(feature = "dev-tools")]
         let div = div.when(show_perf_metrics_overlay, |div| {
-            div.child(self.render_performance_metrics_overlay(cx))
+            div.child(self.render_performance_metrics_overlay(window, cx))
         });
 
         #[cfg(feature = "dev-tools")]

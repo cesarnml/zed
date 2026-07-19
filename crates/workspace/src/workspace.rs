@@ -139,9 +139,7 @@ use std::{
     time::Duration,
 };
 use task::{DebugScenario, SharedTaskContext, SpawnInTerminal};
-use theme::{
-    ActiveTheme, ClientDecorationsExt, SystemAppearance, Theme, ThemeRegistry, WindowThemeOverrides,
-};
+use theme::{ClientDecorationsExt, SystemAppearance, Theme, ThemeRegistry, WindowThemeOverrides};
 use theme_settings::ThemeSettings;
 pub use toolbar::{
     PaneSearchBarCallbacks, Toolbar, ToolbarItemEvent, ToolbarItemLocation, ToolbarItemView,
@@ -906,7 +904,7 @@ impl ProjectItemRegistry {
                                         })?
                                     {
                                         let build_workspace_item = Box::new(
-                                            move |_: &mut Pane, _: &mut Window, cx: &mut Context<Pane>| {
+                                            move |_: &mut Pane, _window: &mut Window, cx: &mut Context<Pane>| {
                                                 cx.new(|_| broken_project_item_view).boxed_clone()
                                             },
                                         )
@@ -2989,7 +2987,12 @@ impl Workspace {
         &self.app_state.client
     }
 
-    pub fn set_titlebar_item(&mut self, item: AnyView, _: &mut Window, cx: &mut Context<Self>) {
+    pub fn set_titlebar_item(
+        &mut self,
+        item: AnyView,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         self.titlebar_item = Some(item);
         cx.notify();
     }
@@ -6746,7 +6749,7 @@ impl Workspace {
         &self,
         project_only: bool,
         update: proto::update_followers::Variant,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut App,
     ) -> Option<()> {
         // If this update only applies to for followers in the current project,
@@ -8039,7 +8042,7 @@ impl Workspace {
         div
     }
 
-    pub fn has_active_modal(&self, _: &mut Window, cx: &mut App) -> bool {
+    pub fn has_active_modal(&self, _window: &mut Window, cx: &mut App) -> bool {
         self.modal_layer.read(cx).has_active_modal()
     }
 
@@ -8092,7 +8095,7 @@ impl Workspace {
     pub fn toggle_centered_layout(
         &mut self,
         _: &ToggleCenteredLayout,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.centered_layout = !self.centered_layout;
@@ -8107,7 +8110,12 @@ impl Workspace {
         cx.notify();
     }
 
-    pub fn clear_bookmarks(&mut self, _: &ClearBookmarks, _: &mut Window, cx: &mut Context<Self>) {
+    pub fn clear_bookmarks(
+        &mut self,
+        _: &ClearBookmarks,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         self.project()
             .read(cx)
             .bookmark_store()
@@ -8574,7 +8582,7 @@ impl Workspace {
         });
     }
 
-    fn toggle_theme_mode(&mut self, _: &ToggleMode, _window: &mut Window, cx: &mut Context<Self>) {
+    fn toggle_theme_mode(&mut self, _: &ToggleMode, window: &mut Window, cx: &mut Context<Self>) {
         let current_mode = ThemeSettings::get_global(cx).theme.mode();
         let next_mode = match current_mode {
             Some(theme_settings::ThemeAppearanceMode::Light) => {
@@ -8584,7 +8592,7 @@ impl Workspace {
                 theme_settings::ThemeAppearanceMode::Light
             }
             Some(theme_settings::ThemeAppearanceMode::System) | None => {
-                match cx.theme().appearance() {
+                match window.theme(cx).appearance() {
                     theme::Appearance::Light => theme_settings::ThemeAppearanceMode::Dark,
                     theme::Appearance::Dark => theme_settings::ThemeAppearanceMode::Light,
                 }
@@ -8660,7 +8668,7 @@ pub trait AnyActiveCall {
     fn peer_id_for_user_in_room(&self, _: u64, _: &App) -> Option<PeerId>;
     fn subscribe(
         &self,
-        _: &mut Window,
+        window: &mut Window,
         _: &mut Context<Workspace>,
         _: Box<dyn Fn(&mut Workspace, &ActiveCallEvent, &mut Window, &mut Context<Workspace>)>,
     ) -> Subscription;
@@ -8668,7 +8676,7 @@ pub trait AnyActiveCall {
         &self,
         _: PeerId,
         _: &Entity<Pane>,
-        _: &mut Window,
+        window: &mut Window,
         _: &mut App,
     ) -> Option<Entity<SharedScreen>>;
     fn peer_ids_with_video_tracks(&self, _: &App) -> Vec<PeerId>;
@@ -8733,7 +8741,7 @@ pub enum ActiveCallEvent {
 fn leader_border_for_pane(
     follower_states: &HashMap<CollaboratorId, FollowerState>,
     pane: &Entity<Pane>,
-    _: &Window,
+    window: &Window,
     cx: &App,
 ) -> Option<Div> {
     let (leader_id, _follower_state) = follower_states.iter().find_map(|(leader_id, state)| {
@@ -8750,12 +8758,13 @@ fn leader_border_for_pane(
                 .0
                 .remote_participant_for_peer_id(leader_peer_id, cx)?;
 
-            cx.theme()
+            window
+                .theme(cx)
                 .players()
                 .color_for_participant(leader.participant_index.0)
                 .cursor
         }
-        CollaboratorId::Agent => cx.theme().players().agent().cursor,
+        CollaboratorId::Agent => window.theme(cx).players().agent().cursor,
     };
     leader_color.fade_out(0.3);
     Some(
@@ -14902,7 +14911,7 @@ mod tests {
     struct TestModal(FocusHandle);
 
     impl TestModal {
-        fn new(_: &mut Window, cx: &mut Context<Self>) -> Self {
+        fn new(_window: &mut Window, cx: &mut Context<Self>) -> Self {
             Self(cx.focus_handle())
         }
     }
@@ -14932,7 +14941,7 @@ mod tests {
     struct ReopenableTestModal(FocusHandle);
 
     impl ReopenableTestModal {
-        fn new(_: &mut Window, cx: &mut Context<Self>) -> Self {
+        fn new(_window: &mut Window, cx: &mut Context<Self>) -> Self {
             let focus_handle = cx.focus_handle();
             register_reopenable_picker(&focus_handle, cx);
             Self(focus_handle)
@@ -16558,7 +16567,7 @@ mod tests {
                 _project: Entity<Project>,
                 _pane: Option<&Pane>,
                 item: Entity<Self::Item>,
-                _: &mut Window,
+                _window: &mut Window,
                 cx: &mut Context<Self>,
             ) -> Self
             where
@@ -16634,7 +16643,7 @@ mod tests {
                 _project: Entity<Project>,
                 _pane: Option<&Pane>,
                 _item: Entity<Self::Item>,
-                _: &mut Window,
+                _window: &mut Window,
                 cx: &mut Context<Self>,
             ) -> Self
             where
@@ -16681,7 +16690,7 @@ mod tests {
                 _project: Entity<Project>,
                 _pane: Option<&Pane>,
                 _item: Entity<Self::Item>,
-                _: &mut Window,
+                _window: &mut Window,
                 cx: &mut Context<Self>,
             ) -> Self
             where

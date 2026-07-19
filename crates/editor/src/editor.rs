@@ -252,8 +252,7 @@ use std::{
 use task::TaskVariables;
 use text::{BufferId, FromAnchor, OffsetUtf16, Rope, ToOffset as _, ToPoint as _};
 use theme::{
-    AccentColors, ActiveTheme, GlobalTheme, PlayerColor, StatusColors, SyntaxTheme, Theme,
-    WindowTheme,
+    AccentColors, GlobalTheme, PlayerColor, StatusColors, SyntaxTheme, Theme, WindowTheme,
 };
 use theme_settings::{ThemeSettings, observe_buffer_font_size_adjustment};
 use ui::{
@@ -560,20 +559,20 @@ impl Default for EditorStyle {
     }
 }
 
-pub fn make_inlay_hints_style(cx: &App) -> HighlightStyle {
+pub fn make_inlay_hints_style(window: &Window, cx: &App) -> HighlightStyle {
     let show_background = AllLanguageSettings::get_global(cx)
         .defaults
         .inlay_hints
         .show_background;
 
-    let mut style = cx
-        .theme()
+    let mut style = window
+        .theme(cx)
         .syntax()
         .style_for_name("hint")
         .unwrap_or_default();
 
     if style.color.is_none() {
-        style.color = Some(cx.theme().status().hint);
+        style.color = Some(window.theme(cx).status().hint);
     }
 
     if !show_background {
@@ -582,7 +581,7 @@ pub fn make_inlay_hints_style(cx: &App) -> HighlightStyle {
     }
 
     if style.background_color.is_none() {
-        style.background_color = Some(cx.theme().status().hint_background);
+        style.background_color = Some(window.theme(cx).status().hint_background);
     }
 
     style
@@ -767,7 +766,7 @@ pub trait Addon: 'static {
         &self,
         _: &ExcerptBoundaryInfo,
         _: &language::BufferSnapshot,
-        _: &Window,
+        _window: &Window,
         _: &App,
     ) -> Option<AnyElement> {
         None
@@ -777,7 +776,7 @@ pub trait Addon: 'static {
         &self,
         menu: ui::ContextMenu,
         _: &language::BufferSnapshot,
-        _: &mut Window,
+        _window: &mut Window,
         _: &mut App,
     ) -> ui::ContextMenu {
         menu
@@ -1708,7 +1707,7 @@ impl Render for GutterButtonTooltip {
         let key_binding = KeyBinding::for_action_in(intent.action(), &self.focus_handle, cx);
         let meta_text = self.meta_text(intent);
 
-        tooltip_container(cx, move |this, _| {
+        tooltip_container(window, cx, move |this, _| {
             this.child(
                 h_flex()
                     .justify_between()
@@ -1843,6 +1842,7 @@ impl Editor {
     pub fn refresh_sticky_headers(
         &mut self,
         display_snapshot: &DisplaySnapshot,
+        window: &Window,
         cx: &mut Context<Editor>,
     ) {
         if !self.mode.is_full() {
@@ -1867,7 +1867,7 @@ impl Editor {
         let start_row = buffer_visible_start.row.min(max_row);
         let end_row = (buffer_visible_start.row + 10).min(max_row);
 
-        let syntax = self.style(cx).syntax.clone();
+        let syntax = self.style(window, cx).syntax.clone();
         let background_task = cx.background_spawn(async move {
             buffer
                 .outline_items_containing(
@@ -1938,9 +1938,9 @@ impl Editor {
         let editor = cx.entity().downgrade();
         let fold_placeholder = FoldPlaceholder {
             constrain_width: false,
-            render: Arc::new(move |fold_id, fold_range, cx| {
+            render: Arc::new(move |fold_id, fold_range, window, cx| {
                 let editor = editor.clone();
-                FoldPlaceholder::fold_element(fold_id, cx)
+                FoldPlaceholder::fold_element(fold_id, window, cx)
                     .cursor_pointer()
                     .child("⋯")
                     .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
@@ -2500,7 +2500,7 @@ impl Editor {
         }
 
         editor.applicable_language_settings = editor.fetch_applicable_language_settings(cx);
-        editor.accent_data = editor.fetch_accent_data(cx);
+        editor.accent_data = editor.fetch_accent_data(window, cx);
 
         if let Some(breakpoints) = editor.breakpoint_store.as_ref() {
             editor
@@ -2532,7 +2532,7 @@ impl Editor {
 
                         editor.update_data_on_scroll(true, window, cx);
                     }
-                    editor.refresh_sticky_headers(&editor.snapshot(window, cx), cx);
+                    editor.refresh_sticky_headers(&editor.snapshot(window, cx), window, cx);
                 }
                 EditorEvent::Edited { .. } => {
                     let vim_mode = vim_mode_setting::VimModeSetting::try_get(cx)
@@ -2834,7 +2834,7 @@ impl Editor {
     pub fn toggle_selection_menu(
         &mut self,
         _: &ToggleSelectionMenu,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.show_selection_menu = self
@@ -3765,7 +3765,7 @@ impl Editor {
             cx.emit(EditorEvent::OutlineSymbolsChanged);
             cx.notify();
         } else {
-            let syntax = cx.theme().syntax().clone();
+            let syntax = cx.configured_theme().syntax().clone();
             let background_task = cx.background_spawn(async move {
                 multi_buffer_snapshot.symbols_containing(cursor, Some(&syntax))
             });
@@ -4660,9 +4660,9 @@ impl Editor {
         self.context_menu_options = Some(options);
     }
 
-    fn current_user_player_color(&self, cx: &mut App) -> PlayerColor {
+    fn current_user_player_color(&self, window: &Window, cx: &mut App) -> PlayerColor {
         if self.read_only(cx) {
-            cx.theme().players().read_only()
+            window.theme(cx).players().read_only()
         } else {
             self.style.as_ref().unwrap().local_player
         }
@@ -5834,7 +5834,7 @@ impl Editor {
     pub fn toggle_read_only(
         &mut self,
         _: &workspace::ToggleReadOnlyFile,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(buffer) = self.buffer.read(cx).as_singleton() {
@@ -7744,7 +7744,7 @@ impl Editor {
     pub fn signature_help_prev(
         &mut self,
         _: &SignatureHelpPrevious,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(popover) = self.signature_help_state.popover_mut() {
@@ -7760,7 +7760,7 @@ impl Editor {
     pub fn signature_help_next(
         &mut self,
         _: &SignatureHelpNext,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(popover) = self.signature_help_state.popover_mut() {
@@ -7951,10 +7951,10 @@ impl Editor {
                                                 status: cx.editor_style.status.clone(),
                                                 inlay_hints_style: HighlightStyle {
                                                     font_weight: Some(FontWeight::BOLD),
-                                                    ..make_inlay_hints_style(cx.app)
+                                                    ..make_inlay_hints_style(cx.window, cx.app)
                                                 },
                                                 edit_prediction_styles: make_suggestion_styles(
-                                                    cx.app,
+                                                    cx.window, cx.app,
                                                 ),
                                                 ..EditorStyle::default()
                                             },
@@ -8305,7 +8305,7 @@ impl Editor {
     fn restart_language_server(
         &mut self,
         _: &RestartLanguageServer,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(project) = self.project.clone() {
@@ -8325,7 +8325,7 @@ impl Editor {
     fn stop_language_server(
         &mut self,
         _: &StopLanguageServer,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(project) = self.project.clone() {
@@ -8344,7 +8344,7 @@ impl Editor {
     fn cancel_language_server_work(
         workspace: &mut Workspace,
         _: &actions::CancelLanguageServerWork,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Workspace>,
     ) {
         let project = workspace.project();
@@ -8723,7 +8723,7 @@ impl Editor {
     pub fn copy_file_name_without_extension(
         &mut self,
         _: &CopyFileNameWithoutExtension,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(file_stem) = self.active_buffer(cx).and_then(|buffer| {
@@ -8734,7 +8734,12 @@ impl Editor {
         }
     }
 
-    pub fn copy_file_name(&mut self, _: &CopyFileName, _: &mut Window, cx: &mut Context<Self>) {
+    pub fn copy_file_name(
+        &mut self,
+        _: &CopyFileName,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         if let Some(file_name) = self.active_buffer(cx).and_then(|buffer| {
             let file = buffer.read(cx).file()?;
             Some(file.file_name(cx))
@@ -8746,7 +8751,7 @@ impl Editor {
     pub fn copy_file_location(
         &mut self,
         _: &CopyFileLocation,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         let selection = self.selections.newest::<Point>(&self.display_snapshot(cx));
@@ -9627,9 +9632,9 @@ impl Editor {
                 self.refresh_code_actions_for_selection(window, cx);
                 self.refresh_single_line_folds(window, cx);
                 let snapshot = self.snapshot(window, cx);
-                self.refresh_matching_bracket_highlights(&snapshot, cx);
+                self.refresh_matching_bracket_highlights(&snapshot, window, cx);
                 self.refresh_outline_symbols_at_cursor(cx);
-                self.refresh_sticky_headers(&snapshot, cx);
+                self.refresh_sticky_headers(&snapshot, window, cx);
                 if source.is_local() && self.has_active_edit_prediction() {
                     self.update_visible_edit_prediction(window, cx);
                 }
@@ -9772,19 +9777,19 @@ impl Editor {
     fn on_display_map_changed(
         &mut self,
         _: Entity<DisplayMap>,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         cx.notify();
     }
 
-    fn fetch_accent_data(&self, cx: &App) -> Option<AccentData> {
+    fn fetch_accent_data(&self, window: &Window, cx: &App) -> Option<AccentData> {
         if !self.mode.is_full() {
             return None;
         }
 
         let theme_settings = theme_settings::ThemeSettings::get_global(cx);
-        let theme = cx.theme();
+        let theme = window.theme(cx);
         let accent_colors = theme.accents().clone();
         let editor_background = theme.colors().editor_background;
         let auto_accent_colors =
@@ -9844,7 +9849,7 @@ impl Editor {
         let language_settings_changed = new_language_settings != self.applicable_language_settings;
         self.applicable_language_settings = new_language_settings;
 
-        let new_accents = self.fetch_accent_data(cx);
+        let new_accents = self.fetch_accent_data(window, cx);
         let accents_changed = new_accents != self.accent_data;
         self.accent_data = new_accents;
 
@@ -9989,12 +9994,12 @@ impl Editor {
         cx.notify();
     }
 
-    fn theme_changed(&mut self, _: &mut Window, cx: &mut Context<Self>) {
+    fn theme_changed(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         if !self.mode.is_full() {
             return;
         }
 
-        let new_accents = self.fetch_accent_data(cx);
+        let new_accents = self.fetch_accent_data(window, cx);
         if new_accents != self.accent_data {
             self.accent_data = new_accents;
             self.colorize_brackets(true, cx);
@@ -10366,7 +10371,7 @@ impl Editor {
     fn copy_highlight_json(
         &mut self,
         _: &CopyHighlightJson,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         #[derive(Serialize)]
@@ -10516,7 +10521,7 @@ impl Editor {
         }
     }
 
-    fn handle_focus_in(&mut self, _: &mut Window, cx: &mut Context<Self>) {
+    fn handle_focus_in(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
         cx.emit(EditorEvent::FocusedIn)
     }
 
@@ -10648,7 +10653,10 @@ impl Editor {
         window: &mut Window,
         cx: &mut App,
     ) -> Option<gpui::Point<Pixels>> {
-        let line_height = self.style(cx).text.line_height_in_pixels(window.rem_size());
+        let line_height = self
+            .style(window, cx)
+            .text
+            .line_height_in_pixels(window.rem_size());
         let text_layout_details = self.text_layout_details(window, cx);
         let mut scroll_top = text_layout_details
             .scroll_anchor
@@ -10941,12 +10949,12 @@ impl Editor {
         }
     }
 
-    fn create_style(&self, cx: &App) -> EditorStyle {
+    fn create_style(&self, window: &Window, cx: &App) -> EditorStyle {
         let settings = ThemeSettings::get_global(cx);
 
         let mut text_style = match self.mode {
             EditorMode::SingleLine | EditorMode::AutoHeight { .. } => TextStyle {
-                color: cx.theme().colors().editor_foreground,
+                color: window.theme(cx).colors().editor_foreground,
                 font_family: settings.ui_font.family.clone(),
                 font_features: settings.ui_font.features.clone(),
                 font_fallbacks: settings.ui_font.fallbacks.clone(),
@@ -10956,7 +10964,7 @@ impl Editor {
                 ..Default::default()
             },
             EditorMode::Full { .. } | EditorMode::Minimap { .. } => TextStyle {
-                color: cx.theme().colors().editor_foreground,
+                color: window.theme(cx).colors().editor_foreground,
                 font_family: settings.buffer_font.family.clone(),
                 font_features: settings.buffer_font.features.clone(),
                 font_fallbacks: settings.buffer_font.fallbacks.clone(),
@@ -10971,22 +10979,22 @@ impl Editor {
         }
 
         let background = match self.mode {
-            EditorMode::SingleLine => cx.theme().system().transparent,
-            EditorMode::AutoHeight { .. } => cx.theme().system().transparent,
-            EditorMode::Full { .. } => cx.theme().colors().editor_background,
-            EditorMode::Minimap { .. } => cx.theme().colors().editor_background.opacity(0.7),
+            EditorMode::SingleLine => window.theme(cx).system().transparent,
+            EditorMode::AutoHeight { .. } => window.theme(cx).system().transparent,
+            EditorMode::Full { .. } => window.theme(cx).colors().editor_background,
+            EditorMode::Minimap { .. } => window.theme(cx).colors().editor_background.opacity(0.7),
         };
 
         EditorStyle {
             background,
-            border: cx.theme().colors().border,
-            local_player: cx.theme().players().local(),
+            border: window.theme(cx).colors().border,
+            local_player: window.theme(cx).players().local(),
             text: text_style,
             scrollbar_width: EditorElement::SCROLLBAR_WIDTH,
-            syntax: cx.theme().syntax().clone(),
-            status: cx.theme().status().clone(),
-            inlay_hints_style: make_inlay_hints_style(cx),
-            edit_prediction_styles: make_suggestion_styles(cx),
+            syntax: window.theme(cx).syntax().clone(),
+            status: window.theme(cx).status().clone(),
+            inlay_hints_style: make_inlay_hints_style(window, cx),
+            edit_prediction_styles: make_suggestion_styles(window, cx),
             unnecessary_code_fade: settings.unnecessary_code_fade,
             show_underlines: self.diagnostics_enabled(),
         }
@@ -11573,6 +11581,7 @@ impl EditorSnapshot {
         &'a self,
         range: &'a Range<Anchor>,
         collaboration_hub: &dyn CollaborationHub,
+        window: &'a Window,
         cx: &'a App,
     ) -> impl 'a + Iterator<Item = RemoteSelection> {
         let participant_names = collaboration_hub.user_names(cx);
@@ -11593,7 +11602,7 @@ impl EditorSnapshot {
                         line_mode,
                         collaborator_id: CollaboratorId::Agent,
                         user_name: Some("Agent".into()),
-                        color: cx.theme().players().agent(),
+                        color: window.theme(cx).players().agent(),
                     })
                 } else {
                     let collaborator = collaborators_by_replica_id.get(&replica_id)?;
@@ -11607,9 +11616,9 @@ impl EditorSnapshot {
                         collaborator_id: CollaboratorId::PeerId(collaborator.peer_id),
                         user_name,
                         color: if let Some(index) = participant_index {
-                            cx.theme().players().color_for_participant(index.0)
+                            window.theme(cx).players().color_for_participant(index.0)
                         } else {
-                            cx.theme().players().absent()
+                            window.theme(cx).players().absent()
                         },
                     })
                 }
@@ -11937,8 +11946,8 @@ impl Focusable for Editor {
 }
 
 impl Render for Editor {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        EditorElement::new(&cx.entity(), self.create_style(cx))
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        EditorElement::new(&cx.entity(), self.create_style(window, cx))
     }
 }
 
@@ -12056,9 +12065,9 @@ impl ui_input::ErasedEditor for ErasedEditorImpl {
         self.0.read(cx).focus_handle(cx)
     }
 
-    fn render(&self, _: &mut Window, cx: &App) -> AnyElement {
+    fn render(&self, window: &mut Window, cx: &App) -> AnyElement {
         let settings = ThemeSettings::get_global(cx);
-        let theme_color = cx.theme().colors();
+        let theme_color = window.theme(cx).colors();
 
         let text_style = TextStyle {
             font_family: settings.ui_font.family.clone(),
@@ -12072,8 +12081,8 @@ impl ui_input::ErasedEditor for ErasedEditorImpl {
         };
         let editor_style = EditorStyle {
             background: theme_color.ghost_element_background,
-            local_player: cx.theme().players().local(),
-            syntax: cx.theme().syntax().clone(),
+            local_player: window.theme(cx).players().local(),
+            syntax: window.theme(cx).syntax().clone(),
             text: text_style,
             ..Default::default()
         };
@@ -12457,13 +12466,13 @@ impl PromptEditor {
             .log_err();
     }
 
-    fn render_prompt_editor(&self, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render_prompt_editor(&self, window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
         let settings = ThemeSettings::get_global(cx);
         let text_style = TextStyle {
             color: if self.prompt.read(cx).read_only(cx) {
-                cx.theme().colors().text_disabled
+                window.theme(cx).colors().text_disabled
             } else {
-                cx.theme().colors().text
+                window.theme(cx).colors().text
             },
             font_family: settings.buffer_font.family.clone(),
             font_fallbacks: settings.buffer_font.fallbacks.clone(),
@@ -12475,8 +12484,8 @@ impl PromptEditor {
         EditorElement::new(
             &self.prompt,
             EditorStyle {
-                background: cx.theme().colors().editor_background,
-                local_player: cx.theme().players().local(),
+                background: window.theme(cx).colors().editor_background,
+                local_player: window.theme(cx).players().local(),
                 text: text_style,
                 ..Default::default()
             },
@@ -12543,7 +12552,7 @@ impl Render for PromptEditor {
                 h_flex()
                     .w_full()
                     .justify_between()
-                    .child(div().flex_1().child(self.render_prompt_editor(cx)))
+                    .child(div().flex_1().child(self.render_prompt_editor(window, cx)))
                     .child(
                         WithRemSize::new(ui_font_size)
                             .flex()

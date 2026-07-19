@@ -11,15 +11,15 @@ impl SkillsIllustration {
 }
 
 impl RenderOnce for SkillsIllustration {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let skill_crease = |label: SharedString, source: SharedString| {
             h_flex()
                 .py_1()
                 .px_1p5()
                 .gap_1p5()
                 .border_1()
-                .border_color(cx.theme().colors().border)
-                .bg(cx.theme().colors().element_active.opacity(0.5))
+                .border_color(window.theme(cx).colors().border)
+                .bg(window.theme(cx).colors().element_active.opacity(0.5))
                 .justify_center()
                 .rounded_md()
                 .shadow_sm()
@@ -61,7 +61,7 @@ impl RenderOnce for SkillsIllustration {
                     .child(skill_crease("video-edit".into(), "studio".into())),
             );
 
-        let gradient_bg = cx.theme().colors().editor_background;
+        let gradient_bg = window.theme(cx).colors().editor_background;
         let gradient_fade = div()
             .absolute()
             .rounded_t_md()

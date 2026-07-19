@@ -73,7 +73,7 @@ pub struct EditPredictionButton {
 }
 
 impl Render for EditPredictionButton {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         // Return empty div if AI is disabled
         if DisableAiSettings::get_global(cx).disable_ai {
             return div().hidden();
@@ -240,13 +240,13 @@ impl Render for EditPredictionButton {
                                 .when(!has_api_key, |this| {
                                     this.indicator(Indicator::dot().color(Color::Error))
                                         .indicator_border_color(Some(
-                                            cx.theme().colors().status_bar_background,
+                                            window.theme(cx).colors().status_bar_background,
                                         ))
                                 })
                                 .when(has_api_key && !enabled, |this| {
                                     this.indicator(Indicator::dot().color(Color::Ignored))
                                         .indicator_border_color(Some(
-                                            cx.theme().colors().status_bar_background,
+                                            window.theme(cx).colors().status_bar_background,
                                         ))
                                 }),
                             move |_window, cx| {
@@ -286,7 +286,7 @@ impl Render for EditPredictionButton {
                                 .when(!enabled, |this| {
                                     this.indicator(Indicator::dot().color(Color::Ignored))
                                         .indicator_border_color(Some(
-                                            cx.theme().colors().status_bar_background,
+                                            window.theme(cx).colors().status_bar_background,
                                         ))
                                 }),
                         )
@@ -318,7 +318,7 @@ impl Render for EditPredictionButton {
                                 .when(!enabled, |this| {
                                     this.indicator(Indicator::dot().color(Color::Ignored))
                                         .indicator_border_color(Some(
-                                            cx.theme().colors().status_bar_background,
+                                            window.theme(cx).colors().status_bar_background,
                                         ))
                                 }),
                             move |_window, cx| {
@@ -401,7 +401,9 @@ impl Render for EditPredictionButton {
                             .tab_index(0isize)
                             .aria_label("Edit Predictions")
                             .indicator(Indicator::dot().color(Color::Muted))
-                            .indicator_border_color(Some(cx.theme().colors().status_bar_background))
+                            .indicator_border_color(Some(
+                                window.theme(cx).colors().status_bar_background,
+                            ))
                             .tooltip(move |_window, cx| {
                                 Tooltip::with_meta("Edit Predictions", None, tooltip_meta, cx)
                             })
@@ -459,7 +461,9 @@ impl Render for EditPredictionButton {
                     .aria_label("Edit Prediction")
                     .when_some(indicator_color, |this, color| {
                         this.indicator(Indicator::dot().color(color))
-                            .indicator_border_color(Some(cx.theme().colors().status_bar_background))
+                            .indicator_border_color(Some(
+                                window.theme(cx).colors().status_bar_background,
+                            ))
                     })
                     .when(!self.popover_menu_handle.is_deployed(), |element| {
                         element.tooltip(move |_window, cx| {
@@ -628,7 +632,7 @@ impl EditPredictionButton {
                         .toggleable(IconPosition::Start, is_current && !is_disabled_zed_provider)
                         .disabled(is_disabled_zed_provider)
                         .when(is_disabled_zed_provider, |item| {
-                            item.documentation_aside(DocumentationSide::Left, move |_cx| {
+                            item.documentation_aside(DocumentationSide::Left, move |_, _cx| {
                                 Label::new("Edit predictions are disabled for this organization.")
                                     .into_any_element()
                             })
@@ -748,7 +752,7 @@ impl EditPredictionButton {
                 Some((language, false)) => {
                     menu = menu.item(entry.disabled(true).documentation_aside(
                         DocumentationSide::Left,
-                        move |_cx| {
+                        move |_, _cx| {
                             Label::new(format!(
                                 "Edit predictions are disabled for {}",
                                 language.name()
@@ -804,7 +808,7 @@ impl EditPredictionButton {
                 .item(
                     ContextMenuEntry::new("Eager")
                         .toggleable(IconPosition::Start, eager_mode)
-                        .documentation_aside(DocumentationSide::Left, move |_| {
+                        .documentation_aside(DocumentationSide::Left, move |_, _| {
                             Label::new("Display predictions inline when there are no language server completions available.").into_any_element()
                         })
                         .handler({
@@ -822,7 +826,7 @@ impl EditPredictionButton {
                 .item(
                     ContextMenuEntry::new("Subtle")
                         .toggleable(IconPosition::Start, subtle_mode)
-                        .documentation_aside(DocumentationSide::Left, move |_| {
+                        .documentation_aside(DocumentationSide::Left, move |_, _| {
                             Label::new("Display predictions inline only when holding a modifier key (alt by default).").into_any_element()
                         })
                         .handler({
@@ -861,7 +865,7 @@ impl EditPredictionButton {
                             .icon(icon_name)
                             .icon_color(icon_color)
                             .disabled(!provider.can_toggle_data_collection(cx))
-                            .documentation_aside(DocumentationSide::Left, move |cx| {
+                            .documentation_aside(DocumentationSide::Left, move |window, cx| {
                                 let (msg, label_color, icon_name, icon_color) = match (is_open_source, is_collecting) {
                                     (true, true) => (
                                         "Project identified as open source, and you're sharing data.",
@@ -905,9 +909,9 @@ impl EditPredictionButton {
                                             .flex_1()
                                             .gap_1p5()
                                             .border_t_1()
-                                            .border_color(cx.theme().colors().border_variant)
+                                            .border_color(window.theme(cx).colors().border_variant)
                                             .child(h_flex().flex_shrink_0().h(line_height).child(Icon::new(icon_name).size(IconSize::XSmall).color(icon_color)))
-                                            .child(div().child(msg).w_full().text_sm().text_color(label_color.color(cx.theme())))
+                                            .child(div().child(msg).w_full().text_sm().text_color(label_color.color(window.theme(cx))))
                                     )
                                     .into_any_element()
                             })
@@ -945,7 +949,7 @@ impl EditPredictionButton {
             ContextMenuEntry::new("Configure Excluded Files")
                 .icon(IconName::Lock)
                 .icon_color(Color::Muted)
-                .documentation_aside(DocumentationSide::Left, |_| {
+                .documentation_aside(DocumentationSide::Left, |_, _| {
                     Label::new(indoc!{"
                         Open your settings to add sensitive paths for which Zed will never predict edits."}).into_any_element()
                 })
@@ -1117,7 +1121,7 @@ impl EditPredictionButton {
 
             if needs_sign_in {
                 menu = menu
-                    .custom_row(move |_window, cx| {
+                    .custom_row(move |window, cx| {
                         let description = indoc! {
                             "You get 2,000 accepted suggestions at every keystroke for free, \
                             powered by Zeta, our open-source, open-data model"
@@ -1126,7 +1130,7 @@ impl EditPredictionButton {
                         v_flex()
                             .max_w_64()
                             .h(rems_from_px(148.))
-                            .child(render_zeta_tab_animation(cx))
+                            .child(render_zeta_tab_animation(window, cx))
                             .child(Label::new("Edit Prediction"))
                             .child(
                                 Label::new(description)
@@ -1194,7 +1198,7 @@ impl EditPredictionButton {
                     menu = menu.header("Usage");
                     menu = menu
                         .custom_entry(
-                            move |_window, cx| {
+                            move |window, cx| {
                                 let used_percentage = match usage.limit {
                                     UsageLimit::Limited(limit) => {
                                         Some((usage.amount as f32 / limit as f32) * 100.)
@@ -1206,7 +1210,7 @@ impl EditPredictionButton {
                                     .flex_1()
                                     .gap_1p5()
                                     .children(used_percentage.map(|percent| {
-                                        ProgressBar::new("usage", percent, 100., cx)
+                                        ProgressBar::new("usage", percent, 100., window.theme(cx))
                                     }))
                                     .child(
                                         Label::new(match usage.limit {
@@ -1257,8 +1261,7 @@ impl EditPredictionButton {
                         .separator();
                 } else if self.user_store.read(cx).has_overdue_invoices() {
                     menu = menu
-                        .custom_entry(
-                            |_window, _cx| {
+                        .custom_entry(                            |_window, _cx| {
                                 Label::new("You have an outstanding invoice")
                                     .size(LabelSize::Small)
                                     .color(Color::Warning)
@@ -1373,7 +1376,7 @@ impl StatusItemView for EditPredictionButton {
     fn set_active_pane_item(
         &mut self,
         item: Option<&dyn ItemHandle>,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(editor) = item.and_then(|item| item.act_as::<Editor>(cx)) {
@@ -1569,9 +1572,9 @@ fn toggle_edit_prediction_mode(fs: Arc<dyn Fs>, mode: EditPredictionsMode, cx: &
     }
 }
 
-fn render_zeta_tab_animation(cx: &App) -> impl IntoElement {
+fn render_zeta_tab_animation(window: &Window, cx: &App) -> impl IntoElement {
     let tab = |n: u64, inverted: bool| {
-        let text_color = cx.theme().colors().text;
+        let text_color = window.theme(cx).colors().text;
 
         h_flex().child(
             h_flex()
@@ -1625,9 +1628,9 @@ fn render_zeta_tab_animation(cx: &App) -> impl IntoElement {
         .rounded_xs()
         .border_1()
         .border_dashed()
-        .border_color(cx.theme().colors().border)
+        .border_color(window.theme(cx).colors().border)
         .bg(gpui::pattern_slash(
-            cx.theme().colors().border.opacity(0.5),
+            window.theme(cx).colors().border.opacity(0.5),
             1.,
             8.,
         ))

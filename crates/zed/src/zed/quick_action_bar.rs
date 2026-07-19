@@ -477,7 +477,7 @@ impl Render for QuickActionBar {
                                         }
                                     });
                                 if !edit_predictions_enabled_at_cursor {
-                                    edit_prediction_entry = edit_prediction_entry.documentation_aside(DocumentationSide::Left, |_| {
+                                    edit_prediction_entry = edit_prediction_entry.documentation_aside(DocumentationSide::Left, |_, _| {
                                         Label::new("You can't toggle edit predictions for this file as it is within the excluded files list.").into_any_element()
                                     });
                                 }
@@ -528,7 +528,7 @@ impl Render for QuickActionBar {
                                             }
                                         });
                                     if !diagnostics_enabled {
-                                        inline_diagnostics_item = inline_diagnostics_item.disabled(true).documentation_aside(DocumentationSide::Left, |_|  Label::new("Inline diagnostics are not available until regular diagnostics are enabled.").into_any_element());
+                                        inline_diagnostics_item = inline_diagnostics_item.disabled(true).documentation_aside(DocumentationSide::Left, |_, _|  Label::new("Inline diagnostics are not available until regular diagnostics are enabled.").into_any_element());
                                     }
                                     menu = menu.item(inline_diagnostics_item)
                                 }
@@ -706,7 +706,7 @@ impl Render for QuickActionBar {
         h_flex()
             .id("quick action bar")
             .gap(DynamicSpacing::Base01.rems(cx))
-            .children(self.render_repl_menu(cx))
+            .children(self.render_repl_menu(window, cx))
             .children(self.render_preview_button(cx))
             .children(search_button)
             .when(

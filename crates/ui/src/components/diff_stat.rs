@@ -34,7 +34,7 @@ impl DiffStat {
 }
 
 impl RenderOnce for DiffStat {
-    fn render(self, _: &mut Window, _cx: &mut App) -> impl IntoElement {
+    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
         let tooltip = self.tooltip;
         let added = self.added.to_formatted_string(&Locale::en);
         let removed = self.removed.to_formatted_string(&Locale::en);
@@ -68,15 +68,15 @@ impl Component for DiffStat {
         displayed as colored insertion and deletion counts."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let container = || {
             h_flex()
                 .py_4()
                 .w_72()
                 .justify_center()
                 .border_1()
-                .border_color(cx.theme().colors().border_variant)
-                .bg(cx.theme().colors().panel_background)
+                .border_color(window.theme(cx).colors().border_variant)
+                .bg(window.theme(cx).colors().panel_background)
         };
 
         let diff_stat_example = vec![single_example(
