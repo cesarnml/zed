@@ -885,7 +885,7 @@ impl ConversationView {
             notification_subscriptions: HashMap::default(),
             auth_task: None,
             loading_status: None,
-            last_theme_id: Some(cx.theme().id.clone()),
+            last_theme_id: Some(window.theme(cx).id.clone()),
             draft_prompt_persist_task: None,
             code_span_resolver,
             request_elicitation_form_states: HashMap::default(),
@@ -3436,7 +3436,7 @@ impl Render for ConversationView {
         v_flex()
             .track_focus(&self.focus_handle)
             .size_full()
-            .bg(cx.theme().colors().panel_background)
+            .bg(window.theme(cx).colors().panel_background)
             .child(v_flex().flex_1().min_h_0().child(content))
             .when(!active_thread_renders_request_elicitations, |this| {
                 this.children(request_elicitation_connection.as_ref().map_or_else(
@@ -3649,11 +3649,11 @@ fn plan_label_markdown_style(
 
     MarkdownStyle {
         base_text_style: TextStyle {
-            color: cx.theme().colors().text_muted,
+            color: window.theme(cx).colors().text_muted,
             strikethrough: if matches!(status, acp::PlanEntryStatus::Completed) {
                 Some(gpui::StrikethroughStyle {
                     thickness: px(1.),
-                    color: Some(cx.theme().colors().text_muted.opacity(0.8)),
+                    color: Some(window.theme(cx).colors().text_muted.opacity(0.8)),
                 })
             } else {
                 None

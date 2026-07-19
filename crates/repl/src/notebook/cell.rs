@@ -350,8 +350,8 @@ pub trait RenderableCell: Render {
                             .flex_none()
                             .w(px(1.))
                             .h_full()
-                            .when(is_selected, |this| this.bg(cx.theme().colors().icon_accent))
-                            .when(!is_selected, |this| this.bg(cx.theme().colors().border)),
+                            .when(is_selected, |this| this.bg(window.theme(cx).colors().icon_accent))
+                            .when(!is_selected, |this| this.bg(window.theme(cx).colors().border)),
                     ),
             )
             .when_some(self.control(window, cx), |this, control| {
@@ -366,7 +366,7 @@ pub trait RenderableCell: Render {
                         .h(px(GUTTER_WIDTH + 12.0))
                         .items_center()
                         .justify_center()
-                        .bg(cx.theme().colors().tab_bar_background)
+                        .bg(window.theme(cx).colors().tab_bar_background)
                         .child(control.button),
                 )
             })
@@ -593,7 +593,7 @@ impl Render for MarkdownCell {
                             div()
                                 .flex_1()
                                 .p_3()
-                                .bg(cx.theme().colors().editor_background)
+                                .bg(window.theme(cx).colors().editor_background)
                                 .rounded_sm()
                                 .child(self.editor.clone())
                                 .on_mouse_down(
@@ -1019,8 +1019,8 @@ impl RenderableCell for CodeCell {
                             .flex_none()
                             .w(px(1.))
                             .h_full()
-                            .when(is_selected, |this| this.bg(cx.theme().colors().icon_accent))
-                            .when(!is_selected, |this| this.bg(cx.theme().colors().border)),
+                            .when(is_selected, |this| this.bg(window.theme(cx).colors().icon_accent))
+                            .when(!is_selected, |this| this.bg(window.theme(cx).colors().border)),
                     ),
             )
             .when_some(self.control(window, cx), |this, control| {
@@ -1034,14 +1034,14 @@ impl RenderableCell for CodeCell {
                         .w(px(GUTTER_WIDTH))
                         .items_center()
                         .justify_center()
-                        .bg(cx.theme().colors().tab_bar_background)
+                        .bg(window.theme(cx).colors().tab_bar_background)
                         .child(control.button)
                         .when_some(execution_count, |this, count| {
                             this.child(
                                 div()
                                     .mt_1()
                                     .text_xs()
-                                    .text_color(cx.theme().colors().text_muted)
+                                    .text_color(window.theme(cx).colors().text_muted)
                                     .child(format!("{}", count)),
                             )
                         }),
@@ -1111,8 +1111,8 @@ impl Render for CodeCell {
                                 .px_5()
                                 .rounded_lg()
                                 .border_1()
-                                .border_color(cx.theme().colors().border)
-                                .bg(cx.theme().colors().editor_background)
+                                .border_color(window.theme(cx).colors().border)
+                                .bg(window.theme(cx).colors().editor_background)
                                 .child(div().w_full().child(self.editor.clone()))
                                 // lang badge in top-right corner
                                 .when_some(language_name, |this, name| {
@@ -1124,9 +1124,9 @@ impl Render for CodeCell {
                                             .px_2()
                                             .py_0p5()
                                             .rounded_md()
-                                            .bg(cx.theme().colors().element_background.opacity(0.7))
+                                            .bg(window.theme(cx).colors().element_background.opacity(0.7))
                                             .text_xs()
-                                            .text_color(cx.theme().colors().text_muted)
+                                            .text_color(window.theme(cx).colors().text_muted)
                                             .child(name),
                                     )
                                 }),

@@ -12,6 +12,7 @@ use gpui::{
     EntityId, Length, Stateful, WeakEntity,
 };
 use std::rc::Rc;
+use theme::WindowTheme;
 
 pub(crate) const RESIZE_COLUMN_WIDTH: f32 = 8.0;
 pub(crate) const RESIZE_DIVIDER_WIDTH: f32 = 1.0;
@@ -690,7 +691,7 @@ pub(crate) fn render_column_resize_divider(
             let is_highlighted = window.use_state(cx, |_window, _cx| false);
 
             resize_divider = resize_divider.when(*is_highlighted.read(cx), |div| {
-                div.bg(cx.theme().colors().border_focused)
+                div.bg(window.theme(cx).colors().border_focused)
             });
 
             resize_handle = resize_handle

@@ -684,7 +684,7 @@ impl DebugPanel {
                 .px_1p5()
                 .justify_between()
                 .border_b_1()
-                .border_color(cx.theme().colors().border)
+                .border_color(window.theme(cx).colors().border)
                 .when(is_side, |this| this.gap_1().h(Tab::container_height(cx)))
                 .child(
                     h_flex()

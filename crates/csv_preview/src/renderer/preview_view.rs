@@ -6,7 +6,7 @@ use crate::CsvPreviewView;
 
 impl Render for CsvPreviewView {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = cx.theme();
+        let theme = window.theme(cx);
         let row_height = window.pixel_snap(window.line_height());
         if row_height != self.row_height {
             self.row_height = row_height;
@@ -32,7 +32,7 @@ impl Render for CsvPreviewView {
                         .h_32()
                         .text_ui(cx)
                         .font_buffer(cx)
-                        .text_color(cx.theme().colors().text_muted)
+                        .text_color(window.theme(cx).colors().text_muted)
                         .when(is_parsing, |div| {
                             div.child(
                                 h_flex()

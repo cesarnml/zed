@@ -118,7 +118,7 @@ const AVATAR_URL: &str = "https://avatars.githubusercontent.com/u/1714999?v=4";
 
 impl ThemePreview {
     fn preview_bg(window: &mut Window, cx: &mut App) -> Hsla {
-        cx.theme().colors().editor_background
+        window.theme(cx).colors().editor_background
     }
 
     fn render_text(
@@ -158,49 +158,49 @@ impl ThemePreview {
                             .child(
                                 Label::new(label_with_contrast(
                                     "Default Text",
-                                    Color::Default.color(cx),
+                                    Color::Default.color(window.theme(cx)),
                                 ))
                                 .color(Color::Default),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Accent Text",
-                                    Color::Accent.color(cx),
+                                    Color::Accent.color(window.theme(cx)),
                                 ))
                                 .color(Color::Accent),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Conflict Text",
-                                    Color::Conflict.color(cx),
+                                    Color::Conflict.color(window.theme(cx)),
                                 ))
                                 .color(Color::Conflict),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Created Text",
-                                    Color::Created.color(cx),
+                                    Color::Created.color(window.theme(cx)),
                                 ))
                                 .color(Color::Created),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Deleted Text",
-                                    Color::Deleted.color(cx),
+                                    Color::Deleted.color(window.theme(cx)),
                                 ))
                                 .color(Color::Deleted),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Disabled Text",
-                                    Color::Disabled.color(cx),
+                                    Color::Disabled.color(window.theme(cx)),
                                 ))
                                 .color(Color::Disabled),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Error Text",
-                                    Color::Error.color(cx),
+                                    Color::Error.color(window.theme(cx)),
                                 ))
                                 .color(Color::Error),
                             )
@@ -316,7 +316,7 @@ impl ThemePreview {
                                         .size_8()
                                         .bg(color)
                                         .border_1()
-                                        .border_color(cx.theme().colors().border)
+                                        .border_color(window.theme(cx).colors().border)
                                         .overflow_hidden(),
                                 )
                                 .size(ButtonSize::None)
@@ -339,7 +339,7 @@ impl ThemePreview {
         v_flex()
             .p_4()
             .bg(layer.bg(cx))
-            .text_color(cx.theme().colors().text)
+            .text_color(window.theme(cx).colors().text)
             .gap_2()
             .child(Headline::new(layer.clone().to_string()).size(HeadlineSize::Medium))
             .child(self.render_text(layer, window, cx))
@@ -358,7 +358,7 @@ impl ThemePreview {
             .child(
                 v_flex()
                     .child(Headline::new("Theme Preview").size(HeadlineSize::Large))
-                    .child(div().w_full().text_color(cx.theme().colors().text_muted).child("This view lets you preview a range of UI elements across a theme. Use it for testing out changes to the theme."))
+                    .child(div().w_full().text_color(window.theme(cx).colors().text_muted).child("This view lets you preview a range of UI elements across a theme. Use it for testing out changes to the theme."))
                     )
             .child(self.render_theme_layer(ElevationIndex::Background, window, cx))
             .child(self.render_theme_layer(ElevationIndex::Surface, window, cx))

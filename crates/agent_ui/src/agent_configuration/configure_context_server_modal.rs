@@ -1234,7 +1234,7 @@ fn wait_for_context_server(
 
 pub(crate) fn default_markdown_style(window: &Window, cx: &App) -> MarkdownStyle {
     let theme_settings = ThemeSettings::get_global(cx);
-    let colors = cx.theme().colors();
+    let colors = window.theme(cx).colors();
     let mut text_style = window.text_style();
     text_style.refine(&TextStyleRefinement {
         font_family: Some(theme_settings.ui_font.family.clone()),

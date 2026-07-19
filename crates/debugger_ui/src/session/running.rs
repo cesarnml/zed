@@ -386,7 +386,7 @@ impl Render for SubView {
             .size_full()
             .border_1()
             .when(self.item_focus_handle.contains_focused(window, cx), |el| {
-                el.border_color(cx.theme().colors().pane_focused_border)
+                el.border_color(window.theme(cx).colors().pane_focused_border)
             })
             .child(self.inner.clone())
             .on_hover(cx.listener(|this, hovered, _, cx| {
@@ -429,12 +429,12 @@ fn render_debugger_tab(
     cx: &mut Context<Pane>,
 ) -> impl IntoElement + use<> {
     let item_ = item.boxed_clone();
-    let colors = cx.theme().colors();
+    let colors = window.theme(cx).colors();
 
     div()
         .border_l_2()
         .border_color(gpui::transparent_black())
-        .drag_over::<DraggedTab>(|wrapper, _, _, cx| wrapper.border_color(cx.theme().colors().text))
+        .drag_over::<DraggedTab>(|wrapper, _, _, cx| wrapper.border_color(window.theme(cx).colors().text))
         .child(
             div()
                 .cursor_pointer()
@@ -535,8 +535,8 @@ fn render_debugger_tab_bar(
         .pr_1()
         .justify_between()
         .border_b_1()
-        .border_color(cx.theme().colors().border)
-        .bg(cx.theme().colors().tab_bar_background)
+        .border_color(window.theme(cx).colors().border)
+        .bg(window.theme(cx).colors().tab_bar_background)
         .child(
             h_flex()
                 .w_full()
@@ -559,7 +559,7 @@ fn render_debugger_tab_bar(
                         .border_l_2()
                         .border_color(gpui::transparent_black())
                         .drag_over::<DraggedTab>(|spacer, _, _, cx| {
-                            spacer.border_color(cx.theme().colors().text)
+                            spacer.border_color(window.theme(cx).colors().text)
                         }),
                 ),
         )

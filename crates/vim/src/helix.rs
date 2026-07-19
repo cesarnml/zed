@@ -17,7 +17,7 @@ use multi_buffer::MultiBufferSnapshot;
 use search::{BufferSearchBar, SearchOptions};
 use settings::Settings;
 use text::{Bias, LineEnding, SelectionGoal};
-use theme::ActiveTheme as _;
+use theme::WindowTheme as _;
 use ui::px;
 use workspace::searchable::{self, Direction, FilteredSearchRange};
 
@@ -1207,7 +1207,7 @@ impl Vim {
             let style = editor.style(cx);
             let font = style.text.font();
             let font_size = style.text.font_size.to_pixels(window.rem_size());
-            let label_color = cx.theme().colors().vim_helix_jump_label_foreground;
+            let label_color = window.theme(cx).colors().vim_helix_jump_label_foreground;
 
             Self::build_helix_jump_ui_data(
                 buffer_snapshot,

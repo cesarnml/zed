@@ -710,7 +710,7 @@ fn render_form_actions(
 /// (keyboard or programmatic), transparent otherwise.
 fn focus_ring_color(handle: &FocusHandle, window: &Window, cx: &App) -> gpui::Hsla {
     if handle.is_focused(window) {
-        cx.theme().colors().border_focused
+        window.theme(cx).colors().border_focused
     } else {
         gpui::transparent_black()
     }

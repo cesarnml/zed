@@ -570,9 +570,9 @@ impl Member {
                     .relative()
                     .size_full()
                     .when(is_maximized, |this| {
-                        this.bg(cx.theme().colors().background)
+                        this.bg(window.theme(cx).colors().background)
                             .border_1()
-                            .border_color(cx.theme().colors().border)
+                            .border_color(window.theme(cx).colors().border)
                             .shadow_lg()
                             .overflow_hidden()
                     })
@@ -1480,7 +1480,7 @@ mod element {
                 .map(|val| val.0.clamp(0.0, 1.0))
                 .and_then(|val| (val <= 1.).then_some(val));
 
-            let mut overlay_background = cx.theme().colors().editor_background;
+            let mut overlay_background = window.theme(cx).colors().editor_background;
             if let Some(opacity) = overlay_opacity {
                 overlay_background.fade_out(opacity);
             }
@@ -1521,7 +1521,7 @@ mod element {
                             0.,
                             gpui::transparent_black(),
                             border,
-                            cx.theme().colors().border_selected,
+                            window.theme(cx).colors().border_selected,
                             BorderStyle::Solid,
                         ));
                     }
@@ -1545,7 +1545,7 @@ mod element {
 
                     window.paint_quad(gpui::fill(
                         handle.divider_bounds,
-                        cx.theme().colors().pane_group_border,
+                        window.theme(cx).colors().pane_group_border,
                     ));
 
                     window.on_mouse_event({

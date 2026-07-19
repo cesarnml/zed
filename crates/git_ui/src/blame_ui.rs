@@ -194,7 +194,7 @@ impl BlameRenderer for GitBlameRenderer {
                         .justify_between()
                         .font(style.font())
                         .line_height(style.line_height)
-                        .text_color(cx.theme().status().hint)
+                        .text_color(window.theme(cx).status().hint)
                         .child(
                             h_flex()
                                 .gap_2()
@@ -203,7 +203,7 @@ impl BlameRenderer for GitBlameRenderer {
                                 .child(name),
                         )
                         .child(relative_timestamp)
-                        .hover(|style| style.bg(cx.theme().colors().element_hover))
+                        .hover(|style| style.bg(window.theme(cx).colors().element_hover))
                         .cursor_pointer()
                         .on_mouse_down(MouseButton::Right, {
                             let blame_entry = blame_entry.clone();
@@ -330,7 +330,7 @@ impl BlameRenderer for GitBlameRenderer {
             local_offset,
             time_format::TimestampFormat::MediumAbsolute,
         );
-        let link_color = cx.theme().colors().text_accent;
+        let link_color = window.theme(cx).colors().text_accent;
         let markdown_style = {
             let mut style = hover_markdown_style(window, cx);
             style.link.refine(&TextStyleRefinement {

@@ -689,7 +689,7 @@ fn render_llm_provider_form_page(
                 .py_2p5()
                 .gap_1()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .when_some(form.error.clone(), |this, error| {
                     this.child(render_form_error(error))
                 })
@@ -791,8 +791,8 @@ fn render_model(
         .rounded_sm()
         .border_1()
         .border_dashed()
-        .border_color(cx.theme().colors().border.opacity(0.6))
-        .bg(cx.theme().colors().element_active.opacity(0.15))
+        .border_color(window.theme(cx).colors().border.opacity(0.6))
+        .bg(window.theme(cx).colors().element_active.opacity(0.15))
         .child(render_form_field(
             "Model Name",
             "The model's name in the provider's API.",

@@ -206,8 +206,8 @@ impl KeybindingHint {
 
 impl RenderOnce for KeybindingHint {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let colors = cx.theme().colors();
-        let is_light = cx.theme().appearance() == Appearance::Light;
+        let colors = window.theme(cx).colors();
+        let is_light = window.theme(cx).appearance() == Appearance::Light;
 
         let border_color =
             self.background_color

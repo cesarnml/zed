@@ -942,9 +942,9 @@ impl Render for StackFrameList {
             .when_some(self.error.clone(), |el, error| {
                 el.child(
                     h_flex()
-                        .bg(cx.theme().status().warning_background)
+                        .bg(window.theme(cx).status().warning_background)
                         .border_b_1()
-                        .border_color(cx.theme().status().warning_border)
+                        .border_color(window.theme(cx).status().warning_border)
                         .pl_1()
                         .child(Icon::new(IconName::Warning).color(Color::Warning))
                         .gap_2()

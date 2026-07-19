@@ -582,7 +582,7 @@ impl gpui::Render for ProjectPicker {
             .child(
                 div()
                     .border_t_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .child(self.picker.clone()),
             )
     }
@@ -2483,7 +2483,7 @@ impl RemoteServerProjects {
             }
         });
 
-        let theme = cx.theme();
+        let theme = window.theme(cx);
 
         v_flex()
             .track_focus(&self.focus_handle(cx))
@@ -2938,7 +2938,7 @@ impl RemoteServerProjects {
                 h_flex()
                     .p_2()
                     .border_t_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .child(state.editor.clone()),
             )
     }

@@ -84,7 +84,7 @@ use std::{
     sync::atomic::{self, AtomicBool},
 };
 use terminal_view::terminal_panel::{self, TerminalPanel};
-use theme::{ActiveTheme, SystemAppearance, ThemeRegistry, deserialize_icon_theme};
+use theme::{ActiveTheme, SystemAppearance, ThemeRegistry, deserialize_icon_theme, WindowTheme};
 use theme_settings::{ThemeSettings, load_user_theme};
 use ui::{Navigable, NavigableEntry, PopoverMenuHandle, TintColor, prelude::*};
 use util::markdown::MarkdownString;
@@ -1597,8 +1597,8 @@ fn open_about_window(cx: &mut App) {
                     }))
                     .min_w_0()
                     .size_full()
-                    .bg(cx.theme().colors().editor_background)
-                    .text_color(cx.theme().colors().text)
+                    .bg(window.theme(cx).colors().editor_background)
+                    .text_color(window.theme(cx).colors().text)
                     .p_4()
                     .when(cfg!(target_os = "macos"), |this| this.pt_10())
                     .gap_4()

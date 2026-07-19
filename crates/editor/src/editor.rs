@@ -253,6 +253,7 @@ use task::TaskVariables;
 use text::{BufferId, FromAnchor, OffsetUtf16, Rope, ToOffset as _, ToPoint as _};
 use theme::{
     AccentColors, ActiveTheme, GlobalTheme, PlayerColor, StatusColors, SyntaxTheme, Theme,
+    WindowTheme,
 };
 use theme_settings::{ThemeSettings, observe_buffer_font_size_adjustment};
 use ui::{
@@ -618,7 +619,7 @@ type BackgroundHighlight = (
     Arc<dyn Fn(&usize, &Theme) -> Hsla + Send + Sync>,
     Arc<[Range<Anchor>]>,
 );
-type GutterHighlight = (fn(&App) -> Hsla, Vec<Range<Anchor>>);
+type GutterHighlight = (fn(&Theme) -> Hsla, Vec<Range<Anchor>>);
 
 #[derive(Default)]
 struct ScrollbarMarkerState {
@@ -1489,7 +1490,7 @@ impl Default for RowHighlightOptions {
 struct RowHighlight {
     index: usize,
     range: Range<Anchor>,
-    color: fn(&App) -> Hsla,
+    color: fn(&Theme) -> Hsla,
     options: RowHighlightOptions,
     type_id: TypeId,
 }
@@ -6463,7 +6464,7 @@ impl Editor {
 
             self.go_to_line::<ActiveDebugLine>(
                 multibuffer_anchor,
-                |cx| cx.theme().colors().editor_debugger_active_line_background,
+                |theme| theme.colors().editor_debugger_active_line_background,
                 window,
                 cx,
             );
@@ -7938,7 +7939,11 @@ impl Editor {
                                         .child(EditorElement::new(
                                             &rename_editor,
                                             EditorStyle {
-                                                background: cx.theme().system().transparent,
+                                                background: cx
+                                                    .window
+                                                    .theme(cx.app)
+                                                    .system()
+                                                    .transparent,
                                                 local_player: cx.editor_style.local_player,
                                                 text: text_style,
                                                 scrollbar_width: cx.editor_style.scrollbar_width,
@@ -8885,7 +8890,7 @@ impl Editor {
     pub fn highlight_rows<T: 'static>(
         &mut self,
         range: Range<Anchor>,
-        color: fn(&App) -> Hsla,
+        color: fn(&Theme) -> Hsla,
         options: RowHighlightOptions,
         cx: &mut Context<Self>,
     ) {
@@ -8999,13 +9004,13 @@ impl Editor {
     /// For a highlight given context type, gets all anchor ranges that will be used for row highlighting.
     pub fn highlighted_rows<'a, T: 'static>(
         &'a self,
-        cx: &'a App,
+        theme: &'a Theme,
     ) -> impl 'a + Iterator<Item = (Range<Anchor>, Hsla)> {
         self.highlighted_rows
             .get(&TypeId::of::<T>())
             .map_or(&[] as &[_], |vec| vec.as_slice())
             .iter()
-            .map(|highlight| (highlight.range.clone(), (highlight.color)(cx)))
+            .map(|highlight| (highlight.range.clone(), (highlight.color)(theme)))
     }
 
     /// Merges all anchor ranges for all context types ever set, picking the last highlight added in case of a row conflict.
@@ -9042,7 +9047,7 @@ impl Editor {
                                 LineHighlight {
                                     include_gutter: highlight.options.include_gutter,
                                     border: None,
-                                    background: (highlight.color)(cx).into(),
+                                    background: (highlight.color)(window.theme(cx)).into(),
                                     type_id: Some(highlight.type_id),
                                 },
                             );
@@ -9116,7 +9121,7 @@ impl Editor {
     pub fn highlight_gutter<T: 'static>(
         &mut self,
         ranges: impl Into<Vec<Range<Anchor>>>,
-        color_fetcher: fn(&App) -> Hsla,
+        color_fetcher: fn(&Theme) -> Hsla,
         cx: &mut Context<Self>,
     ) {
         self.gutter_highlights
@@ -9135,7 +9140,7 @@ impl Editor {
     pub fn insert_gutter_highlight<T: 'static>(
         &mut self,
         range: Range<Anchor>,
-        color_fetcher: fn(&App) -> Hsla,
+        color_fetcher: fn(&Theme) -> Hsla,
         cx: &mut Context<Self>,
     ) {
         let snapshot = self.buffer().read(cx).snapshot(cx);
@@ -9225,7 +9230,7 @@ impl Editor {
         let buffer = &snapshot.buffer_snapshot();
         let start = buffer.anchor_before(MultiBufferOffset(0));
         let end = buffer.anchor_after(buffer.len());
-        self.sorted_background_highlights_in_range(start..end, &snapshot, cx.theme())
+        self.sorted_background_highlights_in_range(start..end, &snapshot, window.theme(cx))
     }
 
     #[cfg(any(test, feature = "test-support"))]
@@ -9314,11 +9319,11 @@ impl Editor {
         &self,
         search_range: Range<Anchor>,
         display_snapshot: &DisplaySnapshot,
-        cx: &App,
+        theme: &Theme,
     ) -> Vec<(Range<DisplayPoint>, Hsla)> {
         let mut results = Vec::new();
         for (color_fetcher, ranges) in self.gutter_highlights.values() {
-            let color = color_fetcher(cx);
+            let color = color_fetcher(theme);
             let start_ix = match ranges.binary_search_by(|probe| {
                 let cmp = probe
                     .end
@@ -12514,9 +12519,9 @@ impl Render for PromptEditor {
         let right_padding = editor_margins.right + px(9.);
         h_flex()
             .key_context("Editor")
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .border_y_1()
-            .border_color(cx.theme().status().info_border)
+            .border_color(window.theme(cx).status().info_border)
             .size_full()
             .py(window.line_height() / 2.5)
             .pr(right_padding)

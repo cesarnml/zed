@@ -10,7 +10,7 @@ use gpui::{
 use multi_buffer::{Anchor, ExcerptBoundaryInfo};
 use smallvec::smallvec;
 use text::BufferId;
-use theme::ActiveTheme;
+use theme::{ActiveTheme, WindowTheme};
 use ui::{h_flex, prelude::*, v_flex};
 
 use gpui::ContentMask;
@@ -163,7 +163,7 @@ impl RenderOnce for SplitEditorView {
         let left_ratio = self.split_state.read(cx).left_ratio();
         let right_ratio = self.split_state.read(cx).right_ratio();
 
-        let separator_color = cx.theme().colors().border_variant;
+        let separator_color = window.theme(cx).colors().border_variant;
 
         let resize_handle = render_resize_handle(&self.split_state, separator_color, window, cx);
 
@@ -549,7 +549,7 @@ impl SplitBufferHeadersElement {
             latest_selection_anchors,
         );
 
-        let editor_bg_color = cx.theme().colors().editor_background;
+        let editor_bg_color = window.theme(cx).colors().editor_background;
         let selected = selected_buffer_ids.contains(&excerpt.buffer_id());
 
         let mut header = v_flex()

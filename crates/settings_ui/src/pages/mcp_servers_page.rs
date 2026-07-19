@@ -536,7 +536,7 @@ pub(crate) fn render_add_server_popover(
         .tab_stop(true);
     let is_focused = focus_handle.is_focused(window);
     let border_color = if is_focused {
-        cx.theme().colors().border_focused
+        window.theme(cx).colors().border_focused
     } else {
         gpui::transparent_black()
     };

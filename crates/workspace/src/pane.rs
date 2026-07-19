@@ -2799,9 +2799,9 @@ impl Pane {
         };
 
         let knockout_item_color = if is_active {
-            cx.theme().colors().tab_active_background
+            window.theme(cx).colors().tab_active_background
         } else {
-            cx.theme().colors().tab_bar_background
+            window.theme(cx).colors().tab_bar_background
         };
 
         let (icon_decoration, icon_color) = if matches!(diagnostic, &DiagnosticSeverity::ERROR) {
@@ -3561,7 +3561,7 @@ impl Pane {
                     .when(is_scrollable && is_scrolled, |this| {
                         this.when(has_active_unpinned_tab, |this| this.border_r_2())
                             .when(!has_active_unpinned_tab, |this| this.border_r_1())
-                            .border_color(cx.theme().colors().border)
+                            .border_color(window.theme(cx).colors().border)
                     })
             }))
             .child(self.render_unpinned_tabs_container(unpinned_tabs, tab_count, cx));

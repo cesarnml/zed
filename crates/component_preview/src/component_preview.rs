@@ -450,7 +450,7 @@ impl ComponentPreview {
             .child(
                 v_flex()
                     .border_1()
-                    .border_color(cx.theme().colors().border)
+                    .border_color(window.theme(cx).colors().border)
                     .rounded_sm()
                     .w_full()
                     .gap_4()
@@ -471,7 +471,7 @@ impl ComponentPreview {
                             .child(
                                 div()
                                     .text_ui_sm(cx)
-                                    .text_color(cx.theme().colors().text_muted)
+                                    .text_color(window.theme(cx).colors().text_muted)
                                     .max_w(px(600.0))
                                     .child(description),
                             ),
@@ -588,7 +588,7 @@ impl Render for ComponentPreview {
         }
         let sidebar_entries = self.scope_ordered_entries();
         let active_page = self.active_page.clone();
-        let background_color = cx.theme().colors().editor_background;
+        let background_color = window.theme(cx).colors().editor_background;
 
         h_flex()
             .id("component-preview")
@@ -602,7 +602,7 @@ impl Render for ComponentPreview {
                 v_flex()
                     .h_full()
                     .border_r_1()
-                    .border_color(cx.theme().colors().border)
+                    .border_color(window.theme(cx).colors().border)
                     .child(
                         div()
                             .size_full()
@@ -642,7 +642,7 @@ impl Render for ComponentPreview {
                             .w_full()
                             .p_2p5()
                             .border_t_1()
-                            .border_color(cx.theme().colors().border)
+                            .border_color(window.theme(cx).colors().border)
                             .child(
                                 Button::new("toast-test", "Launch Toast")
                                     .full_width()
@@ -975,7 +975,7 @@ impl ComponentPreviewPage {
             .flex_1()
             .px_12()
             .py_6()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child((self.component.preview())(window, cx))
     }
 }

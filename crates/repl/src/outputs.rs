@@ -810,7 +810,7 @@ impl Render for ExecutionView {
                                 .px_2()
                                 .py_1()
                                 .border_1()
-                                .border_color(cx.theme().colors().border)
+                                .border_color(window.theme(cx).colors().border)
                                 .rounded_md()
                                 .child(pending_input.editor.clone()),
                         ),

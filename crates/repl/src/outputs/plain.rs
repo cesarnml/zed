@@ -55,7 +55,7 @@ pub fn text_style(window: &mut Window, cx: &App) -> TextStyle {
     let font_weight = settings.buffer_font.weight;
     let font_fallbacks = settings.buffer_font.fallbacks;
 
-    let theme = cx.theme();
+    let theme = window.theme(cx);
 
     TextStyle {
         font_family,

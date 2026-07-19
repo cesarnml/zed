@@ -2333,7 +2333,7 @@ impl Render for ProjectSearchBar {
                 InputPanel::Include | InputPanel::Exclude => div.flex_grow_1(),
             })
         };
-        let theme_colors = cx.theme().colors();
+        let theme_colors = window.theme(cx).colors();
         let project_search = search.entity.read(cx);
         let limit_reached = project_search.search_state.limit_reached();
         let is_search_underway = project_search.pending_search.is_some();

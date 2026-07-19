@@ -178,7 +178,7 @@ impl SystemWindowTabs {
             .px(DynamicSpacing::Base16.px(cx))
             .justify_center()
             .border_l_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .cursor_pointer()
             .on_drag(
                 DraggedWindowTab {
@@ -202,8 +202,8 @@ impl SystemWindowTabs {
                 let tab_ix = ix;
                 move |element, dragged_tab: &DraggedWindowTab, _, cx| {
                     let mut styled_tab = element
-                        .bg(cx.theme().colors().drop_target_background)
-                        .border_color(cx.theme().colors().drop_target_border)
+                        .bg(window.theme(cx).colors().drop_target_background)
+                        .border_color(window.theme(cx).colors().drop_target_border)
                         .border_0();
 
                     if tab_ix < dragged_tab.ix {
@@ -386,8 +386,8 @@ impl SystemWindowTabs {
 impl Render for SystemWindowTabs {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let use_system_window_tabs = WorkspaceSettings::get_global(cx).use_system_window_tabs;
-        let active_background_color = cx.theme().colors().title_bar_background;
-        let inactive_background_color = cx.theme().colors().tab_bar_background;
+        let active_background_color = window.theme(cx).colors().title_bar_background;
+        let inactive_background_color = window.theme(cx).colors().tab_bar_background;
         let entity = cx.entity();
 
         let controller = cx.global::<SystemWindowTabController>();
@@ -476,7 +476,7 @@ impl Render for SystemWindowTabs {
                     .px(DynamicSpacing::Base06.rems(cx))
                     .border_t_1()
                     .border_l_1()
-                    .border_color(cx.theme().colors().border)
+                    .border_color(window.theme(cx).colors().border)
                     .child(
                         IconButton::new("plus", IconName::Plus)
                             .icon_size(IconSize::Small)

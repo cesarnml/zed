@@ -10,7 +10,7 @@ use gpui::{
 };
 use language::{Buffer, OwnedSyntaxLayer};
 use std::{any::TypeId, mem, ops::Range};
-use theme::ActiveTheme;
+use theme::{ActiveTheme, WindowTheme};
 use tree_sitter::{Node, TreeCursor};
 use ui::{
     ButtonCommon, ButtonLike, Clickable, Color, ContextMenu, FluentBuilder as _, IconButton,
@@ -499,7 +499,7 @@ impl Render for SyntaxTreeView {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
             .flex_1()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .map(|this| {
                 let editor_state = self.editor.as_ref();
 
@@ -518,7 +518,7 @@ impl Render for SyntaxTreeView {
                         )
                         .size_full()
                         .track_scroll(&self.list_scroll_handle)
-                        .text_bg(cx.theme().colors().background)
+                        .text_bg(window.theme(cx).colors().background)
                         .into_any_element(),
                     )
                     .vertical_scrollbar_for(&self.list_scroll_handle, window, cx)

@@ -159,8 +159,8 @@ impl<T: 'static> Render for PromptEditor<T> {
             .gap_0p5()
             .justify_center()
             .border_y_1()
-            .border_color(cx.theme().colors().border)
-            .bg(cx.theme().colors().editor_background)
+            .border_color(window.theme(cx).colors().border)
+            .bg(window.theme(cx).colors().editor_background)
             .child(
                 h_flex()
                     .on_action(cx.listener(Self::confirm))
@@ -251,7 +251,7 @@ impl<T: 'static> Render for PromptEditor<T> {
 
 fn markdown_style(window: &Window, cx: &App) -> MarkdownStyle {
     let theme_settings = ThemeSettings::get_global(cx);
-    let colors = cx.theme().colors();
+    let colors = window.theme(cx).colors();
     let mut text_style = window.text_style();
 
     text_style.refine(&TextStyleRefinement {
@@ -262,7 +262,7 @@ fn markdown_style(window: &Window, cx: &App) -> MarkdownStyle {
 
     MarkdownStyle {
         base_text_style: text_style.clone(),
-        syntax: cx.theme().syntax().clone(),
+        syntax: window.theme(cx).syntax().clone(),
         selection_background_color: colors.element_selection_background,
         heading_level_styles: Some(HeadingLevelStyles {
             h1: Some(TextStyleRefinement {

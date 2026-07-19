@@ -119,7 +119,7 @@ impl Render for ZedPredictModal {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let window_height = window.viewport_size().height;
         let max_height = window_height - px(200.);
-        let color = cx.theme().colors();
+        let color = window.theme(cx).colors();
 
         v_flex()
             .id("edit-prediction-onboarding")
@@ -146,7 +146,7 @@ impl Render for ZedPredictModal {
                     .p_3()
                     .size_full()
                     .border_1()
-                    .border_color(cx.theme().colors().border)
+                    .border_color(window.theme(cx).colors().border)
                     .rounded(px(5.))
                     .bg(linear_gradient(
                         360.,

@@ -1,20 +1,20 @@
-use gpui::{App, Styled, hsla};
+use gpui::{Styled, hsla};
 
 use crate::ElevationIndex;
 use crate::prelude::*;
 
-fn elevated<E: Styled>(this: E, cx: &App, index: ElevationIndex) -> E {
-    this.bg(cx.theme().colors().elevated_surface_background)
+fn elevated<E: Styled>(this: E, theme: &impl ActiveTheme, index: ElevationIndex) -> E {
+    this.bg(theme.theme().colors().elevated_surface_background)
         .rounded_lg()
         .border_1()
-        .border_color(cx.theme().colors().border_variant)
-        .shadow(index.shadow(cx))
+        .border_color(theme.theme().colors().border_variant)
+        .shadow(index.shadow(theme))
 }
 
-fn elevated_borderless<E: Styled>(this: E, cx: &mut App, index: ElevationIndex) -> E {
-    this.bg(cx.theme().colors().elevated_surface_background)
+fn elevated_borderless<E: Styled>(this: E, theme: &impl ActiveTheme, index: ElevationIndex) -> E {
+    this.bg(theme.theme().colors().elevated_surface_background)
         .rounded_lg()
-        .shadow(index.shadow(cx))
+        .shadow(index.shadow(theme))
 }
 
 /// Extends [`gpui::Styled`] with Zed-specific styling methods.
@@ -43,15 +43,15 @@ pub trait StyledExt: Styled + Sized {
     /// Sets `bg()`, `rounded_lg()`, `border()`, `border_color()`, `shadow()`
     ///
     /// Example Elements: Title Bar, Panel, Tab Bar, Editor
-    fn elevation_1(self, cx: &App) -> Self {
-        elevated(self, cx, ElevationIndex::Surface)
+    fn elevation_1(self, theme: &impl ActiveTheme) -> Self {
+        elevated(self, theme, ElevationIndex::Surface)
     }
 
     /// See [`elevation_1`](Self::elevation_1).
     ///
     /// Renders a borderless version [`elevation_1`](Self::elevation_1).
-    fn elevation_1_borderless(self, cx: &mut App) -> Self {
-        elevated_borderless(self, cx, ElevationIndex::Surface)
+    fn elevation_1_borderless(self, theme: &impl ActiveTheme) -> Self {
+        elevated_borderless(self, theme, ElevationIndex::Surface)
     }
 
     /// Non-Modal Elevated Surfaces appear above the [`Surface`](ElevationIndex::Surface) layer and is used for things that should appear above most UI elements like an editor or panel, but not elements like popovers, context menus, modals, etc.
@@ -59,15 +59,15 @@ pub trait StyledExt: Styled + Sized {
     /// Sets `bg()`, `rounded_lg()`, `border()`, `border_color()`, `shadow()`
     ///
     /// Examples: Notifications, Palettes, Detached/Floating Windows, Detached/Floating Panels
-    fn elevation_2(self, cx: &App) -> Self {
-        elevated(self, cx, ElevationIndex::ElevatedSurface)
+    fn elevation_2(self, theme: &impl ActiveTheme) -> Self {
+        elevated(self, theme, ElevationIndex::ElevatedSurface)
     }
 
     /// See [`elevation_2`](Self::elevation_2).
     ///
     /// Renders a borderless version [`elevation_2`](Self::elevation_2).
-    fn elevation_2_borderless(self, cx: &mut App) -> Self {
-        elevated_borderless(self, cx, ElevationIndex::ElevatedSurface)
+    fn elevation_2_borderless(self, theme: &impl ActiveTheme) -> Self {
+        elevated_borderless(self, theme, ElevationIndex::ElevatedSurface)
     }
 
     /// Modal Surfaces are used for elements that should appear above all other UI elements and are located above the wash layer. This is the maximum elevation at which UI elements can be rendered in their default state.
@@ -79,25 +79,25 @@ pub trait StyledExt: Styled + Sized {
     /// Sets `bg()`, `rounded_lg()`, `border()`, `border_color()`, `shadow()`
     ///
     /// Examples: Settings Modal, Channel Management, Wizards/Setup UI, Dialogs
-    fn elevation_3(self, cx: &App) -> Self {
-        elevated(self, cx, ElevationIndex::ModalSurface)
+    fn elevation_3(self, theme: &impl ActiveTheme) -> Self {
+        elevated(self, theme, ElevationIndex::ModalSurface)
     }
 
     /// See [`elevation_3`](Self::elevation_3).
     ///
     /// Renders a borderless version [`elevation_3`](Self::elevation_3).
-    fn elevation_3_borderless(self, cx: &mut App) -> Self {
-        elevated_borderless(self, cx, ElevationIndex::ModalSurface)
+    fn elevation_3_borderless(self, theme: &impl ActiveTheme) -> Self {
+        elevated_borderless(self, theme, ElevationIndex::ModalSurface)
     }
 
     /// The theme's primary border color.
-    fn border_primary(self, cx: &mut App) -> Self {
-        self.border_color(cx.theme().colors().border)
+    fn border_primary(self, theme: &impl ActiveTheme) -> Self {
+        self.border_color(theme.theme().colors().border)
     }
 
     /// The theme's secondary or muted border color.
-    fn border_muted(self, cx: &mut App) -> Self {
-        self.border_color(cx.theme().colors().border_variant)
+    fn border_muted(self, theme: &impl ActiveTheme) -> Self {
+        self.border_color(theme.theme().colors().border_variant)
     }
 
     /// Sets the background color to red for debugging when building UI.

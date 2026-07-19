@@ -1,6 +1,6 @@
 use crate::{Label, LabelCommon, component_prelude::*, v_flex};
 use documented::{DocumentedFields, DocumentedVariants};
-use gpui::{App, Hsla, IntoElement, ParentElement, Styled};
+use gpui::{Hsla, IntoElement, ParentElement, Styled};
 use theme::ActiveTheme;
 
 /// Sets a color that has a consistent meaning across all themes.
@@ -86,33 +86,36 @@ pub enum Color {
 }
 
 impl Color {
-    /// Returns the Color's HSLA value.
-    pub fn color(&self, cx: &App) -> Hsla {
+    /// Returns the Color's HSLA value from the given theme provider.
+    ///
+    /// Prefer passing a window theme (`window.theme(cx)`) when a [`gpui::Window`]
+    /// is available so per-window overrides apply.
+    pub fn color(&self, theme: &impl ActiveTheme) -> Hsla {
         match self {
-            Color::Default => cx.theme().colors().text,
-            Color::Muted => cx.theme().colors().text_muted,
-            Color::Created => cx.theme().status().created,
-            Color::Modified => cx.theme().status().modified,
-            Color::Conflict => cx.theme().status().conflict,
-            Color::Ignored => cx.theme().status().ignored,
-            Color::Debugger => cx.theme().colors().debugger_accent,
-            Color::Deleted => cx.theme().status().deleted,
-            Color::Disabled => cx.theme().colors().text_disabled,
-            Color::Hidden => cx.theme().status().hidden,
-            Color::Hint => cx.theme().status().hint,
-            Color::Info => cx.theme().status().info,
-            Color::Placeholder => cx.theme().colors().text_placeholder,
-            Color::Accent => cx.theme().colors().text_accent,
-            Color::Player(i) => cx.theme().styles.player.color_for_participant(*i).cursor,
-            Color::Error => cx.theme().status().error,
-            Color::Selected => cx.theme().colors().text_accent,
-            Color::Success => cx.theme().status().success,
-            Color::VersionControlAdded => cx.theme().colors().version_control_added,
-            Color::VersionControlConflict => cx.theme().colors().version_control_conflict,
-            Color::VersionControlDeleted => cx.theme().colors().version_control_deleted,
-            Color::VersionControlIgnored => cx.theme().colors().version_control_ignored,
-            Color::VersionControlModified => cx.theme().colors().version_control_modified,
-            Color::Warning => cx.theme().status().warning,
+            Color::Default => theme.theme().colors().text,
+            Color::Muted => theme.theme().colors().text_muted,
+            Color::Created => theme.theme().status().created,
+            Color::Modified => theme.theme().status().modified,
+            Color::Conflict => theme.theme().status().conflict,
+            Color::Ignored => theme.theme().status().ignored,
+            Color::Debugger => theme.theme().colors().debugger_accent,
+            Color::Deleted => theme.theme().status().deleted,
+            Color::Disabled => theme.theme().colors().text_disabled,
+            Color::Hidden => theme.theme().status().hidden,
+            Color::Hint => theme.theme().status().hint,
+            Color::Info => theme.theme().status().info,
+            Color::Placeholder => theme.theme().colors().text_placeholder,
+            Color::Accent => theme.theme().colors().text_accent,
+            Color::Player(i) => theme.theme().styles.player.color_for_participant(*i).cursor,
+            Color::Error => theme.theme().status().error,
+            Color::Selected => theme.theme().colors().text_accent,
+            Color::Success => theme.theme().status().success,
+            Color::VersionControlAdded => theme.theme().colors().version_control_added,
+            Color::VersionControlConflict => theme.theme().colors().version_control_conflict,
+            Color::VersionControlDeleted => theme.theme().colors().version_control_deleted,
+            Color::VersionControlIgnored => theme.theme().colors().version_control_ignored,
+            Color::VersionControlModified => theme.theme().colors().version_control_modified,
+            Color::Warning => theme.theme().status().warning,
             Color::Custom(color) => *color,
         }
     }
@@ -133,7 +136,7 @@ impl Component for Color {
         Color::DOCS
     }
 
-    fn preview(_window: &mut gpui::Window, _cx: &mut App) -> gpui::AnyElement {
+    fn preview(_window: &mut gpui::Window, _cx: &mut gpui::App) -> gpui::AnyElement {
         v_flex()
             .gap_6()
             .children(vec![

@@ -783,7 +783,7 @@ impl SkillCreatorPage {
 
     fn render_body_field(&self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let settings = ThemeSettings::get_global(cx);
-        let theme = cx.theme().clone();
+        let theme = window.theme(cx).clone();
 
         let has_error = self.body_error.is_some();
 

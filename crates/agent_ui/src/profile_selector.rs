@@ -225,7 +225,7 @@ impl Render for ProfileSelector {
             .end_icon(Icon::new(icon).size(IconSize::XSmall).color(Color::Muted));
 
         let tooltip: Box<dyn Fn(&mut Window, &mut App) -> AnyView> = Box::new(Tooltip::element({
-            move |_window, cx| {
+            move |window, cx| {
                 let container = || h_flex().gap_1().justify_between();
                 v_flex()
                     .gap_1()
@@ -238,7 +238,7 @@ impl Render for ProfileSelector {
                         container()
                             .pt_1()
                             .border_t_1()
-                            .border_color(cx.theme().colors().border_variant)
+                            .border_color(window.theme(cx).colors().border_variant)
                             .child(Label::new("Cycle Through Profiles"))
                             .child(KeyBinding::for_action(&CycleModeSelector, cx)),
                     )

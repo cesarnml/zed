@@ -1453,7 +1453,7 @@ impl GitGraph {
         cx.on_focus(&focus_handle, window, |_, _, cx| cx.notify())
             .detach();
 
-        let accent_colors = cx.theme().accents();
+        let accent_colors = window.theme(cx).accents();
         let graph = GraphData::new(accent_colors_count(accent_colors));
         let log_source = log_source.unwrap_or_default();
         let log_order = LogOrder::default();
@@ -1835,7 +1835,7 @@ impl GitGraph {
                     author_name = "".into();
                 }
 
-                let accent_colors = cx.theme().accents();
+                let accent_colors = window.theme(cx).accents();
                 let accent_color = accent_colors
                     .0
                     .get(commit.color_idx)
@@ -2719,7 +2719,7 @@ impl GitGraph {
             .as_ref()
             .map(|branch| SharedString::from(branch.name().to_string()));
 
-        let accent_colors = cx.theme().accents();
+        let accent_colors = window.theme(cx).accents();
         let accent_color = accent_colors
             .0
             .get(commit_entry.color_idx)
@@ -3228,13 +3228,13 @@ impl GitGraph {
                 graph_canvas_bounds.set(Some(bounds));
 
                 window.paint_layer(bounds, |window| {
-                    let accent_colors = cx.theme().accents();
+                    let accent_colors = window.theme(cx).accents();
 
-                    let hover_bg = cx.theme().colors().element_hover.opacity(0.6);
+                    let hover_bg = window.theme(cx).colors().element_hover.opacity(0.6);
                     let selected_bg = if is_focused {
-                        cx.theme().colors().element_selected
+                        window.theme(cx).colors().element_selected
                     } else {
-                        cx.theme().colors().element_hover
+                        window.theme(cx).colors().element_hover
                     };
 
                     for visible_row_idx in 0..rows.len() {

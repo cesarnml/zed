@@ -370,7 +370,7 @@ impl<D: PickerDelegate> Picker<D> {
                                 window,
                             ))
                             .border_t_1()
-                            .border_color(cx.theme().colors().border_variant)
+                            .border_color(window.theme(cx).colors().border_variant)
                             .child(preview.render(cx)),
                     ),
             )
@@ -417,7 +417,7 @@ impl<D: PickerDelegate> Picker<D> {
                                 )
                             })
                             .border_l_1()
-                            .border_color(cx.theme().colors().border_variant)
+                            .border_color(window.theme(cx).colors().border_variant)
                             .overflow_hidden()
                             .child(preview.render(cx)),
                     ),

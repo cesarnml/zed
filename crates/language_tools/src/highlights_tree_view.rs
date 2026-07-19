@@ -11,7 +11,7 @@ use gpui::{
 use language::{BufferId, Point, ToOffset};
 use menu::{SelectNext, SelectPrevious};
 use std::{mem, ops::Range, sync::Arc, time::Duration};
-use theme::ActiveTheme;
+use theme::{ActiveTheme, WindowTheme};
 use theme::SyntaxTheme;
 use ui::{
     ButtonLike, ContextMenu, PopoverMenu, PopoverMenuHandle, Tooltip, WithScrollbar, prelude::*,
@@ -818,7 +818,7 @@ impl Render for HighlightsTreeView {
             .key_context("HighlightsTreeView")
             .on_action(cx.listener(Self::select_previous))
             .on_action(cx.listener(Self::select_next))
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .map(|this| {
                 if display_count > 0 {
                     this.child(
@@ -831,7 +831,7 @@ impl Render for HighlightsTreeView {
                         )
                         .size_full()
                         .track_scroll(&self.list_scroll_handle)
-                        .text_bg(cx.theme().colors().background)
+                        .text_bg(window.theme(cx).colors().background)
                         .into_any_element(),
                     )
                     .vertical_scrollbar_for(&self.list_scroll_handle, window, cx)

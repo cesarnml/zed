@@ -153,15 +153,15 @@ impl UpdateButton {
 impl RenderOnce for UpdateButton {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let border_color = if self.disabled {
-            cx.theme().colors().border
+            window.theme(cx).colors().border
         } else {
-            cx.theme().colors().text.opacity(0.15)
+            window.theme(cx).colors().text.opacity(0.15)
         };
 
         let icon_element = if let Some(progress) = self.progress {
             let progress = progress.clamp(0.0, 1.0);
             let icon_box = IconSize::XSmall.rems().to_pixels(window.rem_size());
-            let progress_color = Color::Default.color(cx);
+            let progress_color = Color::Default.color(window.theme(cx));
             CircularProgress::new(progress, 1.0, icon_box, cx)
                 .stroke_width(
                     icon_box * (LOAD_CIRCLE_GLYPH_STROKE_WIDTH / LOAD_CIRCLE_GLYPH_VIEWBOX),

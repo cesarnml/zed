@@ -85,7 +85,7 @@ use std::{
 };
 use sum_tree::Bias;
 use text::BufferId;
-use theme::{ActiveTheme, Appearance, PlayerColor};
+use theme::{ActiveTheme, Appearance, PlayerColor, WindowTheme};
 use theme_settings::BufferLineHeight;
 use ui::utils::ensure_minimum_contrast;
 use ui::{ButtonLike, POPOVER_Y_PADDING, Tooltip, prelude::*, scrollbars::ShowScrollbar};
@@ -852,7 +852,7 @@ impl EditorElement {
                         false,
                         None,
                     );
-                    let absent_color = cx.theme().players().absent();
+                    let absent_color = window.theme(cx).players().absent();
                     selections.push((absent_color, vec![drag_cursor_layout]));
                 }
             }
@@ -877,7 +877,7 @@ impl EditorElement {
                         }
                         CollaboratorId::Agent => {
                             if let Some((local_selection_style, _)) = selections.first_mut() {
-                                *local_selection_style = cx.theme().players().agent();
+                                *local_selection_style = window.theme(cx).players().agent();
                             }
                         }
                     }
@@ -1087,13 +1087,13 @@ impl EditorElement {
                             // opaque enough to use as a text color.
                             //
                             // TODO: In the future we should ensure themes have a `text_inverse` color.
-                            let color = if cx.theme().colors().editor_background.a < 0.75 {
-                                match cx.theme().appearance {
+                            let color = if window.theme(cx).colors().editor_background.a < 0.75 {
+                                match window.theme(cx).appearance {
                                     Appearance::Dark => Hsla::black(),
                                     Appearance::Light => Hsla::white(),
                                 }
                             } else {
-                                cx.theme().colors().editor_background
+                                window.theme(cx).colors().editor_background
                             };
 
                             let shaped = window.text_system().shape_line(
@@ -1832,9 +1832,11 @@ impl EditorElement {
                 .rounded_xs()
                 .opacity(opacity)
                 .bg(severity_to_color(&diagnostic_to_render.severity)
-                    .color(cx)
+                    .color(window.theme(cx))
                     .opacity(0.05))
-                .text_color(severity_to_color(&diagnostic_to_render.severity).color(cx))
+                .text_color(
+                    severity_to_color(&diagnostic_to_render.severity).color(window.theme(cx)),
+                )
                 .text_sm()
                 .font(style.text.font())
                 .child(diagnostic_to_render.message.clone())
@@ -2706,7 +2708,7 @@ impl EditorElement {
                 };
 
                 let toggle = IconButton::new(("expand", ix), icon_name)
-                    .icon_color(Color::Custom(cx.theme().colors().editor_line_number))
+                    .icon_color(Color::Custom(window.theme(cx).colors().editor_line_number))
                     .icon_size(IconSize::Custom(rems(editor_font_size / window.rem_size())))
                     .width(width)
                     .on_click(move |_, window, cx| {
@@ -2796,7 +2798,7 @@ impl EditorElement {
                     spec.is_some_and(|spec| spec.breakpoint),
                     row_info.diff_status,
                 )
-                .color(cx.theme().colors());
+                .color(window.theme(cx).colors());
 
                 let shaped_line =
                     self.shape_line_number(SharedString::from(&line_number), color, window);
@@ -3074,7 +3076,7 @@ impl EditorElement {
         // Show the placeholder when the editor is empty
         if snapshot.is_empty() {
             let font_size = style.text.font_size.to_pixels(window.rem_size());
-            let placeholder_color = cx.theme().colors().text_placeholder;
+            let placeholder_color = window.theme(cx).colors().text_placeholder;
             let placeholder_text = snapshot.placeholder_text();
 
             let placeholder_lines = placeholder_text
@@ -3299,7 +3301,7 @@ impl EditorElement {
             }
 
             Block::ExcerptBoundary { .. } => {
-                let color = cx.theme().colors().clone();
+                let color = window.theme(cx).colors().clone();
                 let mut result = v_flex().id(block_id).w_full();
 
                 result = result.child(
@@ -3465,7 +3467,7 @@ impl EditorElement {
         let scale = window.scale_factor();
         let pattern_size =
             Self::spacer_pattern_period(f32::from(line_height) * scale, target_size * scale);
-        let color = cx.theme().colors().panel_background;
+        let color = window.theme(cx).colors().panel_background;
         let background = pattern_slash(color, 2.0, pattern_size - 2.0);
 
         div()
@@ -4898,7 +4900,7 @@ impl EditorElement {
     fn paint_background(&self, layout: &EditorLayout, window: &mut Window, cx: &mut App) {
         window.paint_layer(layout.hitbox.bounds, |window| {
             let scroll_top = layout.position_map.scroll_position.y;
-            let gutter_bg = cx.theme().colors().editor_gutter_background;
+            let gutter_bg = window.theme(cx).colors().editor_gutter_background;
             window.paint_quad(fill(layout.gutter_hitbox.bounds, gutter_bg));
             window.paint_quad(fill(
                 layout.position_map.text_hitbox.bounds,
@@ -4949,7 +4951,8 @@ impl EditorElement {
                                 CurrentLineHighlight::None => None,
                             };
                         if let Some(range) = highlight_h_range {
-                            let active_line_bg = cx.theme().colors().editor_active_line_background;
+                            let active_line_bg =
+                                window.theme(cx).colors().editor_active_line_background;
                             let bounds = Bounds {
                                 origin: point(
                                     range.start,
@@ -5052,9 +5055,9 @@ impl EditorElement {
 
                 for (guide_x, active) in layout.wrap_guides.iter() {
                     let color = if *active {
-                        cx.theme().colors().editor_active_wrap_guide
+                        window.theme(cx).colors().editor_active_wrap_guide
                     } else {
-                        cx.theme().colors().editor_wrap_guide
+                        window.theme(cx).colors().editor_wrap_guide
                     };
                     window.paint_quad(fill(
                         window.pixel_snap_bounds(Bounds {
@@ -5085,7 +5088,10 @@ impl EditorElement {
         };
 
         for indent_guide in indent_guides {
-            let indent_accent_colors = cx.theme().accents().color_for_index(indent_guide.depth);
+            let indent_accent_colors = window
+                .theme(cx)
+                .accents()
+                .color_for_index(indent_guide.depth);
             let settings = &indent_guide.settings;
 
             // TODO fixed for now, expose them through themes later
@@ -5097,10 +5103,10 @@ impl EditorElement {
             let line_color = match (settings.coloring, indent_guide.active) {
                 (IndentGuideColoring::Disabled, _) => None,
                 (IndentGuideColoring::Fixed, false) => {
-                    Some(cx.theme().colors().editor_indent_guide)
+                    Some(window.theme(cx).colors().editor_indent_guide)
                 }
                 (IndentGuideColoring::Fixed, true) => {
-                    Some(cx.theme().colors().editor_indent_guide_active)
+                    Some(window.theme(cx).colors().editor_indent_guide_active)
                 }
                 (IndentGuideColoring::IndentAware, false) => {
                     Some(faded_color(indent_accent_colors, INDENT_AWARE_ALPHA))
@@ -5169,7 +5175,7 @@ impl EditorElement {
                 };
 
                 let Some(()) = (if !is_singleton && hitbox.is_hovered(window) {
-                    let color = cx.theme().colors().editor_hover_line_number;
+                    let color = window.theme(cx).colors().editor_hover_line_number;
 
                     let line = self.shape_line_number(shaped_line.text.clone(), color, window);
                     line.paint(
@@ -5233,7 +5239,7 @@ impl EditorElement {
                         );
                         Some((
                             hunk_bounds,
-                            cx.theme().colors().version_control_modified,
+                            window.theme(cx).colors().version_control_modified,
                             Corners::all(px(0.)),
                             DiffHunkStatus::modified_none(),
                         ))
@@ -5244,17 +5250,21 @@ impl EditorElement {
                         ..
                     } => hitbox.as_ref().map(|hunk_hitbox| {
                         let color = match split_side {
-                            Some(SplitSide::Left) => cx.theme().colors().version_control_deleted,
-                            Some(SplitSide::Right) => cx.theme().colors().version_control_added,
+                            Some(SplitSide::Left) => {
+                                window.theme(cx).colors().version_control_deleted
+                            }
+                            Some(SplitSide::Right) => {
+                                window.theme(cx).colors().version_control_added
+                            }
                             None => match status.kind {
                                 DiffHunkStatusKind::Added => {
-                                    cx.theme().colors().version_control_added
+                                    window.theme(cx).colors().version_control_added
                                 }
                                 DiffHunkStatusKind::Modified => {
-                                    cx.theme().colors().version_control_modified
+                                    window.theme(cx).colors().version_control_modified
                                 }
                                 DiffHunkStatusKind::Deleted => {
-                                    cx.theme().colors().version_control_deleted
+                                    window.theme(cx).colors().version_control_deleted
                                 }
                             },
                         };
@@ -5796,9 +5806,9 @@ impl EditorElement {
                     window.paint_quad(quad(
                         hitbox.bounds,
                         Corners::default(),
-                        cx.theme().colors().scrollbar_track_background,
+                        window.theme(cx).colors().scrollbar_track_background,
                         scrollbar_edges,
-                        cx.theme().colors().scrollbar_track_border,
+                        window.theme(cx).colors().scrollbar_track_border,
                         BorderStyle::Solid,
                     ));
 
@@ -5820,13 +5830,13 @@ impl EditorElement {
                     if let Some(thumb_bounds) = scrollbar_layout.thumb_bounds {
                         let scrollbar_thumb_color = match scrollbar_layout.thumb_state {
                             ScrollbarThumbState::Dragging => {
-                                cx.theme().colors().scrollbar_thumb_active_background
+                                window.theme(cx).colors().scrollbar_thumb_active_background
                             }
                             ScrollbarThumbState::Hovered => {
-                                cx.theme().colors().scrollbar_thumb_hover_background
+                                window.theme(cx).colors().scrollbar_thumb_hover_background
                             }
                             ScrollbarThumbState::Idle => {
-                                cx.theme().colors().scrollbar_thumb_background
+                                window.theme(cx).colors().scrollbar_thumb_background
                             }
                         };
                         window.paint_quad(quad(
@@ -5834,7 +5844,7 @@ impl EditorElement {
                             Corners::default(),
                             scrollbar_thumb_color,
                             scrollbar_edges,
-                            cx.theme().colors().scrollbar_thumb_border,
+                            window.theme(cx).colors().scrollbar_thumb_border,
                             BorderStyle::Solid,
                         ));
 
@@ -6041,7 +6051,8 @@ impl EditorElement {
             let scrollbar_layout = scrollbar_layout.clone();
             let background_highlights = editor.background_highlights.clone();
             let snapshot = layout.position_map.snapshot.clone();
-            let theme = cx.theme().clone();
+            let theme = window.theme(cx).clone();
+            let scrollbar_settings = EditorSettings::get_global(cx).scrollbar;
 
             editor.scrollbar_marker_state.dirty = false;
             editor.scrollbar_marker_state.pending_refresh =
@@ -6336,13 +6347,13 @@ impl EditorElement {
                     if let Some(thumb_bounds) = layout.thumb_layout.thumb_bounds {
                         let minimap_thumb_color = match layout.thumb_layout.thumb_state {
                             ScrollbarThumbState::Idle => {
-                                cx.theme().colors().minimap_thumb_background
+                                window.theme(cx).colors().minimap_thumb_background
                             }
                             ScrollbarThumbState::Hovered => {
-                                cx.theme().colors().minimap_thumb_hover_background
+                                window.theme(cx).colors().minimap_thumb_hover_background
                             }
                             ScrollbarThumbState::Dragging => {
-                                cx.theme().colors().minimap_thumb_active_background
+                                window.theme(cx).colors().minimap_thumb_active_background
                             }
                         };
                         let minimap_thumb_border = match layout.thumb_border_style {
@@ -6372,7 +6383,7 @@ impl EditorElement {
                                 Corners::default(),
                                 minimap_thumb_color,
                                 minimap_thumb_border,
-                                cx.theme().colors().minimap_thumb_border,
+                                window.theme(cx).colors().minimap_thumb_border,
                                 BorderStyle::Solid,
                             ));
                         });
@@ -6786,7 +6797,7 @@ pub fn render_breadcrumb_text(
             text_style.font_style = font.style;
             text_style.font_weight = font.weight;
         }
-        text_style.color = Color::Muted.color(cx);
+        text_style.color = Color::Muted.color(window.theme(cx));
 
         if index == 0
             && !workspace::TabBarSettings::get_global(cx).show
@@ -6810,7 +6821,7 @@ pub fn render_breadcrumb_text(
         .when(multibuffer_header, |this| {
             this.pl_2()
                 .border_l_1()
-                .border_color(cx.theme().colors().border.opacity(0.6))
+                .border_color(window.theme(cx).colors().border.opacity(0.6))
         })
         .children(breadcrumbs);
 
@@ -6839,7 +6850,7 @@ pub fn render_breadcrumb_text(
                     .when(!multibuffer_header, |this| {
                         let focus_handle = editor.upgrade().unwrap().focus_handle(&cx);
 
-                        this.tooltip(Tooltip::element(move |_window, cx| {
+                        this.tooltip(Tooltip::element(move |window, cx| {
                             v_flex()
                                 .gap_1()
                                 .child(
@@ -6860,7 +6871,7 @@ pub fn render_breadcrumb_text(
                                             .justify_between()
                                             .pt_1()
                                             .border_t_1()
-                                            .border_color(cx.theme().colors().border_variant)
+                                            .border_color(window.theme(cx).colors().border_variant)
                                             .child(Label::new("Right-Click to Copy Path")),
                                     )
                                 })
@@ -6921,7 +6932,7 @@ fn apply_dirty_filename_style(
         })?;
 
     let bold_weight = FontWeight::BOLD;
-    let default_color = Color::Default.color(cx);
+    let default_color = Color::Default.color(cx.theme());
 
     if filename_position == 0 {
         let mut filename_style = text_style.clone();
@@ -7004,7 +7015,11 @@ fn render_blame_entry(
     cx: &mut App,
 ) -> Option<AnyElement> {
     let index: u32 = blame_entry.sha.into();
-    let mut sha_color = cx.theme().players().color_for_participant(index).cursor;
+    let mut sha_color = window
+        .theme(cx)
+        .players()
+        .color_for_participant(index)
+        .cursor;
 
     // If the last color we used is the same as the one we get for this line, but
     // the commit SHAs are different, then we try again to get a different color.
@@ -7012,7 +7027,11 @@ fn render_blame_entry(
         && sha != blame_entry.sha
         && color == sha_color
     {
-        sha_color = cx.theme().players().color_for_participant(index + 1).cursor;
+        sha_color = window
+            .theme(cx)
+            .players()
+            .color_for_participant(index + 1)
+            .cursor;
     }
     last_used_color.replace((sha_color, blame_entry.sha));
 
@@ -8214,7 +8233,7 @@ impl Element for EditorElement {
                                 editor.read(cx).background_highlights_in_range(
                                     start_anchor..end_anchor,
                                     &snapshot.display_snapshot,
-                                    cx.theme(),
+                                    window.theme(cx),
                                 )
                             } else {
                                 editor.update(cx, |editor, cx| {
@@ -8239,7 +8258,7 @@ impl Element for EditorElement {
                                     editor.background_highlights_in_range(
                                         start_anchor..end_anchor,
                                         &snapshot.display_snapshot,
-                                        cx.theme(),
+                                        window.theme(cx),
                                     )
                                 })
                             }
@@ -8252,7 +8271,7 @@ impl Element for EditorElement {
                         hollow_border: Hsla,
                     }
 
-                    let colors = cx.theme().colors();
+                    let colors = window.theme(cx).colors();
                     let added_diff_hunk_colors = DiffHunkHighlightColors {
                         filled_background: colors.editor_diff_hunk_added_background,
                         hollow_background: colors.editor_diff_hunk_added_hollow_background,
@@ -8330,7 +8349,7 @@ impl Element for EditorElement {
                         self.editor.read(cx).gutter_highlights_in_range(
                             start_anchor..end_anchor,
                             &snapshot.display_snapshot,
-                            cx,
+                            window.theme(cx),
                         );
 
                     let document_colors = self
@@ -9301,7 +9320,7 @@ impl Element for EditorElement {
                         &[TextRun {
                             len: tab_len,
                             font: self.style.text.font(),
-                            color: cx.theme().colors().editor_invisible,
+                            color: window.theme(cx).colors().editor_invisible,
                             ..Default::default()
                         }],
                         None,
@@ -9315,7 +9334,7 @@ impl Element for EditorElement {
                         &[TextRun {
                             len: space_len,
                             font: self.style.text.font(),
-                            color: cx.theme().colors().editor_invisible,
+                            color: window.theme(cx).colors().editor_invisible,
                             ..Default::default()
                         }],
                         None,

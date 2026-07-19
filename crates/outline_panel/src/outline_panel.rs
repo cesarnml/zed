@@ -2685,13 +2685,13 @@ impl OutlinePanel {
                 if is_active {
                     style
                 } else {
-                    let hover_color = cx.theme().colors().ghost_element_hover;
+                    let hover_color = window.theme(cx).colors().ghost_element_hover;
                     style.bg(hover_color).border_color(hover_color)
                 }
             })
             .when(
                 is_active && self.focus_handle.contains_focused(window, cx),
-                |div| div.border_color(cx.theme().colors().panel_focused_border),
+                |div| div.border_color(window.theme(cx).colors().panel_focused_border),
             )
     }
 
@@ -4310,7 +4310,7 @@ impl OutlinePanel {
                     new_search_query,
                     previous_matches,
                     new_search_matches,
-                    cx.theme().syntax().clone(),
+                    window.theme(cx).syntax().clone(),
                     window,
                     cx,
                 ));
@@ -4636,7 +4636,7 @@ impl OutlinePanel {
                         h_flex()
                             .px_0p5()
                             .justify_center()
-                            .bg(cx.theme().colors().element_selected.opacity(0.2))
+                            .bg(window.theme(cx).colors().element_selected.opacity(0.2))
                             .child(Label::new(query)),
                     )
                 })
@@ -5142,7 +5142,7 @@ impl Render for OutlinePanel {
                         .h(Tab::container_height(cx))
                         .gap_0p5()
                         .border_b_1()
-                        .border_color(cx.theme().colors().border_variant)
+                        .border_color(window.theme(cx).colors().border_variant)
                         .child(Label::new("Searching:").color(Color::Muted))
                         .child(Label::new(query_text)),
                 )

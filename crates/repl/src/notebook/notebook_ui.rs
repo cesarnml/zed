@@ -1011,10 +1011,10 @@ impl NotebookEditor {
             .w(px(CONTROL_SIZE + 4.0))
             .overflow_hidden()
             .rounded(px(5.))
-            .bg(cx.theme().colors().title_bar_background)
+            .bg(window.theme(cx).colors().title_bar_background)
             .p_px()
             .border_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
     }
 
     fn render_notebook_control(

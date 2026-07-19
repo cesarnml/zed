@@ -31,7 +31,7 @@ use serde::{Deserialize, Serialize};
 use settings::Settings;
 use smallvec::SmallVec;
 use std::{mem, ops::Range, sync::Arc, time::Duration};
-use theme::ActiveTheme;
+use theme::{ActiveTheme, WindowTheme};
 use theme_settings::ThemeSettings;
 use ui::{
     Avatar, AvatarAvailabilityIndicator, CollabNotification, ContextMenu, CopyButton,
@@ -3841,7 +3841,7 @@ fn render_tree_branch(
 ) -> impl IntoElement {
     let rem_size = window.rem_size();
     let thickness = px(1.);
-    let color = cx.theme().colors().icon_disabled;
+    let color = window.theme(cx).colors().icon_disabled;
 
     canvas(
         |_, _, _| {},

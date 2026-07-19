@@ -647,10 +647,10 @@ impl Render for CommitModal {
             .overflow_hidden()
             .flex_none()
             .relative()
-            .bg(cx.theme().colors().elevated_surface_background)
+            .bg(window.theme(cx).colors().elevated_surface_background)
             .rounded(px(border_radius))
             .border_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .child(
                 v_flex()
                     .id("editor-container")
@@ -661,12 +661,12 @@ impl Render for CommitModal {
                     .justify_between()
                     .rounded(properties.editor_border_radius())
                     .overflow_hidden()
-                    .bg(cx.theme().colors().editor_background)
+                    .bg(window.theme(cx).colors().editor_background)
                     .border_1()
                     .border_color(if title_exceeds_limit {
-                        cx.theme().status().warning_border
+                        window.theme(cx).status().warning_border
                     } else {
-                        cx.theme().colors().border_variant
+                        window.theme(cx).colors().border_variant
                     })
                     .on_click(cx.listener(move |_, _: &ClickEvent, window, cx| {
                         window.focus(&editor_focus_handle, cx);

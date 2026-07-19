@@ -197,7 +197,7 @@ impl GoToLine {
             let end = snapshot.anchor_after(end_point);
             editor.highlight_rows::<GoToLineRowHighlights>(
                 start..end,
-                |cx| cx.theme().colors().editor_highlighted_line_background,
+                |theme| theme.colors().editor_highlighted_line_background,
                 RowHighlightOptions {
                     autoscroll: true,
                     ..Default::default()
@@ -326,7 +326,7 @@ impl Render for GoToLine {
 
         v_flex()
             .w(rems(24.))
-            .elevation_2(cx)
+            .elevation_2(cx.theme())
             .key_context("GoToLine")
             .on_action(cx.listener(Self::cancel))
             .on_action(cx.listener(Self::confirm))

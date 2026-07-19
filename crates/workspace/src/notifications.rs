@@ -439,15 +439,15 @@ pub fn markdown_style(window: &Window, cx: &App) -> MarkdownStyle {
     base_text_style.refine(&TextStyleRefinement {
         font_family: Some(ui_font_family),
         font_fallbacks: ui_font_fallbacks,
-        color: Some(cx.theme().colors().text),
+        color: Some(window.theme(cx).colors().text),
         ..Default::default()
     });
 
     MarkdownStyle {
         base_text_style,
-        selection_background_color: cx.theme().colors().element_selection_background,
+        selection_background_color: window.theme(cx).colors().element_selection_background,
         inline_code: TextStyleRefinement {
-            background_color: Some(cx.theme().colors().editor_background.opacity(0.5)),
+            background_color: Some(window.theme(cx).colors().editor_background.opacity(0.5)),
             font_family: Some(buffer_font_family),
             font_fallbacks: buffer_font_fallbacks,
             ..Default::default()
@@ -455,7 +455,7 @@ pub fn markdown_style(window: &Window, cx: &App) -> MarkdownStyle {
         link: TextStyleRefinement {
             underline: Some(UnderlineStyle {
                 thickness: px(1.),
-                color: Some(cx.theme().colors().text_accent),
+                color: Some(window.theme(cx).colors().text_accent),
                 wavy: false,
             }),
             ..Default::default()

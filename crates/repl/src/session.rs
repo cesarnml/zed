@@ -544,7 +544,7 @@ impl Session {
 
             editor.insert_gutter_highlight::<ReplExecutedRange>(
                 code_range,
-                |cx| cx.theme().status().success,
+                |theme| theme.status().success,
                 cx,
             );
         });
@@ -731,7 +731,7 @@ impl Session {
             .update(cx, |editor, cx| {
                 editor.insert_gutter_highlight::<ReplExecutedRange>(
                     anchor_range.clone(),
-                    |cx| cx.theme().status().success,
+                    |theme| theme.status().success,
                     cx,
                 );
             })

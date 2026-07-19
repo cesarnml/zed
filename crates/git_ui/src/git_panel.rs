@@ -7415,13 +7415,13 @@ impl GitPanel {
         let marked_bg_alpha = 0.12;
         let state_opacity_step = 0.04;
 
-        let info_color = cx.theme().status().info;
+        let info_color = window.theme(cx).status().info;
 
         let base_bg = match (selected, marked) {
             (true, true) => info_color.alpha(selected_bg_alpha + marked_bg_alpha),
             (true, false) => info_color.alpha(selected_bg_alpha),
             (false, true) => info_color.alpha(marked_bg_alpha),
-            _ => cx.theme().colors().ghost_element_background,
+            _ => window.theme(cx).colors().ghost_element_background,
         };
 
         let (hover_bg, active_bg) = if selected {
@@ -7431,8 +7431,8 @@ impl GitPanel {
             )
         } else {
             (
-                cx.theme().colors().ghost_element_hover,
-                cx.theme().colors().ghost_element_active,
+                window.theme(cx).colors().ghost_element_hover,
+                window.theme(cx).colors().ghost_element_active,
             )
         };
 
@@ -7611,8 +7611,8 @@ impl GitPanel {
         let selected_bg_alpha = 0.08;
         let state_opacity_step = 0.04;
 
-        let info_color = cx.theme().status().info;
-        let colors = cx.theme().colors();
+        let info_color = window.theme(cx).status().info;
+        let colors = window.theme(cx).colors();
 
         let (base_bg, hover_bg, active_bg) = if selected {
             (
@@ -7696,7 +7696,7 @@ impl GitPanel {
             .border_1()
             .border_r_2()
             .when(selected && self.focus_handle.is_focused(window), |el| {
-                el.border_color(cx.theme().colors().panel_focused_border)
+                el.border_color(window.theme(cx).colors().panel_focused_border)
             })
             .bg(base_bg)
             .hover(|s| s.bg(hover_bg))

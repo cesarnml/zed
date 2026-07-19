@@ -163,8 +163,8 @@ pub enum MarkdownFont {
 
 impl MarkdownStyle {
     pub fn themed(font: MarkdownFont, window: &Window, cx: &App) -> Self {
-        let colors = cx.theme().colors();
-        let syntax = cx.theme().syntax().clone();
+        let colors = window.theme(cx).colors();
+        let syntax = window.theme(cx).syntax().clone();
         Self::themed_with_overrides(font, colors, &syntax, window, cx)
     }
 
@@ -232,7 +232,7 @@ impl MarkdownStyle {
             rule_color: colors.border,
             block_quote_border_color: colors.border,
             block_quote_kind_colors: {
-                let status = cx.theme().status();
+                let status = window.theme(cx).status();
                 BlockQuoteKindColors {
                     note: status.info,
                     tip: status.success,
@@ -2060,7 +2060,7 @@ impl MarkdownElement {
     ) {
         let markdown = self.markdown.read(cx);
         let active_index = markdown.active_search_highlight;
-        let colors = cx.theme().colors();
+        let colors = window.theme(cx).colors();
 
         let highlight_bounds = rendered_text.bounds_for_sorted_source_ranges(
             markdown
@@ -2473,8 +2473,8 @@ impl Element for MarkdownElement {
                     if self.show_root_block_markers {
                         builder.pop_root_block(
                             active_root_block == Some(*root_block_index),
-                            cx.theme().colors().border,
-                            cx.theme().colors().border_variant,
+                            window.theme(cx).colors().border,
+                            window.theme(cx).colors().border_variant,
                         );
                     }
                 }

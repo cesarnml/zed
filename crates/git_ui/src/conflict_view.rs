@@ -288,8 +288,10 @@ fn update_conflict_highlighting(
     let ours = buffer.buffer_anchor_range_to_anchor_range(conflict.ours.clone())?;
     let theirs = buffer.buffer_anchor_range_to_anchor_range(conflict.theirs.clone())?;
 
-    let ours_background = |cx: &App| cx.theme().colors().version_control_conflict_marker_ours;
-    let theirs_background = |cx: &App| cx.theme().colors().version_control_conflict_marker_theirs;
+    let ours_background =
+        |theme: &theme::Theme| theme.colors().version_control_conflict_marker_ours;
+    let theirs_background =
+        |theme: &theme::Theme| theme.colors().version_control_conflict_marker_theirs;
 
     let options = RowHighlightOptions {
         include_gutter: true,
@@ -298,7 +300,7 @@ fn update_conflict_highlighting(
 
     editor.insert_gutter_highlight::<ConflictsOuter>(
         outer.start..theirs.end,
-        |cx| cx.theme().colors().editor_background,
+        |theme| theme.colors().editor_background,
         cx,
     );
 

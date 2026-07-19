@@ -1,4 +1,5 @@
 use std::{ops::Range, rc::Rc};
+use theme::WindowTheme;
 
 use crate::{
     ActiveTheme as _, AnyElement, App, Button, ButtonCommon as _, ButtonStyle, Color, Component,
@@ -632,7 +633,7 @@ pub fn render_table_row(
     let is_striped = table_context.striped;
     let is_last = row_index == table_context.total_row_count - 1;
     let bg = if row_index % 2 == 1 && is_striped {
-        Some(cx.theme().colors().text.opacity(0.05))
+        Some(window.theme(cx).colors().text.opacity(0.05))
     } else {
         None
     };
@@ -651,12 +652,12 @@ pub fn render_table_row(
         .size_full()
         .when_some(bg, |row, bg| row.bg(bg))
         .when(table_context.show_row_hover, |row| {
-            row.hover(|s| s.bg(cx.theme().colors().element_hover.opacity(0.6)))
+            row.hover(|s| s.bg(window.theme(cx).colors().element_hover.opacity(0.6)))
         })
         .when(!is_striped && table_context.show_row_borders, |row| {
             row.border_b_1()
                 .border_color(transparent_black())
-                .when(!is_last, |row| row.border_color(cx.theme().colors().border))
+                .when(!is_last, |row| row.border_color(window.theme(cx).colors().border))
         });
 
     let pinned_cols = table_context.pinned_cols;

@@ -9,7 +9,7 @@ use gpui::{
 use picker::{Picker, PickerDelegate};
 use settings::{Settings, SettingsStore, update_settings_file};
 use std::sync::Arc;
-use theme::{Appearance, SystemAppearance, Theme, ThemeMeta, ThemeRegistry};
+use theme::{Appearance, SystemAppearance, Theme, ThemeMeta, ThemeRegistry, WindowTheme};
 use theme_settings::{
     ThemeAppearanceMode, ThemeName, ThemeSelection, ThemeSettings, appearance_to_mode,
 };
@@ -35,6 +35,13 @@ pub fn init(cx: &mut App) {
             toggle_theme_selector(workspace, &action, window, cx);
         });
     });
+    cx.on_action(
+        |_: &zed_actions::theme_selector::ClearWindowTheme, cx| {
+            with_active_or_new_workspace(cx, move |workspace, window, cx| {
+                workspace.clear_window_theme(window, cx);
+            });
+        },
+    );
     cx.on_action(|action: &zed_actions::icon_theme_selector::Toggle, cx| {
         let action = action.clone();
         with_active_or_new_workspace(cx, move |workspace, window, cx| {
@@ -50,11 +57,18 @@ fn toggle_theme_selector(
     cx: &mut Context<Workspace>,
 ) {
     let fs = workspace.app_state().fs.clone();
+    let scope = if toggle.window {
+        ThemeSelectorScope::Window
+    } else {
+        ThemeSelectorScope::Global
+    };
     workspace.toggle_modal(window, cx, |window, cx| {
         let delegate = ThemeSelectorDelegate::new(
             cx.entity().downgrade(),
             fs,
             toggle.themes_filter.as_ref(),
+            scope,
+            window,
             cx,
         );
         ThemeSelector::new(delegate, window, cx)
@@ -82,11 +96,11 @@ fn toggle_icon_theme_selector(
 impl ModalView for ThemeSelector {
     fn on_before_dismiss(
         &mut self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> workspace::DismissDecision {
         self.picker.update(cx, |picker, cx| {
-            picker.delegate.revert_theme(cx);
+            picker.delegate.revert_theme(window, cx);
         });
         workspace::DismissDecision::Dismiss(true)
     }
@@ -124,6 +138,12 @@ impl ThemeSelector {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ThemeSelectorScope {
+    Global,
+    Window,
+}
+
 struct ThemeSelectorDelegate {
     fs: Arc<dyn Fs>,
     themes: Vec<ThemeMeta>,
@@ -134,6 +154,12 @@ struct ThemeSelectorDelegate {
     original_theme_settings: ThemeSettings,
     /// The current system appearance.
     original_system_appearance: Appearance,
+    /// Window-scope: theme that was active for this window before the picker opened.
+    original_window_theme: Arc<Theme>,
+    /// Window-scope: whether the window already had an override before the picker opened.
+    original_had_window_override: bool,
+    /// Whether this picker writes a window override or global settings.
+    scope: ThemeSelectorScope,
     /// The id of the original theme in the list of themes.
     /// Using `Option<usize>` instead of `usize` because it's possible that the
     /// original theme is not present in the list of themes when it is first
@@ -155,9 +181,20 @@ impl ThemeSelectorDelegate {
         selector: WeakEntity<ThemeSelector>,
         fs: Arc<dyn Fs>,
         themes_filter: Option<&Vec<String>>,
+        scope: ThemeSelectorScope,
+        window: &Window,
         cx: &mut Context<ThemeSelector>,
     ) -> Self {
-        let original_theme = cx.theme().clone();
+        let original_window_theme = window.theme(cx).clone();
+        let original_had_window_override = theme::WindowThemeOverrides::override_for(
+            window.window_handle().window_id(),
+            cx,
+        )
+        .is_some();
+        let original_theme = match scope {
+            ThemeSelectorScope::Global => window.theme(cx).clone(),
+            ThemeSelectorScope::Window => original_window_theme.clone(),
+        };
         let original_theme_settings = ThemeSettings::get_global(cx).clone();
         let original_system_appearance = SystemAppearance::global(cx).0;
 
@@ -209,6 +246,9 @@ impl ThemeSelectorDelegate {
             matches,
             original_theme_settings,
             original_system_appearance,
+            original_window_theme,
+            original_had_window_override,
+            scope,
             original_theme_id,
             new_theme: original_theme, // Start with the original theme.
             selected_index,
@@ -227,6 +267,7 @@ impl ThemeSelectorDelegate {
 
     fn show_selected_theme(
         &mut self,
+        window: &mut Window,
         cx: &mut Context<Picker<ThemeSelectorDelegate>>,
     ) -> Option<Arc<Theme>> {
         if let Some(mat) = self.matches.get(self.selected_index) {
@@ -234,7 +275,7 @@ impl ThemeSelectorDelegate {
 
             match registry.get(&mat.string) {
                 Ok(theme) => {
-                    self.set_theme(theme.clone(), cx);
+                    self.set_theme(theme.clone(), window, cx);
                     Some(theme)
                 }
                 Err(error) => {
@@ -247,25 +288,48 @@ impl ThemeSelectorDelegate {
         }
     }
 
-    fn revert_theme(&mut self, cx: &mut App) {
-        if !self.selection_completed {
-            SettingsStore::update_global(cx, |store, _| {
-                store.override_global(self.original_theme_settings.clone());
-            });
-            self.selection_completed = true;
+    fn revert_theme(&mut self, window: &mut Window, cx: &mut App) {
+        if self.selection_completed {
+            return;
         }
+        match self.scope {
+            ThemeSelectorScope::Global => {
+                SettingsStore::update_global(cx, |store, _| {
+                    store.override_global(self.original_theme_settings.clone());
+                });
+            }
+            ThemeSelectorScope::Window => {
+                if self.original_had_window_override {
+                    theme::WindowThemeOverrides::apply_to_window(
+                        window,
+                        self.original_window_theme.clone(),
+                        cx,
+                    );
+                } else {
+                    theme::WindowThemeOverrides::clear_for_window(window, cx);
+                }
+            }
+        }
+        self.selection_completed = true;
     }
 
-    fn set_theme(&mut self, new_theme: Arc<Theme>, cx: &mut App) {
-        // Update the global (in-memory) theme settings.
-        SettingsStore::update_global(cx, |store, _| {
-            override_global_theme(
-                store,
-                &new_theme,
-                &self.original_theme_settings.theme,
-                self.original_system_appearance,
-            )
-        });
+    fn set_theme(&mut self, new_theme: Arc<Theme>, window: &mut Window, cx: &mut App) {
+        match self.scope {
+            ThemeSelectorScope::Global => {
+                // Update the global (in-memory) theme settings.
+                SettingsStore::update_global(cx, |store, _| {
+                    override_global_theme(
+                        store,
+                        &new_theme,
+                        &self.original_theme_settings.theme,
+                        self.original_system_appearance,
+                    )
+                });
+            }
+            ThemeSelectorScope::Window => {
+                theme::WindowThemeOverrides::apply_to_window(window, new_theme.clone(), cx);
+            }
+        }
 
         self.new_theme = new_theme;
     }
@@ -383,7 +447,10 @@ impl PickerDelegate for ThemeSelectorDelegate {
     }
 
     fn placeholder_text(&self, _window: &mut Window, _cx: &mut App) -> Arc<str> {
-        "Select Theme...".into()
+        match self.scope {
+            ThemeSelectorScope::Global => "Select Theme...".into(),
+            ThemeSelectorScope::Window => "Select Window Theme...".into(),
+        }
     }
 
     fn match_count(&self) -> usize {
@@ -393,20 +460,41 @@ impl PickerDelegate for ThemeSelectorDelegate {
     fn confirm(
         &mut self,
         _secondary: bool,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<ThemeSelectorDelegate>>,
     ) {
         self.selection_completed = true;
 
-        let theme_name: Arc<str> = self.new_theme.name.as_str().into();
-        let theme_appearance = self.new_theme.appearance;
-        let system_appearance = SystemAppearance::global(cx).0;
+        let theme = self.new_theme.clone();
+        let theme_name: Arc<str> = theme.name.as_str().into();
 
-        telemetry::event!("Settings Changed", setting = "theme", value = theme_name);
+        match self.scope {
+            ThemeSelectorScope::Global => {
+                let theme_appearance = theme.appearance;
+                let system_appearance = SystemAppearance::global(cx).0;
 
-        update_settings_file(self.fs.clone(), cx, move |settings, _| {
-            theme_settings::set_theme(settings, theme_name, theme_appearance, system_appearance);
-        });
+                telemetry::event!("Settings Changed", setting = "theme", value = theme_name);
+
+                update_settings_file(self.fs.clone(), cx, move |settings, _| {
+                    theme_settings::set_theme(
+                        settings,
+                        theme_name,
+                        theme_appearance,
+                        system_appearance,
+                    );
+                });
+            }
+            ThemeSelectorScope::Window => {
+                telemetry::event!("Window Theme Changed", value = theme_name);
+                if let Some(workspace) = Workspace::for_window(window, cx) {
+                    workspace.update(cx, |workspace, cx| {
+                        workspace.set_window_theme(theme, window, cx);
+                    });
+                } else {
+                    theme::WindowThemeOverrides::apply_to_window(window, theme, cx);
+                }
+            }
+        }
 
         self.selector
             .update(cx, |_, cx| {
@@ -415,8 +503,8 @@ impl PickerDelegate for ThemeSelectorDelegate {
             .ok();
     }
 
-    fn dismissed(&mut self, _: &mut Window, cx: &mut Context<Picker<ThemeSelectorDelegate>>) {
-        self.revert_theme(cx);
+    fn dismissed(&mut self, window: &mut Window, cx: &mut Context<Picker<ThemeSelectorDelegate>>) {
+        self.revert_theme(window, cx);
 
         self.selector
             .update(cx, |_, cx| cx.emit(DismissEvent))
@@ -430,11 +518,11 @@ impl PickerDelegate for ThemeSelectorDelegate {
     fn set_selected_index(
         &mut self,
         ix: usize,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<ThemeSelectorDelegate>>,
     ) {
         self.selected_index = ix;
-        self.selected_theme = self.show_selected_theme(cx);
+        self.selected_theme = self.show_selected_theme(window, cx);
     }
 
     fn update_matches(
@@ -476,7 +564,7 @@ impl PickerDelegate for ThemeSelectorDelegate {
                 .await
             };
 
-            this.update(cx, |this, cx| {
+            this.update_in(cx, |this, window, cx| {
                 this.delegate.matches = matches;
                 if query.is_empty() && this.delegate.selected_theme.is_none() {
                     this.delegate.selected_index = this
@@ -496,7 +584,7 @@ impl PickerDelegate for ThemeSelectorDelegate {
                     this.delegate.selected_index = 0;
                 }
                 // Preserve the previously selected theme when the filter yields no results.
-                if let Some(theme) = this.delegate.show_selected_theme(cx) {
+                if let Some(theme) = this.delegate.show_selected_theme(window, cx) {
                     this.delegate.selected_theme = Some(theme);
                 }
             })

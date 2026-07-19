@@ -30,7 +30,7 @@ use picker::{
 };
 use project::{AgentId, AgentServerStore};
 use settings::Settings as _;
-use theme::ActiveTheme;
+use theme::{ActiveTheme, WindowTheme};
 use ui::{
     AgentThreadStatus, Divider, KeyBinding, ListItem, ListItemSpacing, ListSubHeader, ScrollAxes,
     Scrollbars, Tab, ThreadItem, Tooltip, WithScrollbar, prelude::*,
@@ -888,7 +888,7 @@ impl ThreadsArchiveView {
             .gap_1()
             .justify_between()
             .border_b_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .when(traffic_lights, |this| {
                 this.child(Divider::vertical().color(ui::DividerColor::Border))
             })

@@ -362,6 +362,7 @@ impl MultiWorkspace {
         let active_workspace_id = Rc::new(Cell::new(workspace.entity_id()));
         workspace.update(cx, |workspace, cx| {
             workspace.set_multi_workspace(weak_self, active_workspace_id.clone(), cx);
+            workspace.apply_window_theme(window, cx);
         });
         Self {
             window_id: window.window_handle().window_id(),
@@ -1359,6 +1360,7 @@ impl MultiWorkspace {
         // workspace (which is now the chrome owner per `owns_window_chrome`).
         workspace.update(cx, |workspace, cx| {
             workspace.refresh_window_state(window, cx);
+            workspace.apply_window_theme(window, cx);
         });
 
         cx.emit(MultiWorkspaceEvent::ActiveWorkspaceChanged { source_workspace });
@@ -2082,7 +2084,7 @@ impl Render for MultiWorkspace {
         };
 
         let ui_font = theme_settings::setup_ui_font(window, cx);
-        let text_color = cx.theme().colors().text;
+        let text_color = window.theme(cx).colors().text;
 
         let workspace = self.workspace().clone();
         let workspace_key_context = workspace.update(cx, |workspace, cx| workspace.key_context(cx));

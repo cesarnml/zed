@@ -943,14 +943,14 @@ impl RatePredictionsModal {
                         .py_4()
                         .px_6()
                         .size_full()
-                        .bg(cx.theme().colors().editor_background)
+                        .bg(window.theme(cx).colors().editor_background)
                         .overflow_scroll()
                         .child(if let Some(active_prediction) = &self.active_prediction {
                             markdown::MarkdownElement::new(
                                 active_prediction.formatted_inputs.clone(),
                                 MarkdownStyle {
                                     base_text_style: window.text_style(),
-                                    syntax: cx.theme().syntax().clone(),
+                                    syntax: window.theme(cx).syntax().clone(),
                                     code_block: StyleRefinement {
                                         text: TextStyleRefinement {
                                             font_family: Some(
@@ -986,9 +986,9 @@ impl RatePredictionsModal {
                                             right: Some(AbsoluteLength::Pixels(px(1.))),
                                             bottom: Some(AbsoluteLength::Pixels(px(1.))),
                                         },
-                                        border_color: Some(cx.theme().colors().border_variant),
+                                        border_color: Some(window.theme(cx).colors().border_variant),
                                         background: Some(
-                                            cx.theme().colors().editor_background.into(),
+                                            window.theme(cx).colors().editor_background.into(),
                                         ),
                                         ..Default::default()
                                     },
@@ -1015,8 +1015,8 @@ impl RatePredictionsModal {
         let completion_id = active_prediction.prediction.id.clone();
         let focus_handle = &self.focus_handle(cx);
 
-        let border_color = cx.theme().colors().border;
-        let bg_color = cx.theme().colors().editor_background;
+        let border_color = window.theme(cx).colors().border;
+        let bg_color = window.theme(cx).colors().editor_background;
 
         let rated = self.ep_store.read(cx).is_prediction_rated(&completion_id);
         let feedback_empty = active_prediction
@@ -1316,7 +1316,7 @@ impl RatePredictionsModal {
 
 impl Render for RatePredictionsModal {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let border_color = cx.theme().colors().border;
+        let border_color = window.theme(cx).colors().border;
 
         h_flex()
             .key_context("RatePredictionModal")
@@ -1333,7 +1333,7 @@ impl Render for RatePredictionsModal {
             .on_action(cx.listener(Self::thumbs_down_active))
             .on_action(cx.listener(Self::focus_completions))
             .on_action(cx.listener(Self::preview_completion))
-            .bg(cx.theme().colors().elevated_surface_background)
+            .bg(window.theme(cx).colors().elevated_surface_background)
             .border_1()
             .border_color(border_color)
             .w(window.viewport_size().width - px(320.))

@@ -315,9 +315,9 @@ impl TabMatch {
                 })
                 .map(|(icon, color)| {
                     let knockout_item_color = if selected {
-                        cx.theme().colors().element_selected
+                        window.theme(cx).colors().element_selected
                     } else {
-                        cx.theme().colors().element_background
+                        window.theme(cx).colors().element_background
                     };
                     IconDecoration::new(icon, knockout_item_color, cx)
                         .color(color.color(cx))

@@ -2240,11 +2240,11 @@ impl Render for ContextMenu {
         };
 
         let aside = self.documentation_aside.clone();
-        let render_aside = |aside: DocumentationAside, cx: &mut Context<Self>| {
+        let render_aside = |aside: DocumentationAside, window: &Window, cx: &mut Context<Self>| {
             WithRemSize::new(ui_font_size)
                 .occlude()
                 .font_family(ui_font_family.clone())
-                .elevation_2(cx)
+                .elevation_2(window.theme(cx))
                 .w_full()
                 .p_2()
                 .overflow_hidden()
@@ -2271,7 +2271,7 @@ impl Render for ContextMenu {
             WithRemSize::new(ui_font_size)
                 .occlude()
                 .font_family(ui_font_family.clone())
-                .elevation_2(cx)
+                .elevation_2(window.theme(cx))
                 .flex()
                 .flex_row()
                 .flex_shrink_0()
@@ -2400,7 +2400,7 @@ impl Render for ContextMenu {
                             })
                             .top(top)
                             .h(height)
-                            .child(render_aside(aside, cx))
+                            .child(render_aside(aside, window, cx))
                     }))
                 })
                 .when_some(
@@ -2417,7 +2417,7 @@ impl Render for ContextMenu {
                 .relative()
                 .gap_1()
                 .justify_end()
-                .children(aside.map(|(_, aside)| render_aside(aside, cx)))
+                .children(aside.map(|(_, aside)| render_aside(aside, window, cx)))
                 .child(render_menu(cx, window))
                 .when_some(
                     submenu_container,

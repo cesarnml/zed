@@ -5685,8 +5685,8 @@ impl ProjectPanel {
                 .as_ref()
                 .map_or(ValidationState::None, |e| e.validation_state.clone())
             {
-                ValidationState::Error(msg) => Some((Color::Error.color(cx), msg)),
-                ValidationState::Warning(msg) => Some((Color::Warning.color(cx), msg)),
+                ValidationState::Error(msg) => Some((Color::Error.color(window.theme(cx)), msg)),
+                ValidationState::Warning(msg) => Some((Color::Warning.color(window.theme(cx)), msg)),
                 ValidationState::None => None,
             }
         } else {

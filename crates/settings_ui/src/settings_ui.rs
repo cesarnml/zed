@@ -2992,9 +2992,9 @@ impl SettingsWindow {
             .mb_3()
             .gap_1p5()
             .rounded_sm()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .border_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .child(Icon::new(IconName::MagnifyingGlass).color(Color::Muted))
             .child(self.search_bar.clone())
     }
@@ -4483,7 +4483,7 @@ impl Render for SettingsWindow {
 
         client_side_decorations(
             v_flex()
-                .text_color(cx.theme().colors().text)
+                .text_color(window.theme(cx).colors().text)
                 .size_full()
                 .children(self.title_bar.clone())
                 .child(
@@ -4552,8 +4552,8 @@ impl Render for SettingsWindow {
                         .flex_1()
                         .min_h_0()
                         .font(ui_font)
-                        .bg(cx.theme().colors().background)
-                        .text_color(cx.theme().colors().text)
+                        .bg(window.theme(cx).colors().background)
+                        .text_color(window.theme(cx).colors().text)
                         .when(!cfg!(target_os = "macos"), |this| {
                             this.border_t_1().border_color(cx.theme().colors().border)
                         })

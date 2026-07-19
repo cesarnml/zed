@@ -520,7 +520,7 @@ fn render_verification_section(
         None => (None, true),
     };
 
-    let color = cx.theme().colors();
+    let color = window.theme(cx).colors();
 
     v_flex()
         .mt_3()

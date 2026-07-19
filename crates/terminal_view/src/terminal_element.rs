@@ -17,7 +17,7 @@ use terminal::{
     TerminalBounds, is_app_chosen_exact_color as terminal_is_app_chosen_exact_color,
     is_default_background_color, terminal_settings::TerminalSettings,
 };
-use theme::{ActiveTheme, Theme};
+use theme::{ActiveTheme, Theme, WindowTheme};
 use theme_settings::ThemeSettings;
 use ui::utils::ensure_minimum_contrast;
 use ui::{ParentElement, Tooltip};
@@ -1244,7 +1244,7 @@ impl Element for TerminalElement {
                         }),
                 };
 
-                let theme = cx.theme().clone();
+                let theme = window.theme(cx).clone();
 
                 let link_style = HighlightStyle {
                     color: Some(theme.colors().link_text_hover),

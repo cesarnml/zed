@@ -1327,7 +1327,7 @@ impl<D: PickerDelegate> Picker<D> {
             .id(("item", ix))
             .when(selectable, |this| this.cursor_pointer())
             .when(use_fallback_indicator, |this| {
-                this.hover(|s| s.bg(cx.theme().colors().ghost_element_hover))
+                this.hover(|s| s.bg(window.theme(cx).colors().ghost_element_hover))
             })
             .when(multi_select_active && selectable, |this| {
                 this.tooltip(Tooltip::element(move |_window, cx| {

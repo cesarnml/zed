@@ -692,7 +692,7 @@ impl PickerDelegate for CommandPaletteDelegate {
                 .gap_1()
                 .justify_end()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(keybinding_buttons)
                 .child(
                     Button::new("run-action", "Run")

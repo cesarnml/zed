@@ -467,7 +467,7 @@ impl Render for ConfigOptionSelector {
                 let option_description: Option<SharedString> =
                     option.description.clone().map(Into::into);
 
-                let tooltip = Tooltip::element(move |_window, cx| {
+                let tooltip = Tooltip::element(move |window, cx| {
                     let mut content = v_flex().gap_1().child(Label::new(option_name.clone()));
                     if let Some(desc) = option_description.as_ref() {
                         content = content.child(
@@ -483,7 +483,7 @@ impl Render for ConfigOptionSelector {
                             .gap_2()
                             .justify_between()
                             .border_t_1()
-                            .border_color(cx.theme().colors().border_variant)
+                            .border_color(window.theme(cx).colors().border_variant)
                             .child(Label::new(label))
                             .child(keybinding)
                     };

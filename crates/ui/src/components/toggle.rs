@@ -454,7 +454,7 @@ impl RenderOnce for Switch {
         let is_on = self.toggle_state == ToggleState::Selected;
         let adjust_ratio = if is_light(cx) { 1.5 } else { 1.0 };
 
-        let base_color = cx.theme().colors().text;
+        let base_color = window.theme(cx).colors().text;
         let thumb_color = base_color;
         let (bg_color, border_color) = self.color.get_colors(is_on, cx);
 
@@ -496,14 +496,14 @@ impl RenderOnce for Switch {
             })
             .p(px(1.0))
             .border_2()
-            .border_color(cx.theme().colors().border_transparent)
+            .border_color(window.theme(cx).colors().border_transparent)
             .rounded_full()
             .when_some(
                 self.tab_index.filter(|_| !self.disabled),
                 |this, tab_index| {
                     this.tab_index(tab_index)
                         .focus_visible(|mut style| {
-                            style.border_color = Some(cx.theme().colors().border_focused);
+                            style.border_color = Some(window.theme(cx).colors().border_focused);
                             style
                         })
                         .when_some(self.on_click.clone(), |this, on_click| {

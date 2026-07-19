@@ -23,11 +23,12 @@ mod ui_density;
 
 use std::sync::Arc;
 
+use collections::HashMap;
 use gpui::BorrowAppContext;
 use gpui::Global;
 use gpui::{
-    App, AssetSource, Hsla, Pixels, SharedString, Styled, Tiling, WindowAppearance,
-    WindowBackgroundAppearance, px,
+    App, AssetSource, Hsla, Pixels, SharedString, Styled, Tiling, Window, WindowAppearance,
+    WindowBackgroundAppearance, WindowId, px,
 };
 use serde::Deserialize;
 
@@ -138,9 +139,17 @@ pub fn init(themes_to_load: LoadThemes, cx: &mut App) {
     });
     let icon_theme = themes.default_icon_theme().unwrap();
     cx.set_global(GlobalTheme { theme, icon_theme });
+
+    cx.on_window_closed(|cx, window_id| {
+        WindowThemeOverrides::clear(window_id, cx);
+    })
+    .detach();
 }
 
 /// Implementing this trait allows accessing the active theme.
+///
+/// On [`App`], this returns the configured (settings) theme and ignores
+/// per-window overrides. Prefer [`WindowTheme`] whenever a [`Window`] is available.
 pub trait ActiveTheme {
     /// Returns the active theme.
     fn theme(&self) -> &Arc<Theme>;
@@ -149,6 +158,84 @@ pub trait ActiveTheme {
 impl ActiveTheme for App {
     fn theme(&self) -> &Arc<Theme> {
         GlobalTheme::theme(self)
+    }
+}
+
+impl ActiveTheme for Arc<Theme> {
+    fn theme(&self) -> &Arc<Theme> {
+        self
+    }
+}
+
+/// Access the theme that should paint a given window.
+///
+/// Prefer this over [`ActiveTheme`] on [`App`] whenever a [`Window`] is in scope.
+/// App-level theme access returns the configured (settings) theme and ignores
+/// per-window overrides.
+pub trait WindowTheme {
+    /// Returns this window's effective theme (override, or configured global).
+    ///
+    /// The returned reference borrows only `cx` (the theme is stored in an app
+    /// global), so the window remains usable while the theme is held.
+    fn theme<'a>(&self, cx: &'a App) -> &'a Arc<Theme>;
+}
+
+impl WindowTheme for Window {
+    fn theme<'a>(&self, cx: &'a App) -> &'a Arc<Theme> {
+        WindowThemeOverrides::theme(self.window_handle().window_id(), cx)
+    }
+}
+
+/// Per-window theme overrides keyed by runtime [`WindowId`].
+///
+/// Persistence is keyed by workspace id separately; this map is only the live
+/// lookup used while painting a window.
+#[derive(Default)]
+pub struct WindowThemeOverrides {
+    themes: HashMap<WindowId, Arc<Theme>>,
+}
+
+impl Global for WindowThemeOverrides {}
+
+impl WindowThemeOverrides {
+    /// Returns the effective theme for `window_id`: an override if set, otherwise
+    /// the configured [`GlobalTheme`].
+    pub fn theme(window_id: WindowId, cx: &App) -> &Arc<Theme> {
+        if let Some(theme) = Self::override_for(window_id, cx) {
+            theme
+        } else {
+            GlobalTheme::theme(cx)
+        }
+    }
+
+    /// Returns the override for `window_id`, if any.
+    pub fn override_for(window_id: WindowId, cx: &App) -> Option<&Arc<Theme>> {
+        cx.try_global::<Self>()
+            .and_then(|this| this.themes.get(&window_id))
+    }
+
+    /// Sets a live theme override for `window_id`.
+    pub fn set(window_id: WindowId, theme: Arc<Theme>, cx: &mut App) {
+        cx.default_global::<Self>().themes.insert(window_id, theme);
+    }
+
+    /// Clears any live theme override for `window_id`.
+    pub fn clear(window_id: WindowId, cx: &mut App) {
+        cx.default_global::<Self>().themes.remove(&window_id);
+    }
+
+    /// Applies `theme` as this window's override, including window background.
+    pub fn apply_to_window(window: &mut Window, theme: Arc<Theme>, cx: &mut App) {
+        window.set_background_appearance(theme.window_background_appearance());
+        Self::set(window.window_handle().window_id(), theme, cx);
+        window.refresh();
+    }
+
+    /// Clears this window's override and restores the configured theme background.
+    pub fn clear_for_window(window: &mut Window, cx: &mut App) {
+        Self::clear(window.window_handle().window_id(), cx);
+        window.set_background_appearance(GlobalTheme::theme(cx).window_background_appearance());
+        window.refresh();
     }
 }
 
@@ -314,7 +401,10 @@ pub fn deserialize_icon_theme(bytes: &[u8]) -> anyhow::Result<IconThemeFamilyCon
     Ok(icon_theme_family)
 }
 
-/// The active theme.
+/// The configured (settings) theme for the application.
+///
+/// This is the fallback when a window has no per-window override. UI that has a
+/// [`Window`] in scope should prefer [`WindowTheme::theme`].
 pub struct GlobalTheme {
     theme: Arc<Theme>,
     icon_theme: Arc<IconTheme>,
@@ -327,7 +417,7 @@ impl GlobalTheme {
         Self { theme, icon_theme }
     }
 
-    /// Updates the active theme.
+    /// Updates the configured theme.
     pub fn update_theme(cx: &mut App, theme: Arc<Theme>) {
         cx.update_global::<Self, _>(|this, _| this.theme = theme);
     }
@@ -337,7 +427,7 @@ impl GlobalTheme {
         cx.update_global::<Self, _>(|this, _| this.icon_theme = icon_theme);
     }
 
-    /// Returns the active theme.
+    /// Returns the configured theme (settings), ignoring per-window overrides.
     pub fn theme(cx: &App) -> &Arc<Theme> {
         &cx.global::<Self>().theme
     }

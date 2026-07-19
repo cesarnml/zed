@@ -52,7 +52,7 @@ use std::mem;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::Arc;
-use theme::{ActiveTheme, CLIENT_SIDE_DECORATION_ROUNDING};
+use theme::{ActiveTheme, CLIENT_SIDE_DECORATION_ROUNDING, WindowTheme};
 use ui::{
     AgentThreadStatus, CommonAnimationExt, ContextMenu, ContextMenuEntry, Divider, GradientFade,
     HighlightedLabel, KeyBinding, PopoverMenu, PopoverMenuHandle, ProjectEmptyState, ScrollAxes,
@@ -2224,7 +2224,7 @@ impl Sidebar {
             v_flex()
                 .w_full()
                 .border_t_1()
-                .border_color(cx.theme().colors().border)
+                .border_color(window.theme(cx).colors().border)
                 .child(rendered)
                 .into_any_element()
         } else {
@@ -3204,7 +3204,7 @@ impl Sidebar {
             })
             .unwrap_or(px(0.));
 
-        let color = cx.theme().colors();
+        let color = window.theme(cx).colors();
         let background = color
             .title_bar_background
             .blend(color.panel_background.opacity(0.2));
@@ -7230,7 +7230,7 @@ impl Sidebar {
             .gap_1()
             .when(!no_open_projects, |this| {
                 this.border_b_1()
-                    .border_color(cx.theme().colors().border)
+                    .border_color(window.theme(cx).colors().border)
                     .when(traffic_lights, |this| {
                         this.child(Divider::vertical().color(ui::DividerColor::Border))
                     })
@@ -7756,7 +7756,7 @@ impl Render for Sidebar {
         let ui_font = theme_settings::setup_ui_font(window, cx);
         let sticky_header = self.render_sticky_header(window, cx);
 
-        let color = cx.theme().colors();
+        let color = window.theme(cx).colors();
         let bg = color
             .title_bar_background
             .blend(color.panel_background.opacity(0.25));

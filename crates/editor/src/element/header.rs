@@ -18,7 +18,7 @@ use settings::{RelativeLineNumbers, Settings};
 use smallvec::SmallVec;
 use sum_tree::Bias;
 use text::BufferId;
-use theme::ActiveTheme;
+use theme::{ActiveTheme, WindowTheme};
 use ui::{
     ButtonLike, ContextMenu, DiffStat, Indicator, KeyBinding, Tooltip, prelude::*,
     right_click_menu, text_for_keystroke, utils::WithRemSize,
@@ -159,7 +159,7 @@ impl EditorElement {
             latest_selection_anchors,
         );
 
-        let editor_bg_color = cx.theme().colors().editor_background;
+        let editor_bg_color = window.theme(cx).colors().editor_background;
 
         let selected = selected_buffer_ids.contains(&excerpt.buffer_id());
 
@@ -280,7 +280,7 @@ impl EditorElement {
                     .filter(|&delta| delta != 0)
                     .map(|delta| delta.unsigned_abs() as u32)
                     .unwrap_or(start_point.row + 1);
-                let color = cx.theme().colors().editor_line_number;
+                let color = window.theme(cx).colors().editor_line_number;
                 self.shape_line_number(SharedString::from(number.to_string()), color, window)
             });
 
@@ -306,7 +306,7 @@ impl EditorElement {
 
         Some(StickyHeaders {
             lines,
-            gutter_background: cx.theme().colors().editor_gutter_background,
+            gutter_background: window.theme(cx).colors().editor_gutter_background,
             content_background: self.style.background,
             gutter_right_padding: gutter_dimensions.right_padding,
         })
@@ -407,7 +407,7 @@ impl EditorElement {
             point(layout.gutter_hitbox.bounds.left(), border_top),
             point(text_bounds.right(), border_top + separator_height),
         ));
-        window.paint_quad(fill(border_bounds, cx.theme().colors().border_variant));
+        window.paint_quad(fill(border_bounds, window.theme(cx).colors().border_variant));
 
         layout.sticky_headers = Some(sticky_headers);
     }
@@ -443,7 +443,7 @@ impl StickyHeaders {
                     window.paint_quad(fill(text_bounds, self.content_background));
 
                     if line.hitbox.is_hovered(window) {
-                        let hover_overlay = cx.theme().colors().panel_overlay_hover;
+                        let hover_overlay = window.theme(cx).colors().panel_overlay_hover;
                         window.paint_quad(fill(gutter_bounds, hover_overlay));
                         window.paint_quad(fill(text_bounds, hover_overlay));
                     }
@@ -684,12 +684,12 @@ pub(crate) fn render_buffer_header(
         (None, None)
     };
     let focus_handle = editor_read.focus_handle(cx);
-    let colors = cx.theme().colors();
+    let colors = window.theme(cx).colors();
     // On transparent windows, only render an opaque `editor_subheader_background` so it masks
     // the editor content beneath it without creating a darker bar. Sticky shadows still require
     // an opaque window to avoid rendering as a halo.
     let opaque_window =
-        cx.theme().window_background_appearance() == WindowBackgroundAppearance::Opaque;
+        window.theme(cx).window_background_appearance() == WindowBackgroundAppearance::Opaque;
     let show_header_background = opaque_window || colors.editor_subheader_background.is_opaque();
 
     let show_open_file_button =

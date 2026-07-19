@@ -1677,7 +1677,7 @@ impl Editor {
     pub(super) fn go_to_line<T: 'static>(
         &mut self,
         position: Anchor,
-        highlight_color: fn(&App) -> Hsla,
+        highlight_color: fn(&Theme) -> Hsla,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {

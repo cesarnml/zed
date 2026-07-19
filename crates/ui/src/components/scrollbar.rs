@@ -13,7 +13,7 @@ use gpui::{
 };
 use gpui_util::ResultExt;
 use smallvec::SmallVec;
-use theme::ActiveTheme as _;
+use theme::WindowTheme as _;
 
 use std::ops::Range;
 
@@ -1394,7 +1394,7 @@ impl<T: ScrollableHandle> Element for ScrollbarElement<T> {
 
         let bounds = Bounds::new(self.origin + origin, size);
         window.with_content_mask(Some(ContentMask { bounds }), |window| {
-            let colors = cx.theme().colors();
+            let colors = window.theme(cx).colors();
 
             let capture_phase;
 
@@ -1470,7 +1470,7 @@ impl<T: ScrollableHandle> Element for ScrollbarElement<T> {
                             .unwrap_or_default();
 
                         let border_color = if has_border {
-                            cx.theme().colors().border_variant.opacity(0.6)
+                            window.theme(cx).colors().border_variant.opacity(0.6)
                         } else {
                             Hsla::transparent_black()
                         };

@@ -249,7 +249,7 @@ impl EditorPreview {
 
             editor.highlight_rows::<SearchMatchLineHighlight>(
                 range.clone(),
-                |cx| cx.theme().colors().editor_active_line_background,
+                |theme| theme.colors().editor_active_line_background,
                 RowHighlightOptions::default(),
                 cx,
             );
@@ -276,7 +276,7 @@ impl EditorPreview {
             // There is at most one highlighted match in the preview, so take the
             // first background highlight range as the match to focus.
             let Some((range, _)) = editor
-                .background_highlights_in_range(search_range, &display_snapshot, cx.theme())
+                .background_highlights_in_range(search_range, &display_snapshot, window.theme(cx))
                 .into_iter()
                 .next()
             else {
@@ -351,7 +351,7 @@ impl EditorPreview {
             .justify_center()
             .font_ui(cx)
             .text_ui(cx)
-            .text_color(Color::Muted.color(cx))
+            .text_color(Color::Muted.color(cx.theme()))
             .child(content)
     }
 

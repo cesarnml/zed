@@ -1320,7 +1320,7 @@ impl InlineAssistant {
             } else {
                 editor.highlight_gutter::<GutterPendingRange>(
                     gutter_pending_ranges,
-                    |cx| cx.theme().status().info_background,
+                    |theme| theme.status().info_background,
                     cx,
                 )
             }
@@ -1331,7 +1331,7 @@ impl InlineAssistant {
             } else {
                 editor.highlight_gutter::<GutterTransformedRange>(
                     gutter_transformed_ranges,
-                    |cx| cx.theme().status().info,
+                    |theme| theme.status().info,
                     cx,
                 )
             }
@@ -1354,7 +1354,7 @@ impl InlineAssistant {
             for row_range in inserted_row_ranges {
                 editor.highlight_rows::<InlineAssist>(
                     row_range,
-                    |cx| cx.theme().status().info_background,
+                    |theme| theme.status().info_background,
                     Default::default(),
                     cx,
                 );
@@ -1423,7 +1423,7 @@ impl InlineAssistant {
                     editor.set_show_edit_predictions(Some(false), window, cx);
                     editor.highlight_rows::<DeletedLines>(
                         Anchor::Min..Anchor::Max,
-                        |cx| cx.theme().status().deleted_background,
+                        |theme| theme.status().deleted_background,
                         Default::default(),
                         cx,
                     );
@@ -1439,7 +1439,7 @@ impl InlineAssistant {
                     render: Arc::new(move |cx| {
                         div()
                             .block_mouse_except_scroll()
-                            .bg(cx.theme().status().deleted_background)
+                            .bg(cx.window.theme(cx.app).status().deleted_background)
                             .size_full()
                             .h(height as f32 * cx.window.line_height())
                             .pl(cx.margins.gutter.full_width())

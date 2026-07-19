@@ -116,7 +116,7 @@ impl<'a> CommitAvatar<'a> {
     }
 
     pub fn render(&'a self, window: &mut Window, cx: &mut App) -> AnyElement {
-        let border_color = cx.theme().colors().border_variant;
+        let border_color = window.theme(cx).colors().border_variant;
 
         match self.avatar(window, cx) {
             None => {
@@ -128,7 +128,7 @@ impl<'a> CommitAvatar<'a> {
                     .rounded_full()
                     .border(COMMIT_AVATAR_BORDER_WIDTH)
                     .border_color(border_color)
-                    .bg(cx.theme().colors().element_disabled)
+                    .bg(window.theme(cx).colors().element_disabled)
                     .child(
                         Icon::new(IconName::Person)
                             .color(Color::Muted)
@@ -365,12 +365,12 @@ impl Render for CommitTooltip {
                                 .when(!author_email.is_empty(), |this| {
                                     this.child(
                                         div()
-                                            .text_color(cx.theme().colors().text_muted)
+                                            .text_color(window.theme(cx).colors().text_muted)
                                             .child(author_email),
                                     )
                                 })
                                 .border_b_1()
-                                .border_color(cx.theme().colors().border_variant),
+                                .border_color(window.theme(cx).colors().border_variant),
                         )
                         .child(
                             div()

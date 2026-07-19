@@ -570,13 +570,13 @@ impl Render for AgentRegistryPage {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .size_full()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child(
                 v_flex()
                     .p_4()
                     .gap_4()
                     .border_b_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .child(
                         h_flex()
                             .w_full()

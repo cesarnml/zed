@@ -217,7 +217,7 @@ impl Console {
                         let style = HighlightStyle {
                             color: Some(terminal_view::terminal_element::convert_color(
                                 &color,
-                                cx.theme(),
+                                window.theme(cx),
                             )),
                             ..Default::default()
                         };
@@ -456,7 +456,7 @@ impl Render for Console {
             .on_action(cx.listener(Self::watch_expression))
             .size_full()
             .border_2()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child(self.render_console(cx))
             .when(self.is_running(cx), |this| {
                 this.child(Divider::horizontal()).child(
@@ -465,7 +465,7 @@ impl Render for Console {
                         .on_action(cx.listener(Self::next_query))
                         .p_1()
                         .gap_1()
-                        .bg(cx.theme().colors().editor_background)
+                        .bg(window.theme(cx).colors().editor_background)
                         .child(self.render_query_bar(cx))
                         .child(SplitButton::new(
                             ui::ButtonLike::new_rounded_all(ElementId::Name(

@@ -1360,7 +1360,7 @@ impl BreakpointOptionsStrip {
         move |this: Div| {
             // Avoid layout shifts in case there's no colored border
             let this = this.border_1().rounded_sm();
-            let color = cx.theme().colors();
+            let color = window.theme(cx).colors();
 
             if self.is_selected && self.strip_mode == Some(kind) {
                 if self.focus_handle.is_focused(window) {

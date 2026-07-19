@@ -1486,7 +1486,7 @@ impl PickerDelegate for DebugDelegate {
             .p_1p5()
             .justify_between()
             .border_t_1()
-            .border_color(cx.theme().colors().border_variant)
+            .border_color(window.theme(cx).colors().border_variant)
             .child({
                 let action = menu::SecondaryConfirm.boxed_clone();
                 if self.matches.is_empty() {
@@ -1582,7 +1582,7 @@ impl PickerDelegate for DebugDelegate {
 
         let icon = language_icon.or(icon).map(|icon| {
             IconWithIndicator::new(icon.color(Color::Muted).size(IconSize::Small), indicator)
-                .indicator_border_color(Some(cx.theme().colors().border_transparent))
+                .indicator_border_color(Some(window.theme(cx).colors().border_transparent))
         });
 
         Some(

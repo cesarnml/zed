@@ -929,7 +929,7 @@ impl CompletionsMenu {
         let list = uniform_list(
             "completions",
             self.entries.borrow().len(),
-            cx.processor(move |_editor, range: Range<usize>, _window, cx| {
+            cx.processor(move |_editor, range: Range<usize>, window, cx| {
                 last_rendered_range.borrow_mut().replace(range.clone());
                 let start_ix = range.start;
                 let completions_guard = completions.borrow_mut();
@@ -997,7 +997,7 @@ impl CompletionsMenu {
                                         thickness: 1.0.into(),
                                         ..Default::default()
                                     });
-                                    highlight.color = Some(cx.theme().colors().text_muted);
+                                    highlight.color = Some(window.theme(cx).colors().text_muted);
                                 }
 
                                 (range, highlight)
@@ -1951,7 +1951,7 @@ impl CodeActionsMenu {
         let list = uniform_list(
             "code_actions_menu",
             self.actions.len(),
-            cx.processor(move |_this, range: Range<usize>, _, cx| {
+            cx.processor(move |_this, range: Range<usize>, window, cx| {
                 actions
                     .iter()
                     .skip(range.start)
@@ -1960,7 +1960,7 @@ impl CodeActionsMenu {
                     .map(|(ix, action)| {
                         let item_ix = range.start + ix;
                         let selected = item_ix == selected_item;
-                        let colors = cx.theme().colors();
+                        let colors = window.theme(cx).colors();
 
                         ListItem::new(item_ix)
                             .inset(true)

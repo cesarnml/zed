@@ -504,7 +504,7 @@ impl PickerDelegate for TasksModalDelegate {
         };
         let icon = icon.map(|icon| {
             IconWithIndicator::new(icon, indicator)
-                .indicator_border_color(Some(cx.theme().colors().border_transparent))
+                .indicator_border_color(Some(window.theme(cx).colors().border_transparent))
         });
         let history_run_icon = if Some(ix) <= self.divider_index {
             Some(
@@ -656,7 +656,7 @@ impl PickerDelegate for TasksModalDelegate {
                 .p_1p5()
                 .justify_between()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(
                     left_button
                         .map(|(label, action)| {

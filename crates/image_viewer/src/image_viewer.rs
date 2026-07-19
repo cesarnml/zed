@@ -432,7 +432,7 @@ impl Element for ImageContentElement {
         let zoom_level = initial_zoom_level.unwrap_or(image_view.zoom_level);
 
         let pan_offset = image_view.pan_offset;
-        let border_color = cx.theme().colors().border;
+        let border_color = window.theme(cx).colors().border;
 
         let is_dragging = image_view.is_dragging();
 
@@ -481,7 +481,7 @@ impl Element for ImageContentElement {
                             .top_0()
                             .left_0()
                             .child(div().size_full().bg(checkerboard(
-                                cx.theme().colors().panel_background,
+                                window.theme(cx).colors().panel_background,
                                 BASE_SQUARE_SIZE * zoom_level,
                             )))
                             .border_1()

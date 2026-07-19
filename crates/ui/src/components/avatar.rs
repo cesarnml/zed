@@ -91,7 +91,7 @@ impl RenderOnce for Avatar {
                 self.image
                     .size(image_size)
                     .rounded_full()
-                    .bg(cx.theme().colors().element_disabled)
+                    .bg(window.theme(cx).colors().element_disabled)
                     .with_fallback(|| {
                         h_flex()
                             .size_full()
@@ -160,7 +160,7 @@ impl RenderOnce for AvatarAudioStatusIndicator {
                     .justify_center()
                     .px(padding_x)
                     .py(px(2.))
-                    .bg(cx.theme().status().error_background)
+                    .bg(window.theme(cx).status().error_background)
                     .rounded_sm()
                     .child(
                         Icon::new(match self.audio_status {
@@ -238,8 +238,8 @@ impl RenderOnce for AvatarAvailabilityIndicator {
                 this.border(border_width).border_color(color)
             })
             .bg(match self.availability {
-                CollaboratorAvailability::Free => cx.theme().status().created,
-                CollaboratorAvailability::Busy => cx.theme().status().deleted,
+                CollaboratorAvailability::Free => window.theme(cx).status().created,
+                CollaboratorAvailability::Busy => window.theme(cx).status().deleted,
             })
     }
 }

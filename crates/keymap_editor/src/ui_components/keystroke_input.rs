@@ -464,7 +464,7 @@ impl Focusable for KeystrokeInput {
 
 impl Render for KeystrokeInput {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let colors = cx.theme().colors();
+        let colors = window.theme(cx).colors();
         let is_focused = self.outer_focus_handle.contains_focused(window, cx);
         let is_recording = self.is_recording(window);
 

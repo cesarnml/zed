@@ -1385,13 +1385,13 @@ impl Render for ExtensionsPage {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .size_full()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child(
                 v_flex()
                     .gap_4()
                     .pt_4()
                     .px_4()
-                    .bg(cx.theme().colors().editor_background)
+                    .bg(window.theme(cx).colors().editor_background)
                     .child(
                         h_flex()
                             .w_full()
