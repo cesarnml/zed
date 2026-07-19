@@ -3400,6 +3400,66 @@ mod tests {
     }
 
     #[gpui::test]
+    async fn test_theme_override_persistence() {
+        zlog::init_test();
+
+        let db = WorkspaceDb::open_test_db("test_theme_override_persistence").await;
+
+        let mut workspace = SerializedWorkspace {
+            id: WorkspaceId(1),
+            paths: PathList::new(&["/tmp"]),
+            identity_paths: None,
+            location: SerializedWorkspaceLocation::Local,
+            center_group: Default::default(),
+            window_bounds: Default::default(),
+            bookmarks: Default::default(),
+            breakpoints: Default::default(),
+            display: Default::default(),
+            docks: Default::default(),
+            centered_layout: false,
+            theme_override: None,
+            session_id: None,
+            window_id: Some(1),
+            user_toolchains: Default::default(),
+        };
+        db.save_workspace(workspace.clone()).await;
+        assert_eq!(
+            db.workspace_for_roots(&["/tmp"]).unwrap().theme_override,
+            None
+        );
+
+        // An override written outside of full serialization survives a reload.
+        db.set_theme_override(WorkspaceId(1), Some("One Dark".to_string()))
+            .await
+            .unwrap();
+        assert_eq!(
+            db.workspace_for_roots(&["/tmp"])
+                .unwrap()
+                .theme_override
+                .as_deref(),
+            Some("One Dark")
+        );
+
+        // A full workspace save writes the in-memory override through the upsert.
+        workspace.theme_override = Some("Ayu Dark".to_string());
+        db.save_workspace(workspace.clone()).await;
+        assert_eq!(
+            db.workspace_for_roots(&["/tmp"])
+                .unwrap()
+                .theme_override
+                .as_deref(),
+            Some("Ayu Dark")
+        );
+
+        // Clearing the override persists too.
+        db.set_theme_override(WorkspaceId(1), None).await.unwrap();
+        assert_eq!(
+            db.workspace_for_roots(&["/tmp"]).unwrap().theme_override,
+            None
+        );
+    }
+
+    #[gpui::test]
     async fn test_workspace_assignment() {
         zlog::init_test();
 

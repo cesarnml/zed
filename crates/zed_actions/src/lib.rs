@@ -455,10 +455,16 @@ pub mod theme_selector {
     pub struct Toggle {
         /// A list of theme names to filter the theme selector down to.
         pub themes_filter: Option<Vec<String>>,
-        /// When true, the selected theme applies to the current window/workspace only
-        /// and is not written to `settings.json`.
-        #[serde(default)]
-        pub window: bool,
+    }
+
+    /// Toggles the theme selector scoped to the current window: the selected
+    /// theme applies to this window only and is not written to `settings.json`.
+    #[derive(PartialEq, Clone, Default, Debug, Deserialize, JsonSchema, Action)]
+    #[action(namespace = theme_selector)]
+    #[serde(deny_unknown_fields)]
+    pub struct ToggleWindowTheme {
+        /// A list of theme names to filter the theme selector down to.
+        pub themes_filter: Option<Vec<String>>,
     }
 
     /// Clears the current window's theme override so it uses the configured theme again.
