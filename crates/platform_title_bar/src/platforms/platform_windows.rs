@@ -119,10 +119,10 @@ impl RenderOnce for WindowsCaptionButton {
                 )
             }
             _ => (
-                cx.theme().colors().ghost_element_hover,
-                cx.theme().colors().text,
-                cx.theme().colors().ghost_element_active,
-                cx.theme().colors().text,
+                window.theme(cx).colors().ghost_element_hover,
+                window.theme(cx).colors().text,
+                window.theme(cx).colors().ghost_element_active,
+                window.theme(cx).colors().text,
             ),
         };
 

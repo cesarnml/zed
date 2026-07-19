@@ -1113,7 +1113,7 @@ impl ConfigureContextServerModal {
 impl Render for ConfigureContextServerModal {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .w(rems(40.))
             .key_context("ConfigureContextServerModal")
             .on_action(

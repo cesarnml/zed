@@ -435,7 +435,7 @@ impl PaneLeaderDecorator for PaneRenderContext<'_> {
                         .w_96()
                         .bottom_3()
                         .right_3()
-                        .elevation_2(cx)
+                        .elevation_2(cx.theme())
                         .p_1()
                         .child(status)
                         .when_some(

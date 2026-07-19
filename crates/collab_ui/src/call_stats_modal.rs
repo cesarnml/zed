@@ -288,7 +288,7 @@ impl Render for CallStatsModal {
             .key_context("CallStatsModal")
             .on_action(cx.listener(Self::dismiss))
             .track_focus(&self.focus_handle)
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .w(rems(36.))
             .max_h(rems(42.))
             .p_4()

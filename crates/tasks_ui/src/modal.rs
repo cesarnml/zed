@@ -13,9 +13,8 @@ use picker::{Picker, PickerDelegate, highlighted_match_with_paths::HighlightedMa
 use project::{TaskSourceKind, task_store::TaskStore};
 use task::{DebugScenario, ResolvedTask, RevealTarget, TaskContext, TaskTemplate};
 use ui::{
-    ActiveTheme, Clickable, FluentBuilder as _, IconButtonShape, IconWithIndicator, Indicator,
-    IntoElement, KeyBinding, ListItem, ListItemSpacing, RenderOnce, Toggleable, Tooltip, div,
-    prelude::*,
+    Clickable, FluentBuilder as _, IconButtonShape, IconWithIndicator, Indicator, IntoElement,
+    KeyBinding, ListItem, ListItemSpacing, RenderOnce, Toggleable, Tooltip, div, prelude::*,
 };
 
 use util::{ResultExt, truncate_and_trailoff};

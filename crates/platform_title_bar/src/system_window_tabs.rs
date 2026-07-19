@@ -156,6 +156,7 @@ impl SystemWindowTabs {
 
         let rem_size = window.rem_size();
         let width = self.measured_tab_width.max(rem_size * 10);
+        let border_color = window.theme(cx).colors().border;
         let is_active = window.window_handle().window_id() == item.id;
         let title = item.title.to_string();
 
@@ -200,7 +201,7 @@ impl SystemWindowTabs {
             )
             .drag_over::<DraggedWindowTab>({
                 let tab_ix = ix;
-                move |element, dragged_tab: &DraggedWindowTab, _, cx| {
+                move |element, dragged_tab: &DraggedWindowTab, window, cx| {
                     let mut styled_tab = element
                         .bg(window.theme(cx).colors().drop_target_background)
                         .border_color(window.theme(cx).colors().drop_target_border)
@@ -350,7 +351,7 @@ impl SystemWindowTabs {
             .border_color(if is_active {
                 active_background_color
             } else {
-                cx.theme().colors().border
+                border_color
             })
             .child(menu)
     }
@@ -498,7 +499,7 @@ impl Render for SystemWindowTabs {
 impl Render for DraggedWindowTab {
     fn render(
         &mut self,
-        _window: &mut gpui::Window,
+        window: &mut gpui::Window,
         cx: &mut gpui::Context<Self>,
     ) -> impl gpui::IntoElement {
         let ui_font = ThemeSettings::get_global(cx).ui_font.clone();
@@ -522,7 +523,7 @@ impl Render for DraggedWindowTab {
                 self.inactive_background_color
             })
             .border_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .font(ui_font)
             .child(label)
     }

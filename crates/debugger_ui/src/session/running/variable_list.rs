@@ -1086,7 +1086,7 @@ impl VariableList {
                 .and_then(|style| style.color)
         };
         let name = if self.disabled {
-            Some(Color::Disabled.color(cx))
+            Some(Color::Disabled.color(cx.theme()))
         } else {
             match presentation_hint
                 .as_ref()
@@ -1103,7 +1103,7 @@ impl VariableList {
         };
         let value = self
             .disabled
-            .then(|| Color::Disabled.color(cx))
+            .then(|| Color::Disabled.color(cx.theme()))
             .or_else(|| syntax_color_for("variable.special"));
 
         VariableColor { name, value }
@@ -1419,7 +1419,7 @@ impl VariableList {
                             .w_full()
                             .truncate()
                             .when(self.disabled, |this| {
-                                this.text_color(Color::Disabled.color(cx))
+                                this.text_color(Color::Disabled.color(cx.theme()))
                             })
                             .child(scope.name.clone()),
                     ),

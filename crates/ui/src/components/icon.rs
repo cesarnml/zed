@@ -220,19 +220,19 @@ impl RenderOnce for Icon {
                 .size(self.size)
                 .flex_none()
                 .path(path)
-                .text_color(self.color.color(cx))
+                .text_color(self.color.color(cx.theme()))
                 .into_any_element(),
             IconSource::ExternalSvg(path) => svg()
                 .external_path(path)
                 .with_transformation(self.transformation)
                 .size(self.size)
                 .flex_none()
-                .text_color(self.color.color(cx))
+                .text_color(self.color.color(cx.theme()))
                 .into_any_element(),
             IconSource::External(path) => img(path)
                 .size(self.size)
                 .flex_none()
-                .text_color(self.color.color(cx))
+                .text_color(self.color.color(cx.theme()))
                 .into_any_element(),
         }
     }

@@ -657,7 +657,9 @@ pub fn render_table_row(
         .when(!is_striped && table_context.show_row_borders, |row| {
             row.border_b_1()
                 .border_color(transparent_black())
-                .when(!is_last, |row| row.border_color(window.theme(cx).colors().border))
+                .when(!is_last, |row| {
+                    row.border_color(window.theme(cx).colors().border)
+                })
         });
 
     let pinned_cols = table_context.pinned_cols;

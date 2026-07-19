@@ -643,7 +643,7 @@ impl Render for CommitModal {
             .w(width)
             .min_h_112()
             .p(container_padding)
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .overflow_hidden()
             .flex_none()
             .relative()

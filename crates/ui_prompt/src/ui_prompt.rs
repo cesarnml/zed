@@ -125,7 +125,7 @@ impl Render for ZedPromptRenderer {
             .w_80()
             .p_4()
             .gap_4()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .overflow_hidden()
             .font_family(settings.ui_font.family.clone())
             .child(div().w_full().child(MarkdownElement::new(

@@ -239,7 +239,7 @@ impl Component for SandboxStatusTooltip {
                     .row(SandboxRow::message("All domains (unrestricted)")),
             );
 
-        let container = || div().p_2().elevation_2(cx).max_w_112();
+        let container = || div().p_2().elevation_2(cx.theme()).max_w_112();
 
         v_flex()
             .gap_4()

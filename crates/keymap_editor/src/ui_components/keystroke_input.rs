@@ -3,8 +3,8 @@ use gpui::{
     KeybindingKeystroke, Keystroke, Modifiers, ModifiersChangedEvent, Subscription, Task, actions,
 };
 use ui::{
-    ActiveTheme as _, Color, IconButton, IconButtonShape, IconName, IconSize, Label, LabelSize,
-    ParentElement as _, Render, Styled as _, Tooltip, Window, prelude::*,
+    Color, IconButton, IconButtonShape, IconName, IconSize, Label, LabelSize, ParentElement as _,
+    Render, Styled as _, Tooltip, Window, prelude::*,
 };
 
 actions!(
@@ -484,7 +484,7 @@ impl Render for KeystrokeInput {
                         .repeat()
                         .with_easing(gpui::pulsating_between(0.4, 0.8)),
                     {
-                        let color = color.color(cx);
+                        let color = color.color(window.theme(cx));
                         move |this, delta| this.color(Color::Custom(color.opacity(delta)))
                     },
                 )

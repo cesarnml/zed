@@ -110,7 +110,7 @@ impl Render for AgentNotification {
             .p_3()
             .gap_4()
             .justify_between()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .text_ui(cx)
             .font(ui_font)
             .border_color(window.theme(cx).colors().border)

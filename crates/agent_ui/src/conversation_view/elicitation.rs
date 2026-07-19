@@ -1577,7 +1577,7 @@ impl<'a> ElicitationCard<'a> {
         let description = property_description(property);
         let border_color = cx.theme().colors().border.opacity(0.8);
         let field_border_color = if error.is_some() {
-            Color::Error.color(cx)
+            Color::Error.color(cx.theme())
         } else {
             border_color
         };
@@ -1756,7 +1756,7 @@ impl<'a> ElicitationCard<'a> {
     ) -> AnyElement {
         let entry_ix = self.entry_ix;
         let border_color = if has_error {
-            Color::Error.color(cx)
+            Color::Error.color(cx.theme())
         } else {
             cx.theme().colors().border.opacity(0.8)
         };
@@ -1836,7 +1836,7 @@ impl<'a> ElicitationCard<'a> {
     fn option_row_background(is_selected: bool, cx: &App) -> Hsla {
         let editor_background = cx.theme().colors().editor_background;
         if is_selected {
-            editor_background.blend(Color::Accent.color(cx).opacity(0.08))
+            editor_background.blend(Color::Accent.color(cx.theme()).opacity(0.08))
         } else {
             editor_background
         }
@@ -1845,7 +1845,7 @@ impl<'a> ElicitationCard<'a> {
     fn option_row_hover_background(is_selected: bool, cx: &App) -> Hsla {
         let editor_background = cx.theme().colors().editor_background;
         if is_selected {
-            editor_background.blend(Color::Accent.color(cx).opacity(0.1))
+            editor_background.blend(Color::Accent.color(cx.theme()).opacity(0.1))
         } else {
             cx.theme()
                 .colors()

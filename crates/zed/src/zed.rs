@@ -84,7 +84,7 @@ use std::{
     sync::atomic::{self, AtomicBool},
 };
 use terminal_view::terminal_panel::{self, TerminalPanel};
-use theme::{ActiveTheme, SystemAppearance, ThemeRegistry, deserialize_icon_theme, WindowTheme};
+use theme::{ActiveTheme, SystemAppearance, ThemeRegistry, WindowTheme, deserialize_icon_theme};
 use theme_settings::{ThemeSettings, load_user_theme};
 use ui::{Navigable, NavigableEntry, PopoverMenuHandle, TintColor, prelude::*};
 use util::markdown::MarkdownString;

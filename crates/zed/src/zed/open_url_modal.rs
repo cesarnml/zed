@@ -84,7 +84,7 @@ impl Render for OpenUrlModal {
             .key_context("OpenUrlModal")
             .on_action(cx.listener(Self::cancel))
             .on_action(cx.listener(Self::confirm))
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .w_96()
             .overflow_hidden()
             .child(

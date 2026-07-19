@@ -40,7 +40,7 @@ impl RenderOnce for CollabNotification {
             .text_ui(cx)
             .justify_between()
             .overflow_hidden()
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .gap_1()
             .child(
                 h_flex()

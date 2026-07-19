@@ -555,7 +555,7 @@ impl Render for ThreadImportModal {
             .id("thread-import-modal")
             .key_context("ThreadImportModal")
             .w(rems(34.))
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .overflow_hidden()
             .track_focus(&self.focus_handle)
             .on_action(cx.listener(Self::cancel))

@@ -18,7 +18,7 @@ use settings::{RelativeLineNumbers, Settings};
 use smallvec::SmallVec;
 use sum_tree::Bias;
 use text::BufferId;
-use theme::{ActiveTheme, WindowTheme};
+use theme::WindowTheme;
 use ui::{
     ButtonLike, ContextMenu, DiffStat, Indicator, KeyBinding, Tooltip, prelude::*,
     right_click_menu, text_for_keystroke, utils::WithRemSize,
@@ -407,7 +407,10 @@ impl EditorElement {
             point(layout.gutter_hitbox.bounds.left(), border_top),
             point(text_bounds.right(), border_top + separator_height),
         ));
-        window.paint_quad(fill(border_bounds, window.theme(cx).colors().border_variant));
+        window.paint_quad(fill(
+            border_bounds,
+            window.theme(cx).colors().border_variant,
+        ));
 
         layout.sticky_headers = Some(sticky_headers);
     }
@@ -927,7 +930,7 @@ pub(crate) fn render_buffer_header(
                                     this.child(
                                         Button::new("open-file-button", "Open File")
                                             .style(ButtonStyle::OutlinedCustom(
-                                                cx.theme().colors().border.opacity(0.6),
+                                                window.theme(cx).colors().border.opacity(0.6),
                                             ))
                                             .layer(ui::ElevationIndex::ElevatedSurface)
                                             .when(is_selected, |this| {

@@ -239,7 +239,7 @@ impl Render for WorktreeFetchFailedToast {
 
         h_flex()
             .id("worktree-fetch-failed-toast")
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .gap_2()
             .py_1p5()
             .pl_2p5()

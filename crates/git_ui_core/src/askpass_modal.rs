@@ -110,7 +110,7 @@ impl Render for AskPassModal {
             .key_context("PasswordPrompt")
             .on_action(cx.listener(Self::cancel))
             .on_action(cx.listener(Self::confirm))
-            .elevation_2(cx)
+            .elevation_2(cx.theme())
             .size_full()
             .child(
                 h_flex()

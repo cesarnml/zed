@@ -777,7 +777,7 @@ impl ExtensionsPage {
         key_context.add("BufferSearchBar");
 
         let editor_border = if self.query_contains_error {
-            Color::Error.color(cx)
+            Color::Error.color(cx.theme())
         } else {
             cx.theme().colors().border
         };
@@ -1465,7 +1465,7 @@ impl Render for ExtensionsPage {
                     .py_2p5()
                     .px_4()
                     .border_b_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .overflow_x_scroll()
                     .child(
                         Button::new("filter-all-categories", "All")

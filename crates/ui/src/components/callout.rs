@@ -208,7 +208,7 @@ impl RenderOnce for Callout {
                         } else if let Some(description) = self.description {
                             this.child(
                                 base_desc_container
-                                    .text_color(cx.theme().colors().text_muted)
+                                    .text_color(window.theme(cx).colors().text_muted)
                                     .child(description),
                             )
                         } else {

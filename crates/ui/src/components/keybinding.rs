@@ -433,7 +433,7 @@ impl RenderOnce for Key {
             .h(size)
             .text_size(size)
             .line_height(relative(1.))
-            .text_color(self.color.unwrap_or(Color::Muted).color(cx))
+            .text_color(self.color.unwrap_or(Color::Muted).color(cx.theme()))
             .child(self.key)
     }
 }

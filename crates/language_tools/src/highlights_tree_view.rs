@@ -11,8 +11,8 @@ use gpui::{
 use language::{BufferId, Point, ToOffset};
 use menu::{SelectNext, SelectPrevious};
 use std::{mem, ops::Range, sync::Arc, time::Duration};
-use theme::{ActiveTheme, WindowTheme};
 use theme::SyntaxTheme;
+use theme::{ActiveTheme, WindowTheme};
 use ui::{
     ButtonLike, ContextMenu, PopoverMenu, PopoverMenuHandle, Tooltip, WithScrollbar, prelude::*,
 };

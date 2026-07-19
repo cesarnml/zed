@@ -396,13 +396,13 @@ impl BlameRenderer for GitBlameRenderer {
                                     .overflow_x_hidden()
                                     .flex_wrap()
                                     .border_b_1()
-                                    .border_color(cx.theme().colors().border_variant)
+                                    .border_color(window.theme(cx).colors().border_variant)
                                     .child(avatar)
                                     .child(author)
                                     .when(!author_email.is_empty(), |this| {
                                         this.child(
                                             div()
-                                                .text_color(cx.theme().colors().text_muted)
+                                                .text_color(window.theme(cx).colors().text_muted)
                                                 .child(author_email.to_owned()),
                                         )
                                     }),
@@ -418,14 +418,14 @@ impl BlameRenderer for GitBlameRenderer {
                             )
                             .child(
                                 h_flex()
-                                    .text_color(cx.theme().colors().text_muted)
+                                    .text_color(window.theme(cx).colors().text_muted)
                                     .w_full()
                                     .justify_between()
                                     .pt_1()
                                     .gap_1()
                                     .flex_wrap()
                                     .border_t_1()
-                                    .border_color(cx.theme().colors().border_variant)
+                                    .border_color(window.theme(cx).colors().border_variant)
                                     .child(absolute_timestamp)
                                     .child(
                                         h_flex()

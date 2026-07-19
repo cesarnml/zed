@@ -38,7 +38,13 @@ impl RenderOnce for LinuxWindowControls {
                 WindowButton::Close => true,
             })
             .map(|button| {
-                create_window_button(button, button.id(), is_maximized, &*self.close_action, cx)
+                create_window_button(
+                    button,
+                    button.id(),
+                    is_maximized,
+                    &*self.close_action,
+                    window.theme(cx),
+                )
             })
             .collect();
 
@@ -58,11 +64,11 @@ fn create_window_button(
     id: &'static str,
     is_maximized: bool,
     close_action: &dyn Action,
-    cx: &mut App,
+    theme: &impl ActiveTheme,
 ) -> AnyElement {
     match button {
         WindowButton::Minimize => {
-            WindowControl::new(id, WindowControlType::Minimize, cx).into_any_element()
+            WindowControl::new(id, WindowControlType::Minimize, theme).into_any_element()
         }
         WindowButton::Maximize => WindowControl::new(
             id,
@@ -71,13 +77,16 @@ fn create_window_button(
             } else {
                 WindowControlType::Maximize
             },
-            cx,
+            theme,
         )
         .into_any_element(),
-        WindowButton::Close => {
-            WindowControl::new_close(id, WindowControlType::Close, close_action.boxed_clone(), cx)
-                .into_any_element()
-        }
+        WindowButton::Close => WindowControl::new_close(
+            id,
+            WindowControlType::Close,
+            close_action.boxed_clone(),
+            theme,
+        )
+        .into_any_element(),
     }
 }
 
@@ -113,8 +122,8 @@ pub struct WindowControlStyle {
 }
 
 impl WindowControlStyle {
-    pub fn default(cx: &mut App) -> Self {
-        let colors = cx.theme().colors();
+    pub fn default(theme: &impl ActiveTheme) -> Self {
+        let colors = theme.theme().colors();
 
         Self {
             background: colors.ghost_element_background,
@@ -162,8 +171,12 @@ pub struct WindowControl {
 }
 
 impl WindowControl {
-    pub fn new(id: impl Into<ElementId>, icon: WindowControlType, cx: &mut App) -> Self {
-        let style = WindowControlStyle::default(cx);
+    pub fn new(
+        id: impl Into<ElementId>,
+        icon: WindowControlType,
+        theme: &impl ActiveTheme,
+    ) -> Self {
+        let style = WindowControlStyle::default(theme);
 
         Self {
             id: id.into(),
@@ -177,9 +190,9 @@ impl WindowControl {
         id: impl Into<ElementId>,
         icon: WindowControlType,
         close_action: Box<dyn Action>,
-        cx: &mut App,
+        theme: &impl ActiveTheme,
     ) -> Self {
-        let style = WindowControlStyle::default(cx);
+        let style = WindowControlStyle::default(theme);
 
         Self {
             id: id.into(),

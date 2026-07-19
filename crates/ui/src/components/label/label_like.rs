@@ -232,7 +232,7 @@ impl ParentElement for LabelLike {
 
 impl RenderOnce for LabelLike {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let mut color = self.color.color(cx);
+        let mut color = self.color.color(cx.theme());
         if let Some(alpha) = self.alpha {
             color.fade_out(1.0 - alpha);
         }

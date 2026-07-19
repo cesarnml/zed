@@ -22699,7 +22699,7 @@ fn test_highlighted_ranges(cx: &mut TestAppContext) {
         let highlighted_ranges = editor.sorted_background_highlights_in_range(
             anchor_range(Point::new(3, 4)..Point::new(7, 4)),
             &snapshot,
-            cx.theme(),
+            window.theme(cx),
         );
         assert_eq!(
             highlighted_ranges,
@@ -22726,7 +22726,7 @@ fn test_highlighted_ranges(cx: &mut TestAppContext) {
             editor.sorted_background_highlights_in_range(
                 anchor_range(Point::new(5, 6)..Point::new(6, 4)),
                 &snapshot,
-                cx.theme(),
+                window.theme(cx),
             ),
             &[(
                 DisplayPoint::new(DisplayRow(6), 3)..DisplayPoint::new(DisplayRow(6), 5),

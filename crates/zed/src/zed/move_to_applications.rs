@@ -169,7 +169,7 @@ impl Render for InstallingZedModal {
         let theme = cx.theme();
 
         v_flex()
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .w_80()
             .overflow_hidden()
             .child(

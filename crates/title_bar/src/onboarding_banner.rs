@@ -117,12 +117,12 @@ pub fn restore_banner(cx: &mut App) {
 }
 
 impl Render for OnboardingBanner {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         if !self.should_show(cx) {
             return div();
         }
 
-        let border_color = cx.theme().colors().editor_foreground.opacity(0.3);
+        let border_color = window.theme(cx).colors().editor_foreground.opacity(0.3);
         let banner = h_flex()
             .rounded_sm()
             .border_1()

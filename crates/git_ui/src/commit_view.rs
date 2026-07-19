@@ -32,7 +32,7 @@ use std::{
     path::PathBuf,
     sync::Arc,
 };
-use theme::{ActiveTheme, WindowTheme};
+use theme::WindowTheme;
 use ui::{ContextMenu, DiffStat, Disclosure, Divider, Tooltip, WithScrollbar, prelude::*};
 use util::{ResultExt, paths::PathStyle, rel_path::RelPath, truncate_and_trailoff};
 use workspace::item::TabTooltipContent;

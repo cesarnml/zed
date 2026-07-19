@@ -73,9 +73,9 @@ impl CsvPreviewView {
         let panel = h_flex()
             .gap_4()
             .p_2()
-            .bg(window.theme(cx).colors().surface_background)
+            .bg(cx.theme().colors().surface_background)
             .border_b_1()
-            .border_color(window.theme(cx).colors().border)
+            .border_color(cx.theme().colors().border)
             .flex_wrap()
             .child(
                 h_flex()
@@ -84,7 +84,7 @@ impl CsvPreviewView {
                     .child(
                         div()
                             .text_sm()
-                            .text_color(window.theme(cx).colors().text_muted)
+                            .text_color(cx.theme().colors().text_muted)
                             .child("Text Alignment:"),
                     )
                     .child(
@@ -106,7 +106,7 @@ impl CsvPreviewView {
                     .child(
                         div()
                             .text_sm()
-                            .text_color(window.theme(cx).colors().text_muted)
+                            .text_color(cx.theme().colors().text_muted)
                             .child("Filter Sort:"),
                     )
                     .child(
@@ -154,7 +154,7 @@ impl CsvPreviewView {
                 .child(
                     div()
                         .text_sm()
-                        .text_color(cx.theme().colors().text_muted)
+                        .text_color(window.theme(cx).colors().text_muted)
                         .child("Dev-only:"),
                 )
                 .child(create_dev_only_popover_menu(cx)),
@@ -169,7 +169,7 @@ fn create_dev_only_popover_menu(
     cx: &mut Context<'_, CsvPreviewView>,
 ) -> ui::PopoverMenu<ContextMenu> {
     use crate::settings::RowRenderMechanism;
-use theme::WindowTheme;
+    use theme::WindowTheme;
     use ui::{IconButton, IconName, IconPosition, IconSize, PopoverMenu};
 
     PopoverMenu::new("debug-options-menu")

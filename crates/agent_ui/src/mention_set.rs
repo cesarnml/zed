@@ -1432,7 +1432,7 @@ impl Render for ImageHover {
         if let Some(image) = self.image.clone() {
             div()
                 .p_1p5()
-                .elevation_2(cx)
+                .elevation_2(cx.theme())
                 .child(gpui::img(image).h_auto().max_w_96().rounded_sm())
                 .into_any_element()
         } else {

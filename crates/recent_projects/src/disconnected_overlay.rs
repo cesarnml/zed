@@ -173,7 +173,7 @@ impl Render for DisconnectedOverlay {
 
         div()
             .track_focus(&self.focus_handle(cx))
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .on_action(cx.listener(Self::cancel))
             .occlude()
             .w(rems(24.))

@@ -1428,7 +1428,7 @@ impl<D: PickerDelegate> Picker<D> {
                 self.delegate.separators_after_indices().contains(&ix),
                 |picker| {
                     picker
-                        .border_color(cx.theme().colors().border_variant)
+                        .border_color(window.theme(cx).colors().border_variant)
                         .border_b_1()
                         .py(px(-1.0))
                 },

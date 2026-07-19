@@ -160,7 +160,7 @@ impl Checkbox {
             (ToggleStyle::Ghost, false) => cx.theme().colors().ghost_element_background,
             (ToggleStyle::Ghost, true) => cx.theme().colors().element_background,
             (ToggleStyle::ElevationBased(_), false) => gpui::transparent_black(),
-            (ToggleStyle::ElevationBased(elevation), true) => elevation.darker_bg(cx),
+            (ToggleStyle::ElevationBased(elevation), true) => elevation.darker_bg(cx.theme()),
             (ToggleStyle::Custom(_), false) => gpui::transparent_black(),
             (ToggleStyle::Custom(color), true) => color.opacity(0.2),
         }
@@ -245,7 +245,7 @@ impl RenderOnce for Checkbox {
                             div()
                                 .flex_none()
                                 .rounded_full()
-                                .bg(color.color(cx).alpha(0.5))
+                                .bg(color.color(cx.theme()).alpha(0.5))
                                 .size(px(4.)),
                         )
                     })

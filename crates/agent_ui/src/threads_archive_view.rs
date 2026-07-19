@@ -1188,7 +1188,7 @@ impl Render for ProjectPickerModal {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .key_context("ProjectPickerModal")
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .on_action(cx.listener(|this, _: &workspace::Open, window, cx| {
                 this.picker.update(cx, |picker, cx| {
                     picker.delegate.open_local_folder(window, cx)

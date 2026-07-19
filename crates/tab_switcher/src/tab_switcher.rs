@@ -320,7 +320,7 @@ impl TabMatch {
                         window.theme(cx).colors().element_background
                     };
                     IconDecoration::new(icon, knockout_item_color, cx)
-                        .color(color.color(cx))
+                        .color(color.color(window.theme(cx)))
                         .position(Point {
                             x: px(-2.),
                             y: px(-2.),

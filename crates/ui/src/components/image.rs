@@ -93,7 +93,7 @@ impl RenderOnce for Vector {
             .w(width)
             .h(height)
             .path(self.path)
-            .text_color(self.color.color(cx))
+            .text_color(self.color.color(cx.theme()))
             .with_transformation(self.transformation)
     }
 }

@@ -417,7 +417,7 @@ impl Render for GitPicker {
         v_flex()
             .occlude()
             .w(self.width)
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .overflow_hidden()
             .when(self.popover_style, |el| {
                 el.on_mouse_down_out(cx.listener(|this, _, _, cx| {

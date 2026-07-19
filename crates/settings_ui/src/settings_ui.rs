@@ -3151,8 +3151,8 @@ impl SettingsWindow {
             .when(cfg!(target_os = "macos"), |this| this.pt_10())
             .flex_none()
             .border_r_1()
-            .border_color(cx.theme().colors().border)
-            .bg(cx.theme().colors().panel_background)
+            .border_color(window.theme(cx).colors().border)
+            .bg(window.theme(cx).colors().panel_background)
             .child(self.render_search(window, cx))
             .child(
                 v_flex()
@@ -3240,7 +3240,7 @@ impl SettingsWindow {
                     .pb_0p5()
                     .flex_shrink_0()
                     .border_t_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .child(
                         KeybindingHint::new(
                             KeyBinding::for_action_in(
@@ -3248,7 +3248,7 @@ impl SettingsWindow {
                                 &self.navbar_focus_handle.focus_handle(cx),
                                 cx,
                             ),
-                            cx.theme().colors().surface_background.opacity(0.5),
+                            window.theme(cx).colors().surface_background.opacity(0.5),
                         )
                         .suffix(focus_keybind_label),
                     ),
@@ -4027,7 +4027,7 @@ impl SettingsWindow {
             .gap_4()
             .flex_1()
             .min_w_0()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child(
                 v_flex()
                     .px_8()
@@ -4555,7 +4555,8 @@ impl Render for SettingsWindow {
                         .bg(window.theme(cx).colors().background)
                         .text_color(window.theme(cx).colors().text)
                         .when(!cfg!(target_os = "macos"), |this| {
-                            this.border_t_1().border_color(cx.theme().colors().border)
+                            this.border_t_1()
+                                .border_color(window.theme(cx).colors().border)
                         })
                         .child(self.render_nav(window, cx))
                         .child(self.render_page(window, cx)),

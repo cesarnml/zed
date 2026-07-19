@@ -30,7 +30,7 @@ impl RenderOnce for AgentPanelOnboardingCard {
                 .min_w_0()
                 .p(px(3.))
                 .rounded_lg()
-                .elevation_2(cx)
+                .elevation_2(cx.theme())
                 .bg(color.background.opacity(0.5))
                 .child(
                     v_flex()

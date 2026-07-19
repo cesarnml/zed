@@ -2815,7 +2815,7 @@ impl Pane {
                 icon,
                 Some(
                     IconDecoration::new(icon_decoration, knockout_item_color, cx)
-                        .color(icon_color.color(cx))
+                        .color(icon_color.color(window.theme(cx)))
                         .position(Point {
                             x: px(-2.),
                             y: px(-2.),
@@ -2951,10 +2951,10 @@ impl Pane {
                 },
                 |tab, _, _, cx| cx.new(|_| tab.clone()),
             )
-            .drag_over::<DraggedTab>(move |tab, dragged_tab: &DraggedTab, _, cx| {
+            .drag_over::<DraggedTab>(move |tab, dragged_tab: &DraggedTab, window, cx| {
                 let mut styled_tab = tab
-                    .bg(cx.theme().colors().drop_target_background)
-                    .border_color(cx.theme().colors().drop_target_border)
+                    .bg(window.theme(cx).colors().drop_target_background)
+                    .border_color(window.theme(cx).colors().drop_target_border)
                     .border_0();
 
                 if ix < dragged_tab.ix {
@@ -2965,8 +2965,8 @@ impl Pane {
 
                 styled_tab
             })
-            .drag_over::<DraggedSelection>(|tab, _, _, cx| {
-                tab.bg(cx.theme().colors().drop_target_background)
+            .drag_over::<DraggedSelection>(|tab, _, window, cx| {
+                tab.bg(window.theme(cx).colors().drop_target_background)
             })
             .when_some(self.can_drop_predicate.clone(), |this, p| {
                 this.can_drop(move |a, window, cx| p(a, window, cx))
@@ -4583,7 +4583,7 @@ impl Render for Pane {
                         div()
                             .invisible()
                             .absolute()
-                            .bg(cx.theme().colors().drop_target_background)
+                            .bg(window.theme(cx).colors().drop_target_background)
                             .group_drag_over::<DraggedTab>("", |style| style.visible())
                             .group_drag_over::<DraggedSelection>("", |style| style.visible())
                             .when(accepts_external_paths, |div| {

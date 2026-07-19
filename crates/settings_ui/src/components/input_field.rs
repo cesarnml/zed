@@ -131,7 +131,7 @@ impl RenderOnce for SettingsInputField {
     fn render(self, window: &mut Window, cx: &mut App) -> impl ui::IntoElement {
         let settings = ThemeSettings::get_global(cx);
         let use_buffer_font = self.use_buffer_font;
-        let color = self.color.map(|c| c.color(cx));
+        let color = self.color.map(|c| c.color(window.theme(cx)));
         let styles = TextStyleRefinement {
             font_family: use_buffer_font.then(|| settings.buffer_font.family.clone()),
             font_size: use_buffer_font.then(|| rems(0.75).into()),
@@ -225,7 +225,7 @@ impl RenderOnce for SettingsInputField {
         let (a11y_value, a11y_text_runs) =
             text_field_a11y_state(self.id.clone(), &editor, window, cx);
 
-        let theme_colors = cx.theme().colors();
+        let theme_colors = window.theme(cx).colors();
 
         h_flex()
             .id(self.id.clone())

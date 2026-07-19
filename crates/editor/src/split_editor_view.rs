@@ -10,7 +10,7 @@ use gpui::{
 use multi_buffer::{Anchor, ExcerptBoundaryInfo};
 use smallvec::smallvec;
 use text::BufferId;
-use theme::{ActiveTheme, WindowTheme};
+use theme::WindowTheme;
 use ui::{h_flex, prelude::*, v_flex};
 
 use gpui::ContentMask;

@@ -492,7 +492,7 @@ impl Render for RenameBranchModal {
             .key_context("RenameBranchModal")
             .on_action(cx.listener(Self::cancel))
             .on_action(cx.listener(Self::confirm))
-            .elevation_2(cx)
+            .elevation_2(cx.theme())
             .w(rems(34.))
             .child(
                 h_flex()
@@ -746,7 +746,7 @@ impl Render for RefPickerModal {
             .key_context("RefPickerModal")
             .on_action(cx.listener(Self::cancel))
             .on_action(cx.listener(Self::confirm))
-            .elevation_2(cx)
+            .elevation_2(cx.theme())
             .w(rems(34.))
             .child(
                 h_flex()
@@ -1285,7 +1285,7 @@ impl Focusable for GitCloneModal {
 impl Render for GitCloneModal {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .w(rems(34.))
             .flex_1()
             .overflow_hidden()

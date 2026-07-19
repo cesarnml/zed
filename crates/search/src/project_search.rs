@@ -1903,7 +1903,7 @@ impl ProjectSearchView {
 
     fn border_color_for(&self, panel: InputPanel, cx: &App) -> Hsla {
         if self.panels_with_errors.contains_key(&panel) {
-            Color::Error.color(cx)
+            Color::Error.color(cx.theme())
         } else {
             cx.theme().colors().border
         }
@@ -3066,8 +3066,8 @@ pub mod tests {
         ) {
             search_view
                 .update(cx, |search_view, window, cx| {
-                    let match_bg = cx.theme().colors().search_match_background;
-                    let active_match_bg = cx.theme().colors().search_active_match_background;
+                    let match_bg = window.theme(cx).colors().search_match_background;
+                    let active_match_bg = window.theme(cx).colors().search_active_match_background;
                     let selection_bg = cx
                         .theme()
                         .colors()

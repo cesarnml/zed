@@ -383,14 +383,14 @@ impl Render for CommitTooltip {
                         )
                         .child(
                             h_flex()
-                                .text_color(cx.theme().colors().text_muted)
+                                .text_color(window.theme(cx).colors().text_muted)
                                 .w_full()
                                 .justify_between()
                                 .pt_1()
                                 .gap_1()
                                 .flex_wrap()
                                 .border_t_1()
-                                .border_color(cx.theme().colors().border_variant)
+                                .border_color(window.theme(cx).colors().border_variant)
                                 .child(absolute_timestamp)
                                 .child(
                                     h_flex()

@@ -527,7 +527,7 @@ impl Render for DivInspector {
                     div()
                         .w_full()
                         .border_1()
-                        .border_color(Color::Error.color(cx))
+                        .border_color(Color::Error.color(cx.theme()))
                         .child(Label::new(message)),
                 ),
                 State::Ready {
@@ -562,7 +562,7 @@ impl Render for DivInspector {
                                     div()
                                         .w_full()
                                         .border_1()
-                                        .border_color(Color::Error.color(cx))
+                                        .border_color(Color::Error.color(cx.theme()))
                                         .child(Label::new(last_error)),
                                 )
                             }),

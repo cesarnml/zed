@@ -43,7 +43,6 @@ use settings::{Settings as _, SettingsStore};
 use std::any::TypeId;
 use std::sync::Arc;
 use std::time::Duration;
-use theme::ActiveTheme;
 use title_bar_settings::TitleBarSettings;
 use ui::{
     Avatar, ButtonLike, ContextMenu, ContextMenuEntry, IconWithIndicator, Indicator, PopoverMenu,
@@ -315,7 +314,7 @@ impl Render for TitleBar {
                             title_bar
                                 .when(title_bar_settings.show_project_items, |title_bar| {
                                     title_bar
-                                        .children(self.render_project_host(cx))
+                                        .children(self.render_project_host(window, cx))
                                         .child(self.render_project_name(project_name, window, cx))
                                 })
                                 .when_some(
@@ -591,7 +590,11 @@ impl TitleBar {
             .count()
     }
 
-    fn render_remote_project_connection(&self, cx: &mut Context<Self>) -> Option<AnyElement> {
+    fn render_remote_project_connection(
+        &self,
+        window: &Window,
+        cx: &mut Context<Self>,
+    ) -> Option<AnyElement> {
         let workspace = self.workspace.clone();
 
         let options = self.project.read(cx).remote_connection_options(cx)?;
@@ -665,7 +668,7 @@ impl TitleBar {
                                         Some(Indicator::dot().color(indicator_color)),
                                     )
                                     .indicator_border_color(Some(
-                                        cx.theme().colors().title_bar_background,
+                                        window.theme(cx).colors().title_bar_background,
                                     ))
                                     .into_any_element(),
                                 )
@@ -727,9 +730,13 @@ impl TitleBar {
         }
     }
 
-    pub fn render_project_host(&self, cx: &mut Context<Self>) -> Option<AnyElement> {
+    pub fn render_project_host(
+        &self,
+        window: &Window,
+        cx: &mut Context<Self>,
+    ) -> Option<AnyElement> {
         if self.project.read(cx).is_via_remote_server() {
-            return self.render_remote_project_connection(cx);
+            return self.render_remote_project_connection(window, cx);
         }
 
         if self.project.read(cx).is_disconnected(cx) {

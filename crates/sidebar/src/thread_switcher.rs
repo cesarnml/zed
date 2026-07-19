@@ -362,7 +362,7 @@ impl Render for ThreadSwitcher {
             .track_focus(&self.focus_handle)
             .p_1p5()
             .w(rems_from_px(440.))
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .on_modifiers_changed(cx.listener(Self::handle_modifiers_changed))
             .on_action(cx.listener(Self::confirm))
             .on_action(cx.listener(Self::cancel))
@@ -382,7 +382,7 @@ impl Render for ThreadSwitcher {
                             .icon(entry.icon())
                             .when(entry.is_draft(), |this| {
                                 this.icon_color(Color::Custom(
-                                    cx.theme().colors().icon_muted.opacity(0.2),
+                                    window.theme(cx).colors().icon_muted.opacity(0.2),
                                 ))
                             })
                             .status(entry.status())
@@ -401,7 +401,7 @@ impl Render for ThreadSwitcher {
                                 this.removed(diff_stats.lines_removed as usize)
                             })
                             .selected(ix == selected_index)
-                            .base_bg(cx.theme().colors().elevated_surface_background)
+                            .base_bg(window.theme(cx).colors().elevated_surface_background)
                             .on_hover(cx.listener(move |this, hovered: &bool, _window, cx| {
                                 if *hovered {
                                     this.select_index(ix, cx);

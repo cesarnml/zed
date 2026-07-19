@@ -2623,7 +2623,7 @@ impl Element for MarkdownElement {
                                             .tracked_scroll_handle(scroll_handle)
                                             .with_track_along(
                                                 ScrollAxes::Horizontal,
-                                                cx.theme().colors().editor_background,
+                                                window.theme(cx).colors().editor_background,
                                             )
                                             .notify_content();
 
@@ -2641,7 +2641,7 @@ impl Element for MarkdownElement {
                                         parent_container = parent_container
                                             .rounded_md()
                                             .border_1()
-                                            .border_color(cx.theme().colors().border_variant);
+                                            .border_color(window.theme(cx).colors().border_variant);
                                     }
 
                                     parent_container.style().refine(&self.style.code_block);
@@ -2727,7 +2727,7 @@ impl Element for MarkdownElement {
                         }),
                         MarkdownTag::Strong => builder.push_text_style(TextStyleRefinement {
                             font_weight: Some(FontWeight::BOLD),
-                            color: Some(cx.theme().colors().text),
+                            color: Some(window.theme(cx).colors().text),
                             ..Default::default()
                         }),
                         MarkdownTag::Strikethrough => {
@@ -2814,7 +2814,7 @@ impl Element for MarkdownElement {
                                     .w_full()
                                     .mb_2()
                                     .border(px(1.5))
-                                    .border_color(cx.theme().colors().border)
+                                    .border_color(window.theme(cx).colors().border)
                                     .rounded_sm()
                                     .restrict_scroll_to_axis()
                                     .custom_scrollbars(
@@ -2853,14 +2853,14 @@ impl Element for MarkdownElement {
                                 .h_full()
                                 .when(col_index > 0, |this| this.border_l_1())
                                 .when(row_index > 0, |this| this.border_t_1())
-                                .border_color(cx.theme().colors().border)
+                                .border_color(window.theme(cx).colors().border)
                                 .px_1()
                                 .py_0p5()
                                 .when(is_header, |this| {
-                                    this.bg(cx.theme().colors().title_bar_background)
+                                    this.bg(window.theme(cx).colors().title_bar_background)
                                 })
                                 .when(!is_header && row_index % 2 == 1, |this| {
-                                    this.bg(cx.theme().colors().panel_background)
+                                    this.bg(window.theme(cx).colors().panel_background)
                                 });
 
                             cell_div = match alignment {
@@ -2941,7 +2941,7 @@ impl Element for MarkdownElement {
                                 let button_row = h_flex()
                                     .gap_0p5()
                                     .absolute()
-                                    .bg(cx.theme().colors().editor_background)
+                                    .bg(window.theme(cx).colors().editor_background)
                                     .when_else(
                                         use_hover,
                                         |this| {

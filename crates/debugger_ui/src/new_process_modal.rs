@@ -577,7 +577,7 @@ impl Render for NewProcessModal {
             })
             .size_full()
             .w(rems(34.))
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .overflow_hidden()
             .on_action(cx.listener(|_, _: &menu::Cancel, _, cx| {
                 cx.emit(DismissEvent);
@@ -726,7 +726,7 @@ impl Render for NewProcessModal {
                     .gap_2()
                     .justify_between()
                     .border_t_1()
-                    .border_color(cx.theme().colors().border_variant);
+                    .border_color(window.theme(cx).colors().border_variant);
                 let secondary_action = menu::SecondaryConfirm.boxed_clone();
                 match self.mode {
                     NewProcessMode::Launch => el.child(

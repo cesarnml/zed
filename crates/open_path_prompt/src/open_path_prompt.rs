@@ -859,7 +859,9 @@ impl PickerDelegate for OpenPathDelegate {
                                         &window.text_style(),
                                         vec![(
                                             delta..label_len,
-                                            HighlightStyle::color(Color::Conflict.color(cx)),
+                                            HighlightStyle::color(
+                                                Color::Conflict.color(window.theme(cx)),
+                                            ),
                                         )],
                                     )
                                     .into_any_element()
@@ -869,7 +871,9 @@ impl PickerDelegate for OpenPathDelegate {
                                         &window.text_style(),
                                         vec![(
                                             delta..label_len,
-                                            HighlightStyle::color(Color::Created.color(cx)),
+                                            HighlightStyle::color(
+                                                Color::Created.color(window.theme(cx)),
+                                            ),
                                         )],
                                     )
                                     .into_any_element()

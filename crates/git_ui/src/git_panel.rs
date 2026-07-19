@@ -5804,8 +5804,8 @@ impl GitPanel {
                         .py_1()
                         .gap_1()
                         .border_t_1()
-                        .border_color(cx.theme().status().warning_border)
-                        .bg(cx.theme().status().warning_background.opacity(0.5))
+                        .border_color(window.theme(cx).status().warning_border)
+                        .bg(window.theme(cx).status().warning_background.opacity(0.5))
                         .child(
                             Icon::new(IconName::Warning)
                                 .size(IconSize::XSmall)
@@ -5826,9 +5826,9 @@ impl GitPanel {
                     .when(self.commit_editor_expanded, |this| this.flex_1().min_h_0())
                     .border_t_1()
                     .border_color(if title_exceeds_limit {
-                        cx.theme().status().warning_border
+                        window.theme(cx).status().warning_border
                     } else {
-                        cx.theme().colors().border
+                        window.theme(cx).colors().border
                     })
                     .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
                         window.focus(&this.commit_editor.focus_handle(cx), cx);
@@ -5863,7 +5863,7 @@ impl GitPanel {
                             .p_1p5()
                             .border_t_1()
                             .when(editor_is_long, |el| {
-                                el.border_color(cx.theme().colors().border_variant)
+                                el.border_color(window.theme(cx).colors().border_variant)
                             })
                             .justify_between()
                             .child(
@@ -6566,13 +6566,13 @@ impl GitPanel {
                                             is_focused && is_panel_focused && show_focus_border,
                                             |this| {
                                                 this.border_color(
-                                                    cx.theme().colors().panel_focused_border,
+                                                    window.theme(cx).colors().panel_focused_border,
                                                 )
                                             },
                                         )
-                                        .hover(|s| s.bg(cx.theme().colors().element_hover))
+                                        .hover(|s| s.bg(window.theme(cx).colors().element_hover))
                                         .when(is_context_menu_target, |this| {
-                                            this.bg(cx.theme().colors().element_hover)
+                                            this.bg(window.theme(cx).colors().element_hover)
                                         })
                                         .child(
                                             h_flex()
@@ -7070,7 +7070,7 @@ impl GitPanel {
                             .tracked_scroll_handle(&self.scroll_handle)
                             .with_track_along(
                                 ScrollAxes::Horizontal,
-                                cx.theme().colors().panel_background,
+                                window.theme(cx).colors().panel_background,
                             ),
                         window,
                         cx,
@@ -7490,7 +7490,7 @@ impl GitPanel {
             .border_1()
             .border_r_2()
             .when(selected && self.focus_handle.is_focused(window), |el| {
-                el.border_color(cx.theme().colors().panel_focused_border)
+                el.border_color(window.theme(cx).colors().panel_focused_border)
             })
             .bg(base_bg)
             .hover(|s| s.bg(hover_bg))
@@ -8114,7 +8114,7 @@ impl Render for GitPanel {
             .on_action(cx.listener(Self::activate_history_tab))
             .size_full()
             .overflow_hidden()
-            .bg(cx.theme().colors().panel_background)
+            .bg(window.theme(cx).colors().panel_background)
             .child(
                 v_flex()
                     .size_full()

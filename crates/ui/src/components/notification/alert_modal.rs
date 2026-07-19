@@ -105,7 +105,7 @@ impl RenderOnce for AlertModal {
                 this.track_focus(&focus_handle)
             })
             .id(self.id)
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .w(width)
             .bg(cx.theme().colors().elevated_surface_background)
             .overflow_hidden();
@@ -132,7 +132,7 @@ impl RenderOnce for AlertModal {
                 v_flex()
                     .p_3()
                     .text_ui(cx)
-                    .text_color(Color::Muted.color(cx))
+                    .text_color(Color::Muted.color(cx.theme()))
                     .gap_1()
                     .children(self.children),
             );

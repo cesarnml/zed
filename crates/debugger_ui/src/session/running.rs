@@ -434,7 +434,9 @@ fn render_debugger_tab(
     div()
         .border_l_2()
         .border_color(gpui::transparent_black())
-        .drag_over::<DraggedTab>(|wrapper, _, _, cx| wrapper.border_color(window.theme(cx).colors().text))
+        .drag_over::<DraggedTab>(|wrapper, _, window, cx| {
+            wrapper.border_color(window.theme(cx).colors().text)
+        })
         .child(
             div()
                 .cursor_pointer()
@@ -558,7 +560,7 @@ fn render_debugger_tab_bar(
                         .h_6()
                         .border_l_2()
                         .border_color(gpui::transparent_black())
-                        .drag_over::<DraggedTab>(|spacer, _, _, cx| {
+                        .drag_over::<DraggedTab>(|spacer, _, window, cx| {
                             spacer.border_color(window.theme(cx).colors().text)
                         }),
                 ),

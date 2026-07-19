@@ -547,7 +547,7 @@ impl RenderOnce for DiffStyleControls {
                                 h_flex()
                                     .gap_0p5()
                                     .text_ui_sm(cx)
-                                    .text_color(Color::Muted.color(cx))
+                                    .text_color(Color::Muted.color(cx.theme()))
                                     .children(render_modifiers(
                                         &gpui::Modifiers::secondary_key(),
                                         PlatformStyle::platform(),

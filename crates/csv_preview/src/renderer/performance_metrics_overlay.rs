@@ -16,7 +16,7 @@ impl CsvPreviewView {
         &mut self,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
-        let theme = cx.theme();
+        let theme = window.theme(cx);
 
         let children = div()
             .absolute()

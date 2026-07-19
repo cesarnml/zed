@@ -15,7 +15,7 @@ use project::{
     worktree_store::WorktreeStore,
 };
 use smallvec::SmallVec;
-use theme::{ActiveTheme, WindowTheme};
+use theme::WindowTheme;
 use ui::{
     AlertModal, Checkbox, FluentBuilder, KeyBinding, ListBulletItem, ToggleState, WithScrollbar,
     prelude::*,

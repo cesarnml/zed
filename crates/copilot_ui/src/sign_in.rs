@@ -489,7 +489,7 @@ impl Render for CopilotCodeVerification {
             .gap_2()
             .items_center()
             .justify_center()
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .on_action(cx.listener(|_, _: &menu::Cancel, _, cx| {
                 cx.emit(DismissEvent);
             }))

@@ -486,7 +486,7 @@ impl AcpTools {
                                 MarkdownStyle {
                                     base_text_style: text_style,
                                     selection_background_color: colors.element_selection_background,
-                                    syntax: cx.theme().syntax().clone(),
+                                    syntax: window.theme(cx).syntax().clone(),
                                     code_block_overflow_x_scroll: true,
                                     code_block: StyleRefinement {
                                         text: TextStyleRefinement {

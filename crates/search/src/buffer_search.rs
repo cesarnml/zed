@@ -209,9 +209,9 @@ impl Render for BufferSearchBar {
         let should_show_replace_input = self.replace_enabled && replacement;
         let in_replace = self.replacement_editor.focus_handle(cx).is_focused(window);
 
-        let theme_colors = cx.theme().colors();
+        let theme_colors = window.theme(cx).colors();
         let query_border = if self.query_error.is_some() {
-            Color::Error.color(cx)
+            Color::Error.color(window.theme(cx))
         } else {
             theme_colors.border
         };
@@ -440,7 +440,7 @@ impl Render for BufferSearchBar {
                             .when(has_collapse_button, |this| {
                                 this.pr_2()
                                     .border_r_1()
-                                    .border_color(cx.theme().colors().border_variant)
+                                    .border_color(window.theme(cx).colors().border_variant)
                             })
                             .child(render_action_button(
                                 "buffer-search",

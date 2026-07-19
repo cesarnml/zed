@@ -664,7 +664,7 @@ impl Render for ComponentPreview {
                             .p_2()
                             .w_full()
                             .border_b_1()
-                            .border_color(cx.theme().colors().border)
+                            .border_color(window.theme(cx).colors().border)
                             .child(self.filter_editor.clone()),
                     )
                     .child(
@@ -923,7 +923,7 @@ impl ComponentPreviewPage {
                         div()
                             .px_1p5()
                             .rounded_sm()
-                            .bg(color.color(cx).alpha(0.12))
+                            .bg(color.color(cx.theme()).alpha(0.12))
                             .child(
                                 Label::new(status.to_string())
                                     .size(LabelSize::Small)

@@ -5467,15 +5467,15 @@ impl AgentPanel {
             VisibleSurface::Uninitialized => Label::new("Agent").truncate().into_any_element(),
         };
 
-        let toolbar_bg = cx.theme().colors().tab_bar_background;
+        let toolbar_bg = window.theme(cx).colors().tab_bar_background;
         let gradient_overlay = GradientFade::new(toolbar_bg, toolbar_bg, toolbar_bg)
             .width(px(64.0))
             .right(px(0.0))
             .gradient_stop(0.75);
         // The fade gradient renders as a visible patch on transparent windows
         // (the title already truncates).
-        let opaque_window =
-            cx.theme().window_background_appearance() == gpui::WindowBackgroundAppearance::Opaque;
+        let opaque_window = window.theme(cx).window_background_appearance()
+            == gpui::WindowBackgroundAppearance::Opaque;
 
         h_flex()
             .key_context("TitleEditor")
@@ -5494,7 +5494,7 @@ impl AgentPanel {
                             .absolute()
                             .right_0()
                             .h_full()
-                            .bg(cx.theme().colors().tab_bar_background)
+                            .bg(window.theme(cx).colors().tab_bar_background)
                             .child(
                                 IconButton::new("edit_tile", IconName::Pencil)
                                     .icon_size(IconSize::Small)
@@ -6144,9 +6144,9 @@ impl AgentPanel {
             .h(Tab::container_height(cx))
             .flex_shrink_0()
             .max_w_full()
-            .bg(cx.theme().colors().tab_bar_background)
+            .bg(window.theme(cx).colors().tab_bar_background)
             .border_b_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .child(toolbar_content)
     }
 
@@ -6505,8 +6505,8 @@ impl Render for AgentPanel {
                                         .py(DynamicSpacing::Base06.rems(cx))
                                         .px(DynamicSpacing::Base08.rems(cx))
                                         .border_b_1()
-                                        .border_color(cx.theme().colors().border_variant)
-                                        .bg(cx.theme().colors().toolbar_background)
+                                        .border_color(window.theme(cx).colors().border_variant)
+                                        .bg(window.theme(cx).colors().toolbar_background)
                                         .child(search_bar),
                                 )
                             })

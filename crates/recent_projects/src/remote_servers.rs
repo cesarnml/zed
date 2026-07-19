@@ -3077,7 +3077,7 @@ impl EventEmitter<DismissEvent> for RemoteServerProjects {}
 impl Render for RemoteServerProjects {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .w(rems(34.))
             .key_context("RemoteServerModal")
             .on_action(cx.listener(Self::cancel))

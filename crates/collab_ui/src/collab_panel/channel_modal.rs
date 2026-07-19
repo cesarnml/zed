@@ -145,7 +145,7 @@ impl Render for ChannelModal {
             .key_context("ChannelModal")
             .on_action(cx.listener(Self::toggle_mode))
             .on_action(cx.listener(Self::dismiss))
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .child(
                 v_flex()
                     .px_2()

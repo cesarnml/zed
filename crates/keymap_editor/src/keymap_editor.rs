@@ -3066,7 +3066,7 @@ impl Render for KeybindingEditorModal {
 
         v_flex()
             .w(rems(34.))
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .key_context(key_context)
             .on_action(cx.listener(Self::confirm))
             .on_action(cx.listener(Self::cancel))

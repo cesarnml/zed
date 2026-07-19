@@ -14,20 +14,20 @@ impl PlanChip {
 }
 
 impl RenderOnce for PlanChip {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let free_chip_bg = cx
             .theme()
             .colors()
             .editor_background
             .opacity(0.5)
-            .blend(cx.theme().colors().text_accent.opacity(0.05));
+            .blend(window.theme(cx).colors().text_accent.opacity(0.05));
 
         let pro_chip_bg = cx
             .theme()
             .colors()
             .editor_background
             .opacity(0.5)
-            .blend(cx.theme().colors().text_accent.opacity(0.2));
+            .blend(window.theme(cx).colors().text_accent.opacity(0.2));
 
         let (plan_name, label_color, bg_color) = match self.plan {
             Plan::ZedFree => ("Free", Color::Default, free_chip_bg),

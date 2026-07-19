@@ -127,7 +127,7 @@ impl ThemePreview {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
-        let bg = layer.bg(cx);
+        let bg = layer.bg(window.theme(cx));
 
         let label_with_contrast = |label: &str, fg: Hsla| {
             let contrast = calculate_contrast_ratio(fg, bg);
@@ -207,70 +207,70 @@ impl ThemePreview {
                             .child(
                                 Label::new(label_with_contrast(
                                     "Hidden Text",
-                                    Color::Hidden.color(cx),
+                                    Color::Hidden.color(window.theme(cx)),
                                 ))
                                 .color(Color::Hidden),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Hint Text",
-                                    Color::Hint.color(cx),
+                                    Color::Hint.color(window.theme(cx)),
                                 ))
                                 .color(Color::Hint),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Ignored Text",
-                                    Color::Ignored.color(cx),
+                                    Color::Ignored.color(window.theme(cx)),
                                 ))
                                 .color(Color::Ignored),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Info Text",
-                                    Color::Info.color(cx),
+                                    Color::Info.color(window.theme(cx)),
                                 ))
                                 .color(Color::Info),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Modified Text",
-                                    Color::Modified.color(cx),
+                                    Color::Modified.color(window.theme(cx)),
                                 ))
                                 .color(Color::Modified),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Muted Text",
-                                    Color::Muted.color(cx),
+                                    Color::Muted.color(window.theme(cx)),
                                 ))
                                 .color(Color::Muted),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Placeholder Text",
-                                    Color::Placeholder.color(cx),
+                                    Color::Placeholder.color(window.theme(cx)),
                                 ))
                                 .color(Color::Placeholder),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Selected Text",
-                                    Color::Selected.color(cx),
+                                    Color::Selected.color(window.theme(cx)),
                                 ))
                                 .color(Color::Selected),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Success Text",
-                                    Color::Success.color(cx),
+                                    Color::Success.color(window.theme(cx)),
                                 ))
                                 .color(Color::Success),
                             )
                             .child(
                                 Label::new(label_with_contrast(
                                     "Warning Text",
-                                    Color::Warning.color(cx),
+                                    Color::Warning.color(window.theme(cx)),
                                 ))
                                 .color(Color::Warning),
                             )
@@ -293,7 +293,7 @@ impl ThemePreview {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
-        let bg = layer.bg(cx);
+        let bg = layer.bg(window.theme(cx));
         let all_colors = all_theme_colors(cx);
 
         v_flex()
@@ -338,7 +338,7 @@ impl ThemePreview {
     ) -> impl IntoElement {
         v_flex()
             .p_4()
-            .bg(layer.bg(cx))
+            .bg(layer.bg(window.theme(cx)))
             .text_color(window.theme(cx).colors().text)
             .gap_2()
             .child(Headline::new(layer.clone().to_string()).size(HeadlineSize::Medium))

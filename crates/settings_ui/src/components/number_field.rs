@@ -504,11 +504,11 @@ impl<T: NumberFieldType> RenderOnce for NumberField<T> {
             }
         };
 
-        let bg_color = cx.theme().colors().surface_background;
-        let hover_bg_color = cx.theme().colors().element_hover;
+        let bg_color = window.theme(cx).colors().surface_background;
+        let hover_bg_color = window.theme(cx).colors().element_hover;
 
-        let border_color = cx.theme().colors().border_variant;
-        let focus_border_color = cx.theme().colors().border_focused;
+        let border_color = window.theme(cx).colors().border_variant;
+        let focus_border_color = window.theme(cx).colors().border_focused;
 
         let base_button = |icon: IconName| {
             h_flex()
@@ -643,7 +643,7 @@ impl<T: NumberFieldType> RenderOnce for NumberField<T> {
                                             let mut editor = Editor::single_line(window, cx);
 
                                             editor.set_text_style_refinement(TextStyleRefinement {
-                                                color: Some(cx.theme().colors().text),
+                                                color: Some(window.theme(cx).colors().text),
                                                 text_align: Some(TextAlign::Center),
                                                 ..Default::default()
                                             });
@@ -794,8 +794,9 @@ impl<T: NumberFieldType> RenderOnce for NumberField<T> {
                                         .h_full()
                                         .track_focus(&focus_handle)
                                         .when(is_focused, |this| {
-                                            this.border_1()
-                                                .border_color(cx.theme().colors().border_focused)
+                                            this.border_1().border_color(
+                                                window.theme(cx).colors().border_focused,
+                                            )
                                         })
                                         .child(editor)
                                         .on_action::<menu::Confirm>({

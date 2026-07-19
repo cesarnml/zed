@@ -80,7 +80,7 @@ impl Render for StatusToast {
 
         h_flex()
             .id("status-toast")
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .gap_2()
             .py_1p5()
             .pl_2p5()

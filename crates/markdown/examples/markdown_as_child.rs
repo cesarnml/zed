@@ -72,17 +72,17 @@ impl Render for HelloWorld {
                 background_color: Some(cx.theme().colors().editor_background),
                 ..Default::default()
             },
-            rule_color: Color::Muted.color(cx),
-            block_quote_border_color: Color::Muted.color(cx),
+            rule_color: Color::Muted.color(cx.theme()),
+            block_quote_border_color: Color::Muted.color(cx.theme()),
             block_quote: gpui::TextStyleRefinement {
-                color: Some(Color::Muted.color(cx)),
+                color: Some(Color::Muted.color(cx.theme())),
                 ..Default::default()
             },
             link: gpui::TextStyleRefinement {
-                color: Some(Color::Accent.color(cx)),
+                color: Some(Color::Accent.color(cx.theme())),
                 underline: Some(gpui::UnderlineStyle {
                     thickness: px(1.),
-                    color: Some(Color::Accent.color(cx)),
+                    color: Some(Color::Accent.color(cx.theme())),
                     wavy: false,
                 }),
                 ..Default::default()

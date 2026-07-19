@@ -5686,7 +5686,9 @@ impl ProjectPanel {
                 .map_or(ValidationState::None, |e| e.validation_state.clone())
             {
                 ValidationState::Error(msg) => Some((Color::Error.color(window.theme(cx)), msg)),
-                ValidationState::Warning(msg) => Some((Color::Warning.color(window.theme(cx)), msg)),
+                ValidationState::Warning(msg) => {
+                    Some((Color::Warning.color(window.theme(cx)), msg))
+                }
                 ValidationState::None => None,
             }
         } else {
@@ -6159,7 +6161,9 @@ impl ProjectPanel {
                                     .when_some(git_indicator, |this, (label, color)| {
                                         let git_indicator = if kind.is_dir() {
                                             Indicator::dot()
-                                                .color(Color::Custom(color.color(cx).opacity(0.5)))
+                                                .color(Color::Custom(
+                                                    color.color(window.theme(cx)).opacity(0.5),
+                                                ))
                                                 .into_any_element()
                                         } else {
                                             Label::new(label)
@@ -6201,7 +6205,7 @@ impl ProjectPanel {
                                         )
                                         .group_name(Some(GROUP_NAME.into()))
                                         .knockout_hover_color(bg_hover_color)
-                                        .color(decoration_color.color(cx))
+                                        .color(decoration_color.color(window.theme(cx)))
                                         .position(Point {
                                             x: px(-2.),
                                             y: px(-2.),
@@ -6290,7 +6294,7 @@ impl ProjectPanel {
                         .px_2()
                         .border_1()
                         .border_color(color)
-                        .bg(cx.theme().colors().background)
+                        .bg(window.theme(cx).colors().background)
                         .child(
                             Label::new(message)
                                 .color(Color::from(color))
@@ -7361,7 +7365,7 @@ impl Render for ProjectPanel {
                                             ),
                                         },
                                     ),
-                                    |div| div.bg(cx.theme().colors().drop_target_background),
+                                    |div| div.bg(window.theme(cx).colors().drop_target_background),
                                 )
                                 .on_drag_move::<ExternalPaths>(cx.listener(
                                     move |this, event: &DragMoveEvent<ExternalPaths>, _, _| {
@@ -7490,7 +7494,7 @@ impl Render for ProjectPanel {
                         if horizontal_scroll {
                             scrollbars = scrollbars.with_track_along(
                                 ScrollAxes::Horizontal,
-                                cx.theme().colors().panel_background,
+                                window.theme(cx).colors().panel_background,
                             );
                         }
                         scrollbars.notify_content()
@@ -7541,8 +7545,8 @@ impl Render for ProjectPanel {
                 )
                 .when(is_local, |div| {
                     div.when(panel_settings.drag_and_drop, |div| {
-                        div.drag_over::<ExternalPaths>(|style, _, _, cx| {
-                            style.bg(cx.theme().colors().drop_target_background)
+                        div.drag_over::<ExternalPaths>(|style, _, window, cx| {
+                            style.bg(window.theme(cx).colors().drop_target_background)
                         })
                         .on_drop(cx.listener(
                             move |this, external_paths: &ExternalPaths, window, cx| {

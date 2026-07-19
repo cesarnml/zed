@@ -242,7 +242,7 @@ impl Render for WorktreePicker {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .key_context("WorktreePicker")
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .child(self.picker.clone())
             .on_modifiers_changed(cx.listener(Self::handle_modifiers_changed))
             .on_mouse_down_out(cx.listener(|_, _, _, cx| {

@@ -95,7 +95,7 @@ impl RenderOnce for SplitButton {
                 )
             })
             .when(self.style == SplitButtonStyle::Filled, |this| {
-                this.bg(ElevationIndex::Surface.on_elevation_bg(cx))
+                this.bg(ElevationIndex::Surface.on_elevation_bg(cx.theme()))
                     .shadow(vec![BoxShadow::new(
                         px(0.),
                         px(1.),

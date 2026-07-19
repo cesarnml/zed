@@ -350,8 +350,12 @@ pub trait RenderableCell: Render {
                             .flex_none()
                             .w(px(1.))
                             .h_full()
-                            .when(is_selected, |this| this.bg(window.theme(cx).colors().icon_accent))
-                            .when(!is_selected, |this| this.bg(window.theme(cx).colors().border)),
+                            .when(is_selected, |this| {
+                                this.bg(window.theme(cx).colors().icon_accent)
+                            })
+                            .when(!is_selected, |this| {
+                                this.bg(window.theme(cx).colors().border)
+                            }),
                     ),
             )
             .when_some(self.control(window, cx), |this, control| {
@@ -1019,8 +1023,12 @@ impl RenderableCell for CodeCell {
                             .flex_none()
                             .w(px(1.))
                             .h_full()
-                            .when(is_selected, |this| this.bg(window.theme(cx).colors().icon_accent))
-                            .when(!is_selected, |this| this.bg(window.theme(cx).colors().border)),
+                            .when(is_selected, |this| {
+                                this.bg(window.theme(cx).colors().icon_accent)
+                            })
+                            .when(!is_selected, |this| {
+                                this.bg(window.theme(cx).colors().border)
+                            }),
                     ),
             )
             .when_some(self.control(window, cx), |this, control| {
@@ -1124,7 +1132,11 @@ impl Render for CodeCell {
                                             .px_2()
                                             .py_0p5()
                                             .rounded_md()
-                                            .bg(window.theme(cx).colors().element_background.opacity(0.7))
+                                            .bg(window
+                                                .theme(cx)
+                                                .colors()
+                                                .element_background
+                                                .opacity(0.7))
                                             .text_xs()
                                             .text_color(window.theme(cx).colors().text_muted)
                                             .child(name),
@@ -1175,7 +1187,10 @@ impl Render for CodeCell {
                                                             div()
                                                                 .text_xs()
                                                                 .text_color(
-                                                                    cx.theme().colors().text_muted,
+                                                                    window
+                                                                        .theme(cx)
+                                                                        .colors()
+                                                                        .text_muted,
                                                                 )
                                                                 .child("Running..."),
                                                         )
@@ -1195,7 +1210,10 @@ impl Render for CodeCell {
                                                             div()
                                                                 .text_xs()
                                                                 .text_color(
-                                                                    cx.theme().colors().text_muted,
+                                                                    window
+                                                                        .theme(cx)
+                                                                        .colors()
+                                                                        .text_muted,
                                                                 )
                                                                 .child(duration_text),
                                                         )

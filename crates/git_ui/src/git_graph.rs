@@ -2062,7 +2062,7 @@ impl GitGraph {
                 if this.search_state.matches.is_empty() {
                     this.search_state.editor.update(cx, |editor, cx| {
                         editor.set_text_style_refinement(TextStyleRefinement {
-                            color: Some(Color::Error.color(cx)),
+                            color: Some(Color::Error.color(cx.theme())),
                             ..Default::default()
                         });
                     });
@@ -2827,7 +2827,7 @@ impl GitGraph {
         v_flex()
             .min_w(px(300.))
             .h_full()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .flex_basis(DefiniteLength::Fraction(
                 self.commit_details_split_state.read(cx).right_ratio(),
             ))
@@ -3904,11 +3904,12 @@ impl Render for GitGraph {
                                     let weak_for_hover = weak.clone();
                                     let weak_for_context_menu = weak.clone();
 
-                                    let hover_bg = cx.theme().colors().element_hover.opacity(0.6);
+                                    let hover_bg =
+                                        window.theme(cx).colors().element_hover.opacity(0.6);
                                     let selected_bg = if is_focused {
-                                        cx.theme().colors().element_selected
+                                        window.theme(cx).colors().element_selected
                                     } else {
-                                        cx.theme().colors().element_hover
+                                        window.theme(cx).colors().element_hover
                                     };
 
                                     row.h(row_height)
@@ -4046,7 +4047,7 @@ impl Render for GitGraph {
             .key_context("GitGraph")
             .track_focus(&self.focus_handle)
             .size_full()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .on_action(cx.listener(|this, _: &OpenCommitView, window, cx| {
                 this.open_selected_commit_view(window, cx);
             }))

@@ -6,8 +6,8 @@ use crate::{
     thread_metadata_store::{ThreadId, ThreadMetadataStore},
 };
 use agent_client_protocol::schema::v1 as acp;
-use theme::WindowTheme;
 use std::cell::RefCell;
+use theme::WindowTheme;
 
 use acp_thread::{
     Elicitation, ElicitationEntryId, ElicitationStatus, PlanEntry, SandboxAuthorizationDetails,
@@ -3128,8 +3128,8 @@ impl ThreadView {
         let max_content_width = AgentSettings::get_global(cx).max_content_width;
         // Drop shadows have no opaque surface to blend into on a transparent
         // window, so they render as a dark halo; only apply them when opaque.
-        let opaque_window =
-            window.theme(cx).window_background_appearance() == gpui::WindowBackgroundAppearance::Opaque;
+        let opaque_window = window.theme(cx).window_background_appearance()
+            == gpui::WindowBackgroundAppearance::Opaque;
 
         h_flex()
             .w_full()
@@ -3778,7 +3778,8 @@ impl ThreadView {
             .w_full()
             .gap_1()
             .when(plan_expanded, |this| {
-                this.border_b_1().border_color(window.theme(cx).colors().border)
+                this.border_b_1()
+                    .border_color(window.theme(cx).colors().border)
             })
             .child(Disclosure::new("plan_disclosure", plan_expanded))
             .child(title.flex_1())
@@ -3825,7 +3826,9 @@ impl ThreadView {
                             .relative()
                             .bg(entry_bg)
                             .when(index < plan.entries.len() - 1, |parent| {
-                                parent.border_color(window.theme(cx).colors().border).border_b_1()
+                                parent
+                                    .border_color(window.theme(cx).colors().border)
+                                    .border_b_1()
                             })
                             .overflow_hidden()
                             .child(
@@ -3921,7 +3924,8 @@ impl ThreadView {
                                 .px_2()
                                 .gap_1p5()
                                 .when(index < entries.len() - 1, |this| {
-                                    this.border_b_1().border_color(window.theme(cx).colors().border)
+                                    this.border_b_1()
+                                        .border_color(window.theme(cx).colors().border)
                                 })
                                 .child(
                                     Icon::new(IconName::TodoComplete)
@@ -6206,7 +6210,7 @@ impl ThreadView {
                                             this.shadow_sm()
                                         })
                                     })
-                                    .border_color(cx.theme().colors().border)
+                                    .border_color(window.theme(cx).colors().border)
                                     .map(|this| {
                                         if !is_editable {
                                             if is_subagent {
@@ -6236,8 +6240,8 @@ impl ThreadView {
                                     .gap_1()
                                     .rounded_sm()
                                     .border_1()
-                                    .border_color(cx.theme().colors().border)
-                                    .bg(cx.theme().colors().editor_background)
+                                    .border_color(window.theme(cx).colors().border)
+                                    .bg(window.theme(cx).colors().editor_background)
                                     .overflow_hidden();
 
                                 let is_loading_contents = self.is_loading_contents;
@@ -6496,7 +6500,7 @@ impl ThreadView {
                 .relative()
                 .w_full()
                 .pl_5()
-                .bg(cx.theme().colors().panel_background.opacity(0.2))
+                .bg(window.theme(cx).colors().panel_background.opacity(0.2))
                 .child(
                     div()
                         .absolute()
@@ -6504,7 +6508,7 @@ impl ThreadView {
                         .top(line_top)
                         .bottom_0()
                         .w_px()
-                        .bg(cx.theme().colors().border.opacity(0.6)),
+                        .bg(window.theme(cx).colors().border.opacity(0.6)),
                 )
                 .child(primary)
                 .into_any_element()
@@ -6583,7 +6587,7 @@ impl ThreadView {
                 .size_full()
                 .absolute()
                 .inset_0()
-                .bg(cx.theme().colors().panel_background)
+                .bg(window.theme(cx).colors().panel_background)
                 .opacity(0.8)
                 .block_mouse_except_scroll()
                 .on_click(cx.listener(Self::cancel_editing));
@@ -7968,7 +7972,7 @@ impl ThreadView {
                         .border_t_1()
                         .when(tool_failed || command_failed, |card| card.border_dashed())
                         .border_color(border_color)
-                        .bg(cx.theme().colors().editor_background)
+                        .bg(window.theme(cx).colors().editor_background)
                         .rounded_b_md()
                         .text_ui_sm(cx)
                         .h_full()
@@ -8281,7 +8285,9 @@ impl ThreadView {
                                             .gap_1()
                                             .justify_between()
                                             .rounded_xs()
-                                            .hover(|s| s.bg(cx.theme().colors().element_hover))
+                                            .hover(|s| {
+                                                s.bg(window.theme(cx).colors().element_hover)
+                                            })
                                             .child(input_output_header(input_header.into()))
                                             .child(
                                                 Disclosure::new(
@@ -8632,7 +8638,7 @@ impl ThreadView {
                         .border_1()
                         .when(failed_or_canceled, |this| this.border_dashed())
                         .border_color(self.tool_card_border_color(cx))
-                        .bg(cx.theme().colors().editor_background)
+                        .bg(window.theme(cx).colors().editor_background)
                         .overflow_hidden()
                 } else {
                     this.my_1()
@@ -8806,9 +8812,10 @@ impl ThreadView {
                                 .min_w_0()
                                 .px_2()
                                 .py_1p5()
-                                .bg(cx.theme().colors().editor_background)
+                                .bg(window.theme(cx).colors().editor_background)
                                 .when(host_ix < hosts.len() - 1, |this| {
-                                    this.border_b_1().border_color(cx.theme().colors().border)
+                                    this.border_b_1()
+                                        .border_color(window.theme(cx).colors().border)
                                 })
                                 .child(
                                     Label::new(host.clone())
@@ -8852,7 +8859,7 @@ impl ThreadView {
                         .justify_between()
                         .when(has_path_list, |this| {
                             this.cursor_pointer()
-                                .hover(|style| style.bg(cx.theme().colors().element_hover))
+                                .hover(|style| style.bg(window.theme(cx).colors().element_hover))
                                 .on_click(cx.listener({
                                     let tool_call_id = tool_call_id.clone();
                                     move |this, _event, _window, cx| {
@@ -10054,7 +10061,7 @@ impl ThreadView {
             .when(has_location, |this| {
                 this.cursor(CursorStyle::PointingHand)
                     .rounded(rems_from_px(3.)) // Concentric border radius
-                    .hover(|s| s.bg(cx.theme().colors().element_hover.opacity(0.5)))
+                    .hover(|s| s.bg(window.theme(cx).colors().element_hover.opacity(0.5)))
             })
             .overflow_hidden()
             .child(tool_icon)
@@ -10064,9 +10071,9 @@ impl ThreadView {
                     .w_full()
                     .map(|this| {
                         if use_card_layout {
-                            this.text_color(cx.theme().colors().text)
+                            this.text_color(window.theme(cx).colors().text)
                         } else {
-                            this.text_color(cx.theme().colors().text_muted)
+                            this.text_color(window.theme(cx).colors().text_muted)
                         }
                     })
                     .child(
@@ -10740,7 +10747,7 @@ impl ThreadView {
                             })
                             .when(has_expandable_content && !is_pending_tool_call, |this| {
                                 this.cursor_pointer()
-                                    .hover(|s| s.bg(cx.theme().colors().element_hover))
+                                    .hover(|s| s.bg(window.theme(cx).colors().element_hover))
                                     .child(
                                         div().visible_on_hover(card_header_id).child(
                                             Icon::new(if is_expanded {
@@ -10810,7 +10817,7 @@ impl ThreadView {
                     .when(is_failed, |this| this.border_dashed())
                     .border_color(self.tool_card_border_color(cx))
                     .cursor_pointer()
-                    .hover(|s| s.bg(cx.theme().colors().element_hover))
+                    .hover(|s| s.bg(window.theme(cx).colors().element_hover))
                     .child(
                         Icon::new(IconName::Maximize)
                             .color(Color::Muted)

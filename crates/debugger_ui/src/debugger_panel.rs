@@ -1835,7 +1835,7 @@ impl Render for DebugPanel {
                                 .w_full()
                                 .justify_between()
                                 .border_b_1()
-                                .border_color(cx.theme().colors().border_variant)
+                                .border_color(window.theme(cx).colors().border_variant)
                                 .child(Label::new("Breakpoints").size(LabelSize::Small))
                                 .child(
                                     h_flex().visible_on_hover("base-breakpoint-list").child(

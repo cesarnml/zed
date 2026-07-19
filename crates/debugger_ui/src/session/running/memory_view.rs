@@ -718,7 +718,7 @@ fn render_single_memory_view_line(
                 )
                 .px_1()
                 .border_r_1()
-                .border_color(Color::Muted.color(cx)),
+                .border_color(Color::Muted.color(cx.theme())),
         )
         .child(
             h_flex()
@@ -736,9 +736,8 @@ fn render_single_memory_view_line(
                             this.when(selection.contains(base_address + cell_ix as u64), |this| {
                                 let weak = weak.clone();
 
-                                this.bg(Color::Selected.color(cx).opacity(0.2)).when(
-                                    !selection.is_dragging(),
-                                    |this| {
+                                this.bg(Color::Selected.color(cx.theme()).opacity(0.2))
+                                    .when(!selection.is_dragging(), |this| {
                                         let selection = selection.drag().memory_range();
                                         this.on_mouse_down(
                                             MouseButton::Right,
@@ -754,8 +753,7 @@ fn render_single_memory_view_line(
                                                 cx.stop_propagation();
                                             },
                                         )
-                                    },
-                                )
+                                    })
                             })
                         })
                         .child(
@@ -821,7 +819,7 @@ fn render_single_memory_view_line(
                 .mr_4()
                 // .gap_x_1p5()
                 .border_x_1()
-                .border_color(Color::Muted.color(cx))
+                .border_color(Color::Muted.color(cx.theme()))
                 .children(memory.iter().enumerate().map(|(ix, cell)| {
                     let as_character = char::from(cell.0.unwrap_or(0));
                     let as_visible = if as_character.is_ascii_graphic() {
@@ -833,7 +831,7 @@ fn render_single_memory_view_line(
                         .px_0p5()
                         .when_some(view_state.selection.as_ref(), |this, selection| {
                             this.when(selection.contains(base_address + ix as u64), |this| {
-                                this.bg(Color::Selected.color(cx).opacity(0.2))
+                                this.bg(Color::Selected.color(cx.theme()).opacity(0.2))
                             })
                         })
                         .child(
@@ -886,10 +884,10 @@ impl Render for MemoryView {
                                 self.query_editor
                                     .focus_handle(cx)
                                     .contains_focused(window, cx),
-                                |this| this.border_color(cx.theme().colors().border_focused),
-                                |this| this.border_color(cx.theme().colors().border_variant),
+                                |this| this.border_color(window.theme(cx).colors().border_focused),
+                                |this| this.border_color(window.theme(cx).colors().border_variant),
                             )
-                            .bg(cx.theme().colors().editor_background)
+                            .bg(window.theme(cx).colors().editor_background)
                             .child(
                                 div()
                                     .id("memory-view-editor-icon")
@@ -923,7 +921,7 @@ impl Render for MemoryView {
                             .tracked_scroll_handle(&self.view_state_handle)
                             .with_track_along(
                                 ui::ScrollAxes::Both,
-                                cx.theme().colors().panel_background,
+                                window.theme(cx).colors().panel_background,
                             )
                             .tracked_entity(cx.entity_id()),
                         window,

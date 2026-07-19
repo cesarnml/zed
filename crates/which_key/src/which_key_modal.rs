@@ -243,7 +243,7 @@ impl Render for WhichKeyModal {
             .right(px(16.))
             .min_w(px(220.))
             .max_w(max_panel_width)
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .px(px(12.))
             .child(v_flex().child(title_section).when(has_rows, |el| {
                 el.child(

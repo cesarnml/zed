@@ -2844,7 +2844,7 @@ impl gpui::Render for ErrorWrappingTestView {
 
         v_flex()
             .size_full()
-            .bg(cx.theme().colors().background)
+            .bg(window.theme(cx).colors().background)
             .p_4()
             .gap_4()
             .child(
@@ -2897,13 +2897,13 @@ impl gpui::Render for ThreadItemBranchNameTestView {
             v_flex()
                 .w_80()
                 .border_1()
-                .border_color(cx.theme().colors().border_variant)
-                .bg(cx.theme().colors().panel_background)
+                .border_color(window.theme(cx).colors().border_variant)
+                .bg(window.theme(cx).colors().panel_background)
         };
 
         v_flex()
             .size_full()
-            .bg(cx.theme().colors().background)
+            .bg(window.theme(cx).colors().background)
             .p_4()
             .gap_3()
             .child(
@@ -3147,13 +3147,13 @@ impl gpui::Render for ThreadItemIconDecorationsTestView {
             v_flex()
                 .w_80()
                 .border_1()
-                .border_color(cx.theme().colors().border_variant)
-                .bg(cx.theme().colors().panel_background)
+                .border_color(window.theme(cx).colors().border_variant)
+                .bg(window.theme(cx).colors().panel_background)
         };
 
         v_flex()
             .size_full()
-            .bg(cx.theme().colors().background)
+            .bg(window.theme(cx).colors().background)
             .p_4()
             .gap_3()
             .child(

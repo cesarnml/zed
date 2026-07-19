@@ -30,7 +30,7 @@ impl ContactFinder {
 impl Render for ContactFinder {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
-            .elevation_3(cx)
+            .elevation_3(cx.theme())
             .child(
                 v_flex()
                     .px_2()

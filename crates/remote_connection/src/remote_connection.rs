@@ -359,7 +359,7 @@ impl Render for RemoteConnectionModal {
         let body_color = theme.colors().editor_background;
 
         v_flex()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .w(rems(34.))
             .border_1()
             .border_color(theme.colors().border)

@@ -986,7 +986,9 @@ impl RatePredictionsModal {
                                             right: Some(AbsoluteLength::Pixels(px(1.))),
                                             bottom: Some(AbsoluteLength::Pixels(px(1.))),
                                         },
-                                        border_color: Some(window.theme(cx).colors().border_variant),
+                                        border_color: Some(
+                                            window.theme(cx).colors().border_variant,
+                                        ),
                                         background: Some(
                                             window.theme(cx).colors().editor_background.into(),
                                         ),

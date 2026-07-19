@@ -907,7 +907,7 @@ impl EditPredictionButton {
                                             .border_t_1()
                                             .border_color(cx.theme().colors().border_variant)
                                             .child(h_flex().flex_shrink_0().h(line_height).child(Icon::new(icon_name).size(IconSize::XSmall).color(icon_color)))
-                                            .child(div().child(msg).w_full().text_sm().text_color(label_color.color(cx)))
+                                            .child(div().child(msg).w_full().text_sm().text_color(label_color.color(cx.theme())))
                                     )
                                     .into_any_element()
                             })

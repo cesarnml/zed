@@ -130,7 +130,7 @@ impl Render for ZedPredictModal {
             .max_h(max_height)
             .p_1()
             .gap_2()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .track_focus(&self.focus_handle(cx))
             .overflow_hidden()
             .on_action(cx.listener(Self::cancel))

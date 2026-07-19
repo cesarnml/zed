@@ -513,7 +513,7 @@ impl Item for SoloDiffView {
         {
             highlights.push((
                 0..text.len(),
-                HighlightStyle::color(file_status_label_color(Some(status)).color(cx)),
+                HighlightStyle::color(file_status_label_color(Some(status)).color(cx.theme())),
             ));
         }
 

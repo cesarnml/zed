@@ -241,7 +241,7 @@ impl<T: 'static> Render for PromptEditor<T> {
                                 .pl_0p5()
                                 .flex_1()
                                 .border_t_1()
-                                .border_color(cx.theme().colors().border_variant)
+                                .border_color(window.theme(cx).colors().border_variant)
                                 .child(explanation_label),
                         ),
                 )
