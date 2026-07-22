@@ -835,6 +835,11 @@ fn main() {
             }
         })
         .detach();
+        // When newly-loaded themes (extensions or user themes) change the
+        // resolved theme world, reapply any per-window override that could not
+        // be resolved when its workspace was first restored.
+        cx.observe_global::<GlobalTheme>(reapply_pending_window_theme_overrides)
+            .detach();
         telemetry::event!(
             "Settings Changed",
             setting = "theme",
@@ -1852,6 +1857,33 @@ fn load_embedded_fonts(cx: &App) {
     cx.text_system()
         .add_fonts(embedded_fonts.into_inner())
         .unwrap();
+}
+
+/// Reapplies per-window theme overrides that could not be resolved when their
+/// workspace was first restored — for example, an override pointing at an
+/// extension theme that had not finished loading yet.
+///
+/// Only windows whose live override is currently missing are touched, so this
+/// never disturbs a correctly-applied override or a theme selector's in-progress
+/// preview (both of which leave a live override in place).
+fn reapply_pending_window_theme_overrides(cx: &mut App) {
+    for window in cx.windows() {
+        window
+            .update(cx, |_, window, cx| {
+                let Some(workspace) = workspace::Workspace::for_window(window, cx) else {
+                    return;
+                };
+                let window_id = window.window_handle().window_id();
+                let has_pending_override = workspace.read(cx).theme_override().is_some()
+                    && theme::WindowThemeOverrides::override_for(window_id, cx).is_none();
+                if has_pending_override {
+                    workspace.update(cx, |workspace, cx| {
+                        workspace.apply_window_theme(window, cx);
+                    });
+                }
+            })
+            .ok();
+    }
 }
 
 /// Spawns a background task to load the user themes from the themes directory.
