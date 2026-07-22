@@ -9,7 +9,9 @@ use gpui::{
 use picker::{Picker, PickerDelegate};
 use settings::{Settings, SettingsStore, update_settings_file};
 use std::sync::Arc;
-use theme::{Appearance, SystemAppearance, Theme, ThemeMeta, ThemeRegistry, WindowTheme};
+use theme::{
+    Appearance, ConfiguredTheme, SystemAppearance, Theme, ThemeMeta, ThemeRegistry, WindowTheme,
+};
 use theme_settings::{
     ThemeAppearanceMode, ThemeName, ThemeSelection, ThemeSettings, appearance_to_mode,
 };
@@ -204,7 +206,12 @@ impl ThemeSelectorDelegate {
             theme::WindowThemeOverrides::override_for(window.window_handle().window_id(), cx)
                 .is_some();
         let original_theme = match scope {
-            ThemeSelectorScope::Global => window.theme(cx).clone(),
+            // The global selector edits `settings.json`, so it must be seeded
+            // with the configured theme rather than this window's effective
+            // theme; otherwise, in a window that has a per-window override,
+            // confirming without navigating would write the override theme
+            // into the global settings.
+            ThemeSelectorScope::Global => cx.configured_theme().clone(),
             ThemeSelectorScope::Window => original_window_theme.clone(),
         };
         let original_theme_settings = ThemeSettings::get_global(cx).clone();

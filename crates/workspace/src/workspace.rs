@@ -2035,6 +2035,13 @@ impl Workspace {
                         match open_mode {
                             OpenMode::Activate => {
                                 multi_workspace.activate(workspace.clone(), None, window, cx);
+                                // Reusing an existing window: the newly activated
+                                // workspace becomes visible, so apply its persisted
+                                // per-window theme (the new-window branch below does
+                                // the same via `apply_window_theme`).
+                                workspace.update(cx, |workspace, cx| {
+                                    workspace.apply_window_theme(window, cx);
+                                });
                             }
                             OpenMode::Add => {
                                 multi_workspace.add(workspace.clone(), &*window, cx);
