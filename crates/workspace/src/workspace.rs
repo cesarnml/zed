@@ -2035,13 +2035,6 @@ impl Workspace {
                         match open_mode {
                             OpenMode::Activate => {
                                 multi_workspace.activate(workspace.clone(), None, window, cx);
-                                // Reusing an existing window: the newly activated
-                                // workspace becomes visible, so apply its persisted
-                                // per-window theme (the new-window branch below does
-                                // the same via `apply_window_theme`).
-                                workspace.update(cx, |workspace, cx| {
-                                    workspace.apply_window_theme(window, cx);
-                                });
                             }
                             OpenMode::Add => {
                                 multi_workspace.add(workspace.clone(), &*window, cx);
@@ -6981,6 +6974,9 @@ impl Workspace {
         if let Some(theme_name) = self.theme_override.as_ref() {
             match ThemeRegistry::global(cx).get(theme_name) {
                 Ok(theme) => {
+                    // Layer the user's configured theme overrides so a per-window
+                    // theme matches what the same theme looks like globally.
+                    let theme = ThemeSettings::get_global(cx).apply_theme_overrides(theme);
                     WindowThemeOverrides::apply_to_window(window, theme, cx);
                     return;
                 }
@@ -7004,7 +7000,10 @@ impl Workspace {
         cx: &mut Context<Self>,
     ) {
         self.theme_override = Some(theme.name.clone());
-        WindowThemeOverrides::apply_to_window(window, theme.clone(), cx);
+        // Persist the raw theme name, but paint the window with the user's
+        // configured overrides layered on (matching the global theme path).
+        let effective_theme = ThemeSettings::get_global(cx).apply_theme_overrides(theme.clone());
+        WindowThemeOverrides::apply_to_window(window, effective_theme, cx);
         if let Some(database_id) = self.database_id() {
             let db = WorkspaceDb::global(cx);
             let theme_name = theme.name.to_string();

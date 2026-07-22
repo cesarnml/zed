@@ -345,6 +345,13 @@ impl ThemeSelectorDelegate {
         }
     }
 
+    /// Layers the user's configured theme overrides (`theme_overrides` /
+    /// `experimental_theme_overrides`) onto a raw registry theme, so a per-window
+    /// theme matches what the same theme looks like when configured globally.
+    fn with_configured_overrides(theme: Arc<Theme>, cx: &App) -> Arc<Theme> {
+        ThemeSettings::get_global(cx).apply_theme_overrides(theme)
+    }
+
     fn set_theme(&mut self, new_theme: Arc<Theme>, window: &mut Window, cx: &mut App) {
         match self.scope {
             ThemeSelectorScope::Global => {
@@ -361,11 +368,13 @@ impl ThemeSelectorDelegate {
                 // paint the previewed theme over it; it is restored on
                 // confirm or dismiss.
                 if self.original_had_window_override {
-                    theme::WindowThemeOverrides::apply_to_window(window, new_theme.clone(), cx);
+                    let effective = Self::with_configured_overrides(new_theme.clone(), cx);
+                    theme::WindowThemeOverrides::apply_to_window(window, effective, cx);
                 }
             }
             ThemeSelectorScope::Window => {
-                theme::WindowThemeOverrides::apply_to_window(window, new_theme.clone(), cx);
+                let effective = Self::with_configured_overrides(new_theme.clone(), cx);
+                theme::WindowThemeOverrides::apply_to_window(window, effective, cx);
             }
         }
 
@@ -532,7 +541,10 @@ impl PickerDelegate for ThemeSelectorDelegate {
                         workspace.set_window_theme(theme, window, cx);
                     });
                 } else {
-                    theme::WindowThemeOverrides::apply_to_window(window, theme, cx);
+                    // No workspace to persist through; still layer configured
+                    // overrides so the preview and confirm look identical.
+                    let effective = Self::with_configured_overrides(theme, cx);
+                    theme::WindowThemeOverrides::apply_to_window(window, effective, cx);
                 }
             }
         }

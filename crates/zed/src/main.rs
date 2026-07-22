@@ -791,8 +791,13 @@ fn main() {
             let client = app_state.client.clone();
             move |cx| {
                 for &mut window in cx.windows().iter_mut() {
+                    // Resolve each window's effective theme (honoring any
+                    // per-window override) so an unrelated settings change does
+                    // not reset an overridden window's background to the
+                    // configured theme.
                     let background_appearance =
-                        cx.configured_theme().window_background_appearance();
+                        theme::WindowThemeOverrides::theme(window.window_id(), cx)
+                            .window_background_appearance();
                     window
                         .update(cx, |_, window, _| {
                             window.set_background_appearance(background_appearance)
