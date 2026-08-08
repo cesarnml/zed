@@ -7828,6 +7828,7 @@ impl Editor {
                     let rename_end = rename_start + rename_buffer_range.len();
                     let range = buffer.anchor_before(rename_start)..buffer.anchor_after(rename_end);
                     let mut old_highlight_id = None;
+                    let mut old_highlight_fallbacks = SmallVec::new();
                     let old_name: Arc<str> = buffer
                         .chunks(
                             rename_start..rename_end,
@@ -7839,6 +7840,7 @@ impl Editor {
                         .map(|chunk| {
                             if old_highlight_id.is_none() {
                                 old_highlight_id = chunk.syntax_highlight_id;
+                                old_highlight_fallbacks = chunk.syntax_fallbacks;
                             }
                             chunk.text
                         })
@@ -7922,9 +7924,12 @@ impl Editor {
                                 let rename_editor = rename_editor.clone();
                                 move |cx: &mut BlockContext| {
                                     let mut text_style = cx.editor_style.text.clone();
-                                    if let Some(highlight_style) = old_highlight_id
-                                        .and_then(|h| cx.editor_style.syntax.get(h).cloned())
-                                    {
+                                    if let Some(highlight_style) = old_highlight_id.and_then(|h| {
+                                        cx.editor_style
+                                            .syntax
+                                            .style_for_captures(h, &old_highlight_fallbacks)
+                                            .cloned()
+                                    }) {
                                         text_style = text_style.highlight(highlight_style);
                                     }
                                     div()

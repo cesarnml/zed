@@ -1107,11 +1107,33 @@ impl Language {
         text: &'a Rope,
         range: Range<usize>,
     ) -> Vec<CodeLabelRun> {
+        let Some(tree) = self.parse_text(text) else {
+            return Vec::new();
+        };
+        self.highlight_text_from_tree(text, range, &tree)
+    }
+
+    /// Parses `text` and returns the resulting syntax tree, or `None` if this
+    /// language has no grammar. Kept separate from [`Self::highlight_text`] so
+    /// callers that highlight the same parse repeatedly (e.g. a benchmark) can
+    /// pay the parse cost once.
+    pub fn parse_text(&self, text: &Rope) -> Option<Tree> {
+        let grammar = self.grammar.as_ref()?;
+        Some(parse_text(grammar, text, None))
+    }
+
+    /// Builds highlight runs for `range` from an already-parsed `tree`, without
+    /// reparsing `text`.
+    pub fn highlight_text_from_tree<'a>(
+        self: &'a Arc<Self>,
+        text: &'a Rope,
+        range: Range<usize>,
+        tree: &Tree,
+    ) -> Vec<CodeLabelRun> {
         let mut result = Vec::new();
         if let Some(grammar) = &self.grammar {
-            let tree = parse_text(grammar, text, None);
             let captures =
-                SyntaxSnapshot::single_tree_captures(range.clone(), text, &tree, self, |grammar| {
+                SyntaxSnapshot::single_tree_captures(range.clone(), text, tree, self, |grammar| {
                     grammar
                         .highlights_config
                         .as_ref()

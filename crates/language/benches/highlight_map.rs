@@ -193,9 +193,18 @@ fn bench_highlighted_chunks(c: &mut Criterion) {
     );
 
     let source = Rope::from(SAMPLE.repeat(32).as_str());
+    let tree = language
+        .parse_text(&source)
+        .expect("rust source should parse");
     let mut group = c.benchmark_group("highlighted_chunks");
     group.bench_function("rust_source", |b| {
-        b.iter(|| black_box(language.highlight_text(black_box(&source), 0..source.len())));
+        b.iter(|| {
+            black_box(language.highlight_text_from_tree(
+                black_box(&source),
+                0..source.len(),
+                black_box(&tree),
+            ))
+        });
     });
     group.finish();
 }

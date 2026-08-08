@@ -243,9 +243,11 @@ impl SearchState {
                         } else {
                             offset += chunk.text.len();
                         }
-                        let style = chunk
-                            .syntax_highlight_id
-                            .and_then(|highlight| theme.get(highlight).cloned());
+                        let style = chunk.syntax_highlight_id.and_then(|highlight| {
+                            theme
+                                .style_for_captures(highlight, &chunk.syntax_fallbacks)
+                                .cloned()
+                        });
 
                         if let Some(style) = style {
                             let start = context_text.len();

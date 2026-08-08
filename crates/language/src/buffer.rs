@@ -4792,7 +4792,11 @@ impl BufferSnapshot {
                 let style = chunk
                     .syntax_highlight_id
                     .zip(theme)
-                    .and_then(|(highlight, theme)| theme.get(highlight).cloned());
+                    .and_then(|(highlight, theme)| {
+                        theme
+                            .style_for_captures(highlight, &chunk.syntax_fallbacks)
+                            .cloned()
+                    });
 
                 if let Some(style) = style {
                     let start = text.len();
