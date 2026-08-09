@@ -1619,7 +1619,7 @@ impl PickerDelegate for BranchListDelegate {
         &self,
         ix: usize,
         selected: bool,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         let entry = &self.matches.get(ix)?;
@@ -1965,7 +1965,7 @@ impl PickerDelegate for BranchListDelegate {
                         .when(show_divider, |this| {
                             this.mt_1()
                                 .border_t_1()
-                                .border_color(cx.theme().colors().border_variant)
+                                .border_color(window.theme(cx).colors().border_variant)
                         })
                         .child(ListSubHeader::new(section_header).inset(true))
                 })

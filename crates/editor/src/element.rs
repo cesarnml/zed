@@ -11083,6 +11083,7 @@ mod tests {
                 &self,
                 _: &gpui::TextStyle,
                 _: BlameEntry,
+                _: &Window,
                 _: &mut App,
             ) -> Option<AnyElement> {
                 Some(div().w(px(160.)).into_any_element())
@@ -11205,7 +11206,8 @@ mod tests {
             assert!(entry.is_some(), "blame entry should be available");
         });
 
-        let style = cx.update(|_, cx| editor.update(cx, |editor, cx| editor.style(cx).clone()));
+        let style =
+            cx.update(|window, cx| editor.update(cx, |editor, cx| editor.style(window, cx).clone()));
 
         // Default `Inline` location: the long line plus the reserved inline blame
         // width push the horizontal scroll range past the viewport.

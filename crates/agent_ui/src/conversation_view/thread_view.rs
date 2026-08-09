@@ -9000,7 +9000,7 @@ impl ThreadView {
             .border_t_1()
             .border_color(self.tool_card_border_color(window, cx))
             .when(has_windows_fs_warning, |this| {
-                this.child(self.render_sandbox_windows_fs_warning(cx))
+                this.child(self.render_sandbox_windows_fs_warning(window, cx))
             })
             .when(!confusable_findings.is_empty(), |this| {
                 this.child(self.render_sandbox_confusable_warning(
@@ -9213,14 +9213,14 @@ impl ThreadView {
     /// filesystem. Unlike the confusable-Unicode banner this does not gate the
     /// allow buttons: the approval itself is the acknowledgement. A settings gear
     /// links to where the warning can be suppressed.
-    fn render_sandbox_windows_fs_warning(&self, cx: &Context<Self>) -> AnyElement {
+    fn render_sandbox_windows_fs_warning(&self, window: &Window, cx: &Context<Self>) -> AnyElement {
         v_flex()
             .w_full()
             .p_2()
             .gap_1()
             .border_t_1()
-            .border_color(cx.theme().status().warning_border)
-            .bg(cx.theme().status().warning_background.opacity(0.15))
+            .border_color(window.theme(cx).status().warning_border)
+            .bg(window.theme(cx).status().warning_background.opacity(0.15))
             .child(
                 h_flex()
                     .w_full()

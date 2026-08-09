@@ -334,7 +334,7 @@ impl CommitModal {
                                     .handler(move |window, cx| {
                                         window.dispatch_action(Box::new(SkipHooks), cx)
                                     })
-                                    .documentation_aside(DocumentationSide::Left, |_| {
+                                    .documentation_aside(DocumentationSide::Left, |_, _| {
                                         Label::new("git commit --no-verify").into_any_element()
                                     }),
                             )

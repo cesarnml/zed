@@ -864,7 +864,7 @@ impl ImageViewToolbarControls {
             let mut editor = Editor::single_line(window, cx);
             editor.set_text(zoom_percentage.to_string(), window, cx);
             editor.set_text_style_refinement(gpui::TextStyleRefinement {
-                color: Some(cx.theme().colors().text),
+                color: Some(window.theme(cx).colors().text),
                 text_align: Some(gpui::TextAlign::Center),
                 font_size: Some(TextSize::Small.rems(cx).into()),
                 ..Default::default()

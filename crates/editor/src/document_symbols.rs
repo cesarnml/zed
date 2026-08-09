@@ -334,7 +334,7 @@ mod tests {
     };
 
     use futures::StreamExt as _;
-    use gpui::{App, TestAppContext};
+    use gpui::{App, TestAppContext, Window};
     use multi_buffer::ToPoint;
     use settings::{DocumentSymbols, SettingsStore};
     use text::Point;
@@ -359,9 +359,9 @@ mod tests {
             .collect()
     }
 
-    fn breadcrumb_texts(editor: &Editor, cx: &App) -> Vec<String> {
+    fn breadcrumb_texts(editor: &Editor, window: &Window, cx: &App) -> Vec<String> {
         editor
-            .breadcrumbs(cx)
+            .breadcrumbs(window, cx)
             .expect("Should have breadcrumbs")
             .0
             .into_iter()
@@ -905,7 +905,6 @@ mod tests {
         use collections::IndexMap;
         use gpui::{Hsla, Rgba, UpdateGlobal as _};
         use theme_settings::{HighlightStyleContent, ThemeStyleContent};
-        use ui::ConfiguredTheme as _;
 
         init_test(cx, |_| {});
 
@@ -937,15 +936,6 @@ mod tests {
                     });
                 });
             });
-        });
-        cx.update_editor(|editor, _window, cx| {
-            editor
-                .project
-                .as_ref()
-                .expect("editor should have a project")
-                .read(cx)
-                .languages()
-                .set_theme(cx.configured_theme().clone());
         });
         cx.set_state("fn maˇin() {}");
         cx.run_until_parked();
@@ -998,15 +988,6 @@ mod tests {
                 });
             });
         });
-        cx.update_editor(|editor, _window, cx| {
-            editor
-                .project
-                .as_ref()
-                .expect("editor should have a project")
-                .read(cx)
-                .languages()
-                .set_theme(cx.configured_theme().clone());
-        });
         cx.run_until_parked();
 
         cx.update_editor(|editor, _window, cx| {
@@ -1057,16 +1038,16 @@ mod tests {
         assert!(symbol_request.next().await.is_some());
         cx.run_until_parked();
 
-        cx.update_editor(|editor, _window, cx| {
+        cx.update_editor(|editor, window, cx| {
             assert_eq!(
-                breadcrumb_texts(editor, cx),
+                breadcrumb_texts(editor, window, cx),
                 vec![path!("dir/file.rs").to_string()],
                 "Breadcrumbs should fall back to the file name when the language server returns no symbols"
             );
 
             editor.set_breadcrumb_header("Last 1000 lines in the log".to_string());
             assert_eq!(
-                breadcrumb_texts(editor, cx),
+                breadcrumb_texts(editor, window, cx),
                 vec!["Last 1000 lines in the log".to_string()],
                 "A custom breadcrumb header should never disappear"
             );
@@ -1095,9 +1076,9 @@ mod tests {
         cx.set_state("fn maˇin() {\n    let x = 1;\n}\n");
         cx.run_until_parked();
 
-        cx.update_editor(|editor, _window, cx| {
+        cx.update_editor(|editor, window, cx| {
             assert_eq!(
-                breadcrumb_texts(editor, cx),
+                breadcrumb_texts(editor, window, cx),
                 vec![path!("dir/file.rs").to_string(), "fn main".to_string()],
                 "With tree-sitter symbols, breadcrumbs should show the file name and the symbol"
             );
@@ -1124,9 +1105,9 @@ mod tests {
         assert!(symbol_request.next().await.is_some());
         cx.run_until_parked();
 
-        cx.update_editor(|editor, _window, cx| {
+        cx.update_editor(|editor, window, cx| {
             assert_eq!(
-                breadcrumb_texts(editor, cx),
+                breadcrumb_texts(editor, window, cx),
                 vec![path!("dir/file.rs").to_string()],
                 "After enabling LSP symbols that return nothing, breadcrumbs should keep the file name"
             );
@@ -1142,9 +1123,9 @@ mod tests {
         });
         cx.run_until_parked();
 
-        cx.update_editor(|editor, _window, cx| {
+        cx.update_editor(|editor, window, cx| {
             assert_eq!(
-                breadcrumb_texts(editor, cx),
+                breadcrumb_texts(editor, window, cx),
                 vec![path!("dir/file.rs").to_string(), "fn main".to_string()],
                 "After disabling LSP symbols, tree-sitter breadcrumbs should return"
             );

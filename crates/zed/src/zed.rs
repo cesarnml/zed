@@ -2073,7 +2073,7 @@ fn init_app_appearance(cx: &mut App) {
     let apply = |cx: &mut App| {
         let appearance = match ThemeSettings::get_global(cx).theme.mode() {
             Some(theme_settings::ThemeAppearanceMode::System) => None,
-            _ => Some(match cx.theme().appearance() {
+            _ => Some(match cx.configured_theme().appearance() {
                 theme::Appearance::Light => gpui::WindowAppearance::Light,
                 theme::Appearance::Dark => gpui::WindowAppearance::Dark,
             }),

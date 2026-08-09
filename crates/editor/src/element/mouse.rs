@@ -1205,7 +1205,7 @@ mod tests {
 
         let line_height = cx.update_editor(|editor, window, cx| {
             editor
-                .style(cx)
+                .style(window, cx)
                 .text
                 .line_height_in_pixels(window.rem_size())
         });

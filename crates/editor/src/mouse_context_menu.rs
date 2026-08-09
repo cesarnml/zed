@@ -428,7 +428,7 @@ mod tests {
         cx.update_editor(|editor, window, cx| {
             assert_eq!(window.scale_factor(), 1.25);
             let line_height = editor
-                .style(cx)
+                .style(window, cx)
                 .text
                 .line_height_in_pixels(window.rem_size());
             assert_eq!(line_height, gpui::px(18.));

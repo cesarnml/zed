@@ -787,7 +787,7 @@ fn with_mermaid_horizontal_scrollbar(
         .tracked_scroll_handle(scroll_handle)
         .with_track_along(
             ScrollAxes::Horizontal,
-            cx.theme().colors().editor_background,
+            window.theme(cx).colors().editor_background,
         )
         .notify_content();
 

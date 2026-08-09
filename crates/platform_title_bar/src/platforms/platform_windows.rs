@@ -135,7 +135,7 @@ impl RenderOnce for WindowsCaptionButton {
             .h_full()
             .text_size(px(10.0))
             .when(!enabled, |style| {
-                style.text_color(cx.theme().colors().text_disabled)
+                style.text_color(window.theme(cx).colors().text_disabled)
             })
             .when(enabled, |style| {
                 style

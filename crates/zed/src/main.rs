@@ -827,14 +827,6 @@ fn main() {
             }
         })
         .detach();
-        app_state.languages.set_theme(cx.configured_theme().clone());
-        cx.observe_global::<GlobalTheme>({
-            let languages = app_state.languages.clone();
-            move |cx| {
-                languages.set_theme(cx.configured_theme().clone());
-            }
-        })
-        .detach();
         // When newly-loaded themes (extensions or user themes) change the
         // resolved theme world, reapply any per-window override that could not
         // be resolved when its workspace was first restored.

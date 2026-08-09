@@ -31,7 +31,7 @@ use serde::{Deserialize, Serialize};
 use settings::Settings;
 use smallvec::SmallVec;
 use std::{mem, ops::Range, sync::Arc, time::Duration};
-use theme::{ActiveTheme, WindowTheme};
+use theme::WindowTheme;
 use theme_settings::ThemeSettings;
 use ui::{
     Avatar, AvatarAvailabilityIndicator, CollabNotification, ContextMenu, CopyButton,
@@ -2782,7 +2782,7 @@ impl CollabPanel {
             }
             ListEntry::Contact { contact, calling } => {
                 self.mark_contact_request_accepted_notifications_read(contact.user.legacy_id, cx);
-                self.render_contact(&contact, calling, is_selected, cx)
+                self.render_contact(&contact, calling, is_selected, window, cx)
                     .into_any_element()
             }
             ListEntry::ContactPlaceholder => self
@@ -2903,7 +2903,7 @@ impl CollabPanel {
                         .size_full()
                         .track_scroll(&self.scroll_handle)
                         .with_decoration(
-                            ui::indent_guides(px(20.), IndentGuideColors::panel(cx))
+                            ui::indent_guides(px(20.), IndentGuideColors::panel(window.theme(cx)))
                                 .with_left_offset(ui::LIST_ITEM_INDENT_GUIDE_LEFT_OFFSET)
                                 .with_compute_indents_fn(cx.entity(), |this, range, _, _| {
                                     range
@@ -3130,6 +3130,7 @@ impl CollabPanel {
         contact: &Arc<Contact>,
         calling: bool,
         is_selected: bool,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         let online = contact.online;
@@ -3163,9 +3164,9 @@ impl CollabPanel {
                                 Avatar::new(contact.user.avatar_uri.clone())
                                     .indicator::<AvatarAvailabilityIndicator>(if online {
                                     let background = if is_selected || context_menu_open_via_row {
-                                        cx.theme().colors().ghost_element_selected
+                                        window.theme(cx).colors().ghost_element_selected
                                     } else {
-                                        cx.theme().colors().panel_background
+                                        window.theme(cx).colors().panel_background
                                     };
                                     Some(
                                         AvatarAvailabilityIndicator::new(match busy {
@@ -3446,9 +3447,9 @@ impl CollabPanel {
         };
 
         let icon_knockout_bg = if is_selected || is_active {
-            cx.theme().colors().ghost_element_selected
+            window.theme(cx).colors().ghost_element_selected
         } else {
-            cx.theme().colors().panel_background
+            window.theme(cx).colors().panel_background
         };
 
         let is_hovered = self.hovered_channel == Some((channel_id, is_favorite_entry));
@@ -3472,8 +3473,8 @@ impl CollabPanel {
                         .size(IconSize::Small)
                         .color(Color::Muted),
                     Some(
-                        IconDecoration::new(IconDecorationKind::Dot, icon_knockout_bg, cx)
-                            .color(cx.theme().colors().text_accent)
+                        IconDecoration::new(IconDecorationKind::Dot, icon_knockout_bg, window.theme(cx))
+                            .color(window.theme(cx).colors().text_accent)
                             .position(Point {
                                 x: px(-3.),
                                 y: px(6.),
@@ -3489,8 +3490,8 @@ impl CollabPanel {
             }
         });
 
-        let panel_bg = cx.theme().colors().panel_background;
-        let hover_bg = panel_bg.blend(cx.theme().colors().ghost_element_hover);
+        let panel_bg = window.theme(cx).colors().panel_background;
+        let hover_bg = panel_bg.blend(window.theme(cx).colors().ghost_element_hover);
 
         h_flex()
             .id(ix)

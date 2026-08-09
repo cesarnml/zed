@@ -5461,7 +5461,7 @@ impl GitPanel {
                                     .handler(move |window, cx| {
                                         window.dispatch_action(Box::new(SkipHooks), cx)
                                     })
-                                    .documentation_aside(DocumentationSide::Left, |_| {
+                                    .documentation_aside(DocumentationSide::Left, |_, _| {
                                         Label::new("git commit --no-verify").into_any_element()
                                     }),
                             )
@@ -6637,7 +6637,8 @@ impl GitPanel {
                                                                     "+{hidden_tag_count}"
                                                                 ))
                                                                 .bg_color(
-                                                                    cx.theme()
+                                                                    window
+                                                                        .theme(cx)
                                                                         .colors()
                                                                         .element_active
                                                                         .opacity(0.8),
@@ -6659,10 +6660,10 @@ impl GitPanel {
                                                             .rounded_sm()
                                                             .border_1()
                                                             .border_color(
-                                                                cx.theme().colors().border,
+                                                                window.theme(cx).colors().border,
                                                             )
-                                                            .bg(cx
-                                                                .theme()
+                                                            .bg(window
+                                                                .theme(cx)
                                                                 .colors()
                                                                 .element_background)
                                                             .child(

@@ -136,7 +136,7 @@ impl RenderOnce for ListHeader {
                                 DockSide::Right => this.border_r_2(),
                             })
                             .when(focused, |this| {
-                                this.border_color(cx.theme().colors().border_focused)
+                                this.border_color(window.theme(cx).colors().border_focused)
                             })
                     })
                     .flex()

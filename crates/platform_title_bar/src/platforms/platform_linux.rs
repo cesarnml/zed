@@ -231,7 +231,7 @@ impl RenderOnce for WindowControl {
             .text_color(if enabled {
                 self.style.icon
             } else {
-                cx.theme().colors().icon_disabled
+                window.theme(cx).colors().icon_disabled
             })
             .when(enabled, |this| {
                 this.group_hover("", |this| this.text_color(self.style.icon_hover))
