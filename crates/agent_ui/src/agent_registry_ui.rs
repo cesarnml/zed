@@ -1,4 +1,5 @@
 use std::ops::Range;
+use ui::WindowTheme as _;
 
 use client::zed_urls;
 use collections::HashMap;
@@ -56,7 +57,7 @@ impl ParentElement for AgentRegistryCard {
 }
 
 impl RenderOnce for AgentRegistryCard {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         div().w_full().child(
             v_flex()
                 .p_3()
@@ -64,9 +65,13 @@ impl RenderOnce for AgentRegistryCard {
                 .w_full()
                 .min_h(rems_from_px(86.))
                 .gap_2()
-                .bg(cx.theme().colors().elevated_surface_background.opacity(0.5))
+                .bg(window
+                    .theme(cx)
+                    .colors()
+                    .elevated_surface_background
+                    .opacity(0.5))
                 .border_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .rounded_md()
                 .children(self.children),
         )
@@ -234,7 +239,7 @@ impl AgentRegistryPage {
         }
     }
 
-    fn render_search(&self, cx: &mut Context<Self>) -> Div {
+    fn render_search(&self, window: &Window, cx: &mut Context<Self>) -> Div {
         let mut key_context = KeyContext::new_with_defaults();
         key_context.add("BufferSearchBar");
 
@@ -247,23 +252,24 @@ impl AgentRegistryPage {
             .pr_2()
             .gap_2()
             .border_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .rounded_md()
             .child(Icon::new(IconName::MagnifyingGlass).color(Color::Muted))
-            .child(self.render_text_input(&self.query_editor, cx))
+            .child(self.render_text_input(&self.query_editor, window, cx))
     }
 
     fn render_text_input(
         &self,
         editor: &Entity<Editor>,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         let settings = ThemeSettings::get_global(cx);
         let text_style = TextStyle {
             color: if editor.read(cx).read_only(cx) {
-                cx.theme().colors().text_disabled
+                window.theme(cx).colors().text_disabled
             } else {
-                cx.theme().colors().text
+                window.theme(cx).colors().text
             },
             font_family: settings.ui_font.family.clone(),
             font_features: settings.ui_font.features.clone(),
@@ -277,8 +283,8 @@ impl AgentRegistryPage {
         EditorElement::new(
             editor,
             EditorStyle {
-                background: cx.theme().colors().editor_background,
-                local_player: cx.theme().players().local(),
+                background: window.theme(cx).colors().editor_background,
+                local_player: window.theme(cx).players().local(),
                 text: text_style,
                 ..Default::default()
             },
@@ -364,7 +370,7 @@ impl AgentRegistryPage {
     fn render_agents(
         &mut self,
         range: Range<usize>,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Vec<AgentRegistryCard> {
         range
@@ -570,13 +576,13 @@ impl Render for AgentRegistryPage {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .size_full()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child(
                 v_flex()
                     .p_4()
                     .gap_4()
                     .border_b_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .child(
                         h_flex()
                             .w_full()
@@ -602,7 +608,7 @@ impl Render for AgentRegistryPage {
                             .w_full()
                             .flex_wrap()
                             .gap_2()
-                            .child(self.render_search(cx))
+                            .child(self.render_search(window, cx))
                             .child(
                                 div().child(
                                     ToggleButtonGroup::single_row(

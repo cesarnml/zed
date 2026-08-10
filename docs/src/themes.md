@@ -13,6 +13,14 @@ See what themes are installed and preview them via the Theme Selector, which you
 
 Navigating through the theme list by moving up and down will change the theme in real time and hitting enter will save the selected one to your settings file.
 
+### Per-Window Themes
+
+Each window can also use its own theme, which is handy for telling multiple open projects apart at a glance (for example, production vs. staging checkouts).
+
+Open the window-scoped selector from the command palette with {#action theme_selector::ToggleWindowTheme}. The theme you pick applies only to the current window and is remembered for that project across restarts — it is never written to your settings file. Use {#action theme_selector::ClearWindowTheme} to go back to your configured theme.
+
+Because a window-scoped theme pins one concrete theme, it does not follow the system's light/dark mode switching until you clear it.
+
 ## Installing New Themes
 
 You can find hundreds of different theme options in Zed's extensions store, which you can access via the command palette with {#action zed::Extensions} or the [Zed website](https://zed.dev/extensions?filter=themes).

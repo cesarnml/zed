@@ -1,4 +1,5 @@
 use std::path::Path;
+use ui::WindowTheme as _;
 
 use fs::Fs;
 use gpui::AppContext;
@@ -16,7 +17,6 @@ use std::collections::HashSet;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::sync::Arc;
-use ui::ActiveTheme;
 use ui::Button;
 use ui::Clickable;
 use ui::FluentBuilder;
@@ -417,7 +417,7 @@ impl PickerDelegate for TemplatePickerDelegate {
 
     fn render_footer(
         &self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<AnyElement> {
         Some(
@@ -427,7 +427,7 @@ impl PickerDelegate for TemplatePickerDelegate {
                 .gap_1()
                 .justify_start()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(
                     Button::new("run-action", "Continue")
                         .key_binding(
@@ -614,7 +614,7 @@ impl PickerDelegate for FeaturePickerDelegate {
 
     fn render_footer(
         &self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<AnyElement> {
         Some(
@@ -624,7 +624,7 @@ impl PickerDelegate for FeaturePickerDelegate {
                 .gap_1()
                 .justify_start()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(
                     Button::new("run-action", "Select Feature")
                         .key_binding(
@@ -1383,14 +1383,14 @@ trait StatefulModal: ModalView + EventEmitter<DismissEvent> + Render {
         cx: &mut Context<Self>,
     );
 
-    fn dismiss(&mut self, _: &menu::Cancel, _: &mut Window, cx: &mut Context<Self>) {
+    fn dismiss(&mut self, _: &menu::Cancel, _window: &mut Window, cx: &mut Context<Self>) {
         cx.emit(DismissEvent);
     }
 
     fn render_inner(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let element = self.render_for_state(self.state(), window, cx);
         div()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .w(rems(34.))
             .key_context("ContainerModal")
             .on_action(cx.listener(Self::dismiss))

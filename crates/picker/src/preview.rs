@@ -10,7 +10,7 @@ use project::Symbol;
 /// preview.
 pub trait PreviewBackend: 'static {
     fn update(&self, update: Update, window: &mut Window, cx: &mut App);
-    fn render(&self, layout: Layout, cx: &mut App) -> AnyElement;
+    fn render(&self, layout: Layout, window: &mut Window, cx: &mut App) -> AnyElement;
     /// Called after a resize to let the preview do resizing logic like scrolling.
     fn adjust_to_new_size(&self, window: &mut Window, cx: &mut App);
     /// Empty the preview and show a placeholder message.
@@ -43,8 +43,8 @@ impl Preview {
         self.content.update(update, window, cx);
     }
 
-    pub fn render(&self, cx: &mut App) -> impl IntoElement {
-        self.content.render(self.layout, cx)
+    pub fn render(&self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        self.content.render(self.layout, window, cx)
     }
 
     pub fn adjust_to_new_size(&self, window: &mut Window, cx: &mut App) {

@@ -2,11 +2,11 @@ use askpass::EncryptedPassword;
 use editor::Editor;
 use futures::channel::oneshot;
 use gpui::{AppContext, DismissEvent, Entity, EventEmitter, Focusable, Styled};
+use ui::WindowTheme as _;
 use ui::{
-    ActiveTheme, AnyElement, App, Button, Clickable, Color, Context, DynamicSpacing, Headline,
-    HeadlineSize, Icon, IconName, IconSize, InteractiveElement, IntoElement, Label, LabelCommon,
-    LabelSize, ParentElement, Render, SharedString, StyledExt, StyledTypography, Window, div,
-    h_flex, v_flex,
+    AnyElement, App, Button, Clickable, Color, Context, DynamicSpacing, Headline, HeadlineSize,
+    Icon, IconName, IconSize, InteractiveElement, IntoElement, Label, LabelCommon, LabelSize,
+    ParentElement, Render, SharedString, StyledExt, StyledTypography, Window, div, h_flex, v_flex,
 };
 use util::maybe;
 use workspace::ModalView;
@@ -73,8 +73,8 @@ impl AskPassModal {
         cx.emit(DismissEvent);
     }
 
-    fn render_hint(&mut self, cx: &mut Context<Self>) -> Option<AnyElement> {
-        let color = cx.theme().status().info_background;
+    fn render_hint(&mut self, window: &Window, cx: &mut Context<Self>) -> Option<AnyElement> {
+        let color = window.theme(cx).status().info_background;
         if (self.prompt.contains("Password") || self.prompt.contains("Username"))
             && self.prompt.contains("github.com")
         {
@@ -83,7 +83,7 @@ impl AskPassModal {
                 .p_2()
                 .bg(color)
                 .border_t_1()
-                .border_color(cx.theme().status().info_border)
+                .border_color(window.theme(cx).status().info_border)
                 .child(
                     h_flex().gap_2()
                         .child(
@@ -105,12 +105,12 @@ impl AskPassModal {
 }
 
 impl Render for AskPassModal {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .key_context("PasswordPrompt")
             .on_action(cx.listener(Self::cancel))
             .on_action(cx.listener(Self::confirm))
-            .elevation_2(cx)
+            .elevation_2(window.theme(cx))
             .size_full()
             .child(
                 h_flex()
@@ -134,14 +134,14 @@ impl Render for AskPassModal {
                     .text_buffer(cx)
                     .py_2()
                     .px_3()
-                    .bg(cx.theme().colors().editor_background)
+                    .bg(window.theme(cx).colors().editor_background)
                     .border_t_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .size_full()
                     .overflow_hidden()
                     .child(self.prompt.clone())
                     .child(self.editor.clone()),
             )
-            .children(self.render_hint(cx))
+            .children(self.render_hint(window, cx))
     }
 }

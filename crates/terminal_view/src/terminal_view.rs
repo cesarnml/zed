@@ -1393,7 +1393,7 @@ impl Render for TerminalView {
                 div()
                     .id("terminal-view-container")
                     .size_full()
-                    .bg(cx.theme().colors().editor_background)
+                    .bg(window.theme(cx).colors().editor_background)
                     .child(TerminalElement::new(
                         terminal_handle,
                         terminal_view_handle,
@@ -1405,7 +1405,7 @@ impl Render for TerminalView {
                         self.mode.clone(),
                     ))
                     .when(self.content_mode(window, cx).is_scrollable(), |div| {
-                        let colors = cx.theme().colors();
+                        let colors = window.theme(cx).colors();
                         div.custom_scrollbars(
                             Scrollbars::for_settings::<TerminalScrollbarSettingsWrapper>()
                                 .show_along(ScrollAxes::Vertical)
@@ -1802,7 +1802,11 @@ impl Item for TerminalView {
         }
     }
 
-    fn breadcrumbs(&self, cx: &App) -> Option<(Vec<HighlightedText>, Option<Font>)> {
+    fn breadcrumbs(
+        &self,
+        _window: &Window,
+        cx: &App,
+    ) -> Option<(Vec<HighlightedText>, Option<Font>)> {
         Some((
             vec![HighlightedText {
                 text: self.terminal().read(cx).breadcrumb_text.clone().into(),

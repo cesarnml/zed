@@ -1,4 +1,5 @@
 use super::*;
+use theme::WindowTheme;
 
 impl GutterDimensions {
     /// The width of the space reserved for the fold indicators,
@@ -939,19 +940,21 @@ impl Editor {
 
             (new_newlines, existing_newlines)
         });
+        let hint_background = window.theme(cx).status().hint_background;
+        let hint_border = window.theme(cx).status().hint;
         self.folding_newlines = cx.spawn(async move |this, cx| {
             let (new_newlines, existing_newlines) = task.await;
             if new_newlines == existing_newlines {
                 return;
             }
             let placeholder = FoldPlaceholder {
-                render: Arc::new(move |_, _, cx| {
+                render: Arc::new(move |_, _, _, cx| {
                     div()
-                        .bg(cx.theme().status().hint_background)
+                        .bg(hint_background)
                         .border_b_1()
                         .size_full()
                         .font(ThemeSettings::get_global(cx).buffer_font.clone())
-                        .border_color(cx.theme().status().hint)
+                        .border_color(hint_border)
                         .child("\\n")
                         .into_any()
                 }),

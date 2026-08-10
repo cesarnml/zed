@@ -1,14 +1,15 @@
 use std::{ops::Range, rc::Rc};
+use theme::WindowTheme;
 
 use crate::{
-    ActiveTheme as _, AnyElement, App, Button, ButtonCommon as _, ButtonStyle, Color, Component,
-    ComponentScope, Context, Div, DraggedColumn, ElementId, FixedWidth as _, FluentBuilder as _,
-    HeaderResizeInfo, Indicator, InteractiveElement, IntoElement, ParentElement, Pixels,
-    RESIZE_DIVIDER_WIDTH, RedistributableColumnsState, RegisterComponent, RenderOnce, ScrollAxes,
-    ScrollableHandle, Scrollbars, SharedString, StatefulInteractiveElement, Styled, StyledExt as _,
-    StyledTypography, TableResizeBehavior, Window, WithScrollbar, bind_redistributable_columns,
-    div, example_group_with_title, h_flex, px, redistribute_hidden_widths,
-    render_column_resize_divider, render_redistributable_columns_resize_handles, single_example,
+    AnyElement, App, Button, ButtonCommon as _, ButtonStyle, Color, Component, ComponentScope,
+    Context, Div, DraggedColumn, ElementId, FixedWidth as _, FluentBuilder as _, HeaderResizeInfo,
+    Indicator, InteractiveElement, IntoElement, ParentElement, Pixels, RESIZE_DIVIDER_WIDTH,
+    RedistributableColumnsState, RegisterComponent, RenderOnce, ScrollAxes, ScrollableHandle,
+    Scrollbars, SharedString, StatefulInteractiveElement, Styled, StyledExt as _, StyledTypography,
+    TableResizeBehavior, Window, WithScrollbar, bind_redistributable_columns, div,
+    example_group_with_title, h_flex, px, redistribute_hidden_widths, render_column_resize_divider,
+    render_redistributable_columns_resize_handles, single_example,
     table_row::{IntoTableRow as _, TableRow},
     v_flex,
 };
@@ -632,7 +633,7 @@ pub fn render_table_row(
     let is_striped = table_context.striped;
     let is_last = row_index == table_context.total_row_count - 1;
     let bg = if row_index % 2 == 1 && is_striped {
-        Some(cx.theme().colors().text.opacity(0.05))
+        Some(window.theme(cx).colors().text.opacity(0.05))
     } else {
         None
     };
@@ -651,12 +652,14 @@ pub fn render_table_row(
         .size_full()
         .when_some(bg, |row, bg| row.bg(bg))
         .when(table_context.show_row_hover, |row| {
-            row.hover(|s| s.bg(cx.theme().colors().element_hover.opacity(0.6)))
+            row.hover(|s| s.bg(window.theme(cx).colors().element_hover.opacity(0.6)))
         })
         .when(!is_striped && table_context.show_row_borders, |row| {
             row.border_b_1()
                 .border_color(transparent_black())
-                .when(!is_last, |row| row.border_color(cx.theme().colors().border))
+                .when(!is_last, |row| {
+                    row.border_color(window.theme(cx).colors().border)
+                })
         });
 
     let pinned_cols = table_context.pinned_cols;
@@ -734,6 +737,7 @@ pub fn render_table_header(
     table_context: TableRenderContext,
     resize_info: Option<HeaderResizeInfo>,
     entity_id: Option<EntityId>,
+    window: &mut Window,
     cx: &mut App,
 ) -> AnyElement {
     let cols = headers.cols();
@@ -754,7 +758,7 @@ pub fn render_table_header(
         .py_1()
         .w_full()
         .border_b_1()
-        .border_color(cx.theme().colors().border_variant);
+        .border_color(window.theme(cx).colors().border_variant);
 
     let use_ui_font = table_context.use_ui_font;
     let resize_info_ref = resize_info.as_ref();
@@ -1178,6 +1182,7 @@ impl RenderOnce for Table {
                     table_context.clone(),
                     header_resize_info,
                     interaction_state.as_ref().map(Entity::entity_id),
+                    window,
                     cx,
                 ))
             })

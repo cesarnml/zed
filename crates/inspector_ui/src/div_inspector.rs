@@ -508,7 +508,7 @@ impl DivInspector {
 }
 
 impl Render for DivInspector {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .size_full()
             .gap_2()
@@ -527,7 +527,7 @@ impl Render for DivInspector {
                     div()
                         .w_full()
                         .border_1()
-                        .border_color(Color::Error.color(cx))
+                        .border_color(Color::Error.color(window.theme(cx)))
                         .child(Label::new(message)),
                 ),
                 State::Ready {
@@ -562,7 +562,7 @@ impl Render for DivInspector {
                                     div()
                                         .w_full()
                                         .border_1()
-                                        .border_color(Color::Error.color(cx))
+                                        .border_color(Color::Error.color(window.theme(cx)))
                                         .child(Label::new(last_error)),
                                 )
                             }),

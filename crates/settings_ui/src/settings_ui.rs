@@ -1,3 +1,5 @@
+use ui::ConfiguredTheme as _;
+use ui::WindowTheme as _;
 mod components;
 mod page_data;
 pub mod pages;
@@ -874,7 +876,7 @@ fn open_settings_editor_with(
                 show: true,
                 is_movable: true,
                 kind: gpui::WindowKind::Normal,
-                window_background: cx.theme().window_background_appearance(),
+                window_background: cx.configured_theme().window_background_appearance(),
                 app_id: Some(app_id.to_owned()),
                 window_decorations: Some(window_decorations),
                 window_min_size: Some(gpui::Size {
@@ -1101,6 +1103,7 @@ impl SettingsPageItem {
         cx: &mut Context<SettingsWindow>,
     ) -> AnyElement {
         let file = settings_window.current_file.clone();
+        let theme_colors = window.theme(cx).colors().clone();
 
         let apply_padding = |element: Stateful<Div>| -> Stateful<Div> {
             let element = element.pt_4();
@@ -1312,8 +1315,8 @@ impl SettingsPageItem {
                                     this.mb_8()
                                 })
                                 .border_dashed()
-                                .border_color(cx.theme().colors().border_variant)
-                                .bg(cx.theme().colors().element_background.opacity(0.2)),
+                                .border_color(theme_colors.border_variant)
+                                .bg(theme_colors.element_background.opacity(0.2)),
                         );
                     }
                 }
@@ -2992,9 +2995,9 @@ impl SettingsWindow {
             .mb_3()
             .gap_1p5()
             .rounded_sm()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .border_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .child(Icon::new(IconName::MagnifyingGlass).color(Color::Muted))
             .child(self.search_bar.clone())
     }
@@ -3151,8 +3154,8 @@ impl SettingsWindow {
             .when(cfg!(target_os = "macos"), |this| this.pt_10())
             .flex_none()
             .border_r_1()
-            .border_color(cx.theme().colors().border)
-            .bg(cx.theme().colors().panel_background)
+            .border_color(window.theme(cx).colors().border)
+            .bg(window.theme(cx).colors().panel_background)
             .child(self.render_search(window, cx))
             .child(
                 v_flex()
@@ -3240,7 +3243,7 @@ impl SettingsWindow {
                     .pb_0p5()
                     .flex_shrink_0()
                     .border_t_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .child(
                         KeybindingHint::new(
                             KeyBinding::for_action_in(
@@ -3248,7 +3251,7 @@ impl SettingsWindow {
                                 &self.navbar_focus_handle.focus_handle(cx),
                                 cx,
                             ),
-                            cx.theme().colors().surface_background.opacity(0.5),
+                            window.theme(cx).colors().surface_background.opacity(0.5),
                         )
                         .suffix(focus_keybind_label),
                     ),
@@ -4027,7 +4030,7 @@ impl SettingsWindow {
             .gap_4()
             .flex_1()
             .min_w_0()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child(
                 v_flex()
                     .px_8()
@@ -4483,7 +4486,7 @@ impl Render for SettingsWindow {
 
         client_side_decorations(
             v_flex()
-                .text_color(cx.theme().colors().text)
+                .text_color(window.theme(cx).colors().text)
                 .size_full()
                 .children(self.title_bar.clone())
                 .child(
@@ -4552,10 +4555,11 @@ impl Render for SettingsWindow {
                         .flex_1()
                         .min_h_0()
                         .font(ui_font)
-                        .bg(cx.theme().colors().background)
-                        .text_color(cx.theme().colors().text)
+                        .bg(window.theme(cx).colors().background)
+                        .text_color(window.theme(cx).colors().text)
                         .when(!cfg!(target_os = "macos"), |this| {
-                            this.border_t_1().border_color(cx.theme().colors().border)
+                            this.border_t_1()
+                                .border_color(window.theme(cx).colors().border)
                         })
                         .child(self.render_nav(window, cx))
                         .child(self.render_page(window, cx)),
@@ -5139,14 +5143,14 @@ fn render_theme_picker(
     _metadata: Option<&SettingsFieldMetadata>,
     title: &'static str,
     description: &'static str,
-    _window: &mut Window,
+    window: &mut Window,
     cx: &mut App,
 ) -> AnyElement {
     let (_, value) = SettingsStore::global(cx).get_value_from_file(file.to_settings(), field.pick);
     let current_value = value
         .cloned()
         .map(|theme_name| theme_name.0.into())
-        .unwrap_or_else(|| cx.theme().name.clone());
+        .unwrap_or_else(|| window.theme(cx).name.clone());
 
     let handle = ui::PopoverMenuHandle::default();
     PopoverMenu::new("theme-picker")
@@ -5200,14 +5204,14 @@ fn render_icon_theme_picker(
     _metadata: Option<&SettingsFieldMetadata>,
     title: &'static str,
     description: &'static str,
-    _window: &mut Window,
+    window: &mut Window,
     cx: &mut App,
 ) -> AnyElement {
     let (_, value) = SettingsStore::global(cx).get_value_from_file(file.to_settings(), field.pick);
     let current_value = value
         .cloned()
         .map(|theme_name| theme_name.0.into())
-        .unwrap_or_else(|| cx.theme().name.clone());
+        .unwrap_or_else(|| window.theme(cx).name.clone());
 
     let handle = ui::PopoverMenuHandle::default();
     PopoverMenu::new("icon-theme-picker")

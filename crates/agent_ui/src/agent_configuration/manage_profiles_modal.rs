@@ -985,7 +985,7 @@ impl Render for ManageProfilesModal {
             );
 
         div()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .w(rems(34.))
             .key_context("ManageProfilesModal")
             .on_action(cx.listener(|this, _: &menu::Cancel, window, cx| this.cancel(window, cx)))

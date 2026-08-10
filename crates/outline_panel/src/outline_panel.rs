@@ -1,3 +1,4 @@
+use ui::WindowTheme as _;
 mod outline_panel_settings;
 
 use anyhow::Context as _;
@@ -1183,7 +1184,7 @@ impl OutlinePanel {
     fn scroll_cursor_center(
         &mut self,
         _: &ScrollCursorCenter,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(selected_entry) = self.selected_entry() {
@@ -1199,7 +1200,12 @@ impl OutlinePanel {
         }
     }
 
-    fn scroll_cursor_top(&mut self, _: &ScrollCursorTop, _: &mut Window, cx: &mut Context<Self>) {
+    fn scroll_cursor_top(
+        &mut self,
+        _: &ScrollCursorTop,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         if let Some(selected_entry) = self.selected_entry() {
             let index = self
                 .cached_entries
@@ -1216,7 +1222,7 @@ impl OutlinePanel {
     fn scroll_cursor_bottom(
         &mut self,
         _: &ScrollCursorBottom,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(selected_entry) = self.selected_entry() {
@@ -1962,7 +1968,7 @@ impl OutlinePanel {
     fn copy_path(
         &mut self,
         _: &zed_actions::workspace::CopyPath,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(clipboard_text) = self
@@ -1977,7 +1983,7 @@ impl OutlinePanel {
     fn copy_relative_path(
         &mut self,
         _: &zed_actions::workspace::CopyRelativePath,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         let path_style = self.project.read(cx).path_style(cx);
@@ -1999,7 +2005,7 @@ impl OutlinePanel {
     fn reveal_in_finder(
         &mut self,
         _: &RevealInFileManager,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if let Some(abs_path) = self
@@ -2292,6 +2298,7 @@ impl OutlinePanel {
             string_match
                 .map(|string_match| string_match.ranges().collect::<Vec<_>>())
                 .unwrap_or_default(),
+            window,
             cx,
         )
         .into_any_element();
@@ -2581,6 +2588,7 @@ impl OutlinePanel {
                 body_range: Some(search_data.context_range.clone()),
             },
             match_ranges.iter().cloned(),
+            window,
             cx,
         );
         let truncated_contents_label = || Label::new(TRUNCATED_CONTEXT_MARK);
@@ -2685,13 +2693,13 @@ impl OutlinePanel {
                 if is_active {
                     style
                 } else {
-                    let hover_color = cx.theme().colors().ghost_element_hover;
+                    let hover_color = window.theme(cx).colors().ghost_element_hover;
                     style.bg(hover_color).border_color(hover_color)
                 }
             })
             .when(
                 is_active && self.focus_handle.contains_focused(window, cx),
-                |div| div.border_color(cx.theme().colors().panel_focused_border),
+                |div| div.border_color(window.theme(cx).colors().panel_focused_border),
             )
     }
 
@@ -3433,7 +3441,9 @@ impl OutlinePanel {
         let first_update = Arc::new(AtomicBool::new(true));
         for buffer_id in buffers_to_fetch {
             let outline_task = self.active_editor().map(|editor| {
-                editor.update(cx, |editor, cx| editor.buffer_outline_items(buffer_id, cx))
+                editor.update(cx, |editor, cx| {
+                    editor.buffer_outline_items(buffer_id, window, cx)
+                })
             });
 
             let first_update = first_update.clone();
@@ -4310,7 +4320,7 @@ impl OutlinePanel {
                     new_search_query,
                     previous_matches,
                     new_search_matches,
-                    cx.theme().syntax().clone(),
+                    window.theme(cx).syntax().clone(),
                     window,
                     cx,
                 ));
@@ -4636,7 +4646,7 @@ impl OutlinePanel {
                         h_flex()
                             .px_0p5()
                             .justify_center()
-                            .bg(cx.theme().colors().element_selected.opacity(0.2))
+                            .bg(window.theme(cx).colors().element_selected.opacity(0.2))
                             .child(Label::new(query)),
                     )
                 })
@@ -4739,16 +4749,21 @@ impl OutlinePanel {
                 .track_scroll(&self.scroll_handle)
                 .when(show_indent_guides, |list| {
                     list.with_decoration(
-                        ui::indent_guides(px(indent_size), IndentGuideColors::panel(cx))
-                            .with_compute_indents_fn(cx.entity(), |outline_panel, range, _, _| {
-                                let entries = outline_panel.cached_entries.get(range);
-                                if let Some(entries) = entries {
-                                    entries.iter().map(|item| item.depth).collect()
-                                } else {
-                                    smallvec::SmallVec::new()
-                                }
-                            })
-                            .with_render_fn(cx.entity(), move |outline_panel, params, _, _| {
+                        ui::indent_guides(
+                            px(indent_size),
+                            IndentGuideColors::panel(window.theme(cx)),
+                        )
+                        .with_compute_indents_fn(cx.entity(), |outline_panel, range, _, _| {
+                            let entries = outline_panel.cached_entries.get(range);
+                            if let Some(entries) = entries {
+                                entries.iter().map(|item| item.depth).collect()
+                            } else {
+                                smallvec::SmallVec::new()
+                            }
+                        })
+                        .with_render_fn(
+                            cx.entity(),
+                            move |outline_panel, params, _, _| {
                                 const LEFT_OFFSET: Pixels = ui::LIST_ITEM_INDENT_GUIDE_LEFT_OFFSET;
 
                                 let indent_size = params.indent_size;
@@ -4778,7 +4793,8 @@ impl OutlinePanel {
                                         }
                                     })
                                     .collect()
-                            }),
+                            },
+                        ),
                     )
                 })
             };
@@ -4792,7 +4808,7 @@ impl OutlinePanel {
                         .tracked_scroll_handle(&self.scroll_handle.clone())
                         .with_track_along(
                             ScrollAxes::Horizontal,
-                            cx.theme().colors().panel_background,
+                            window.theme(cx).colors().panel_background,
                         )
                         .tracked_entity(cx.entity_id()),
                     window,
@@ -4812,7 +4828,12 @@ impl OutlinePanel {
         v_flex().w_full().flex_1().overflow_hidden().child(contents)
     }
 
-    fn render_filter_footer(&mut self, pinned: bool, cx: &mut Context<Self>) -> Div {
+    fn render_filter_footer(
+        &mut self,
+        pinned: bool,
+        window: &Window,
+        cx: &mut Context<Self>,
+    ) -> Div {
         let (pin_button_id, icon, icon_tooltip) = if pinned {
             ("unpin_button", IconName::Unpin, "Unpin Outline")
         } else {
@@ -4826,7 +4847,7 @@ impl OutlinePanel {
             .h(Tab::container_height(cx))
             .justify_between()
             .border_b_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .child(
                 h_flex()
                     .w_full()
@@ -4963,7 +4984,7 @@ impl Panel for OutlinePanel {
         OUTLINE_PANEL_KEY
     }
 
-    fn position(&self, _: &Window, cx: &App) -> DockPosition {
+    fn position(&self, _window: &Window, cx: &App) -> DockPosition {
         match OutlinePanelSettings::get_global(cx).dock {
             DockSide::Left => DockPosition::Left,
             DockSide::Right => DockPosition::Right,
@@ -4974,7 +4995,12 @@ impl Panel for OutlinePanel {
         matches!(position, DockPosition::Left | DockPosition::Right)
     }
 
-    fn set_position(&mut self, position: DockPosition, _: &mut Window, cx: &mut Context<Self>) {
+    fn set_position(
+        &mut self,
+        position: DockPosition,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         settings::update_settings_file(self.fs.clone(), cx, move |settings, _| {
             let dock = match position {
                 DockPosition::Left | DockPosition::Bottom => DockSide::Left,
@@ -4984,11 +5010,11 @@ impl Panel for OutlinePanel {
         });
     }
 
-    fn default_size(&self, _: &Window, cx: &App) -> Pixels {
+    fn default_size(&self, _window: &Window, cx: &App) -> Pixels {
         OutlinePanelSettings::get_global(cx).default_width
     }
 
-    fn icon(&self, _: &Window, cx: &App) -> Option<IconName> {
+    fn icon(&self, _window: &Window, cx: &App) -> Option<IconName> {
         OutlinePanelSettings::get_global(cx)
             .button
             .then_some(IconName::ListTree)
@@ -5133,7 +5159,7 @@ impl Render for OutlinePanel {
                 }),
             )
             .track_focus(&self.focus_handle)
-            .child(self.render_filter_footer(pinned, cx))
+            .child(self.render_filter_footer(pinned, window, cx))
             .when_some(search_query_text, |outline_panel, query_text| {
                 outline_panel.child(
                     h_flex()
@@ -5142,7 +5168,7 @@ impl Render for OutlinePanel {
                         .h(Tab::container_height(cx))
                         .gap_0p5()
                         .border_b_1()
-                        .border_color(cx.theme().colors().border_variant)
+                        .border_color(window.theme(cx).colors().border_variant)
                         .child(Label::new("Searching:").color(Color::Muted))
                         .child(Label::new(query_text)),
                 )

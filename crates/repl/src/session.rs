@@ -24,6 +24,7 @@ use editor::{
     scroll::Autoscroll,
 };
 use project::InlayId;
+use ui::WindowTheme as _;
 
 /// Marker types
 enum ReplExecutedRange {}
@@ -40,7 +41,6 @@ use runtimelib::{
 };
 use settings::Settings as _;
 use std::{env::temp_dir, ops::Range, sync::Arc, time::Duration};
-use theme::ActiveTheme;
 use ui::{IconButtonShape, Tooltip, prelude::*};
 use util::ResultExt as _;
 
@@ -199,8 +199,8 @@ impl EditorBlock {
                 .min_h(text_line_height)
                 .w_full()
                 .border_y_1()
-                .border_color(cx.theme().colors().border)
-                .bg(cx.theme().colors().background)
+                .border_color(cx.window.theme(cx.app).colors().border)
+                .bg(cx.window.theme(cx.app).colors().background)
                 .child(
                     div()
                         .relative()
@@ -544,7 +544,7 @@ impl Session {
 
             editor.insert_gutter_highlight::<ReplExecutedRange>(
                 code_range,
-                |cx| cx.theme().status().success,
+                |theme| theme.status().success,
                 cx,
             );
         });
@@ -695,7 +695,7 @@ impl Session {
         let code_range_for_close = anchor_range.clone();
 
         let on_close: CloseBlockFn = Arc::new(
-            move |block_id: CustomBlockId, _: &mut Window, cx: &mut App| {
+            move |block_id: CustomBlockId, _window: &mut Window, cx: &mut App| {
                 if let Some(session) = session_view.upgrade() {
                     session.update(cx, |session, cx| {
                         session.blocks.remove(&parent_message_id);
@@ -731,7 +731,7 @@ impl Session {
             .update(cx, |editor, cx| {
                 editor.insert_gutter_highlight::<ReplExecutedRange>(
                     anchor_range.clone(),
-                    |cx| cx.theme().status().success,
+                    |theme| theme.status().success,
                     cx,
                 );
             })
@@ -920,7 +920,7 @@ pub enum SessionEvent {
 impl EventEmitter<SessionEvent> for Session {}
 
 impl Render for Session {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let (status_text, interrupt_button) = match &self.kernel {
             Kernel::RunningKernel(kernel) => (
                 kernel

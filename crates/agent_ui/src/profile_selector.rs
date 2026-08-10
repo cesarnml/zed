@@ -225,7 +225,7 @@ impl Render for ProfileSelector {
             .end_icon(Icon::new(icon).size(IconSize::XSmall).color(Color::Muted));
 
         let tooltip: Box<dyn Fn(&mut Window, &mut App) -> AnyView> = Box::new(Tooltip::element({
-            move |_window, cx| {
+            move |window, cx| {
                 let container = || h_flex().gap_1().justify_between();
                 v_flex()
                     .gap_1()
@@ -238,7 +238,7 @@ impl Render for ProfileSelector {
                         container()
                             .pt_1()
                             .border_t_1()
-                            .border_color(cx.theme().colors().border_variant)
+                            .border_color(window.theme(cx).colors().border_variant)
                             .child(Label::new("Cycle Through Profiles"))
                             .child(KeyBinding::for_action(&CycleModeSelector, cx)),
                     )
@@ -480,7 +480,7 @@ impl PickerDelegate for ProfilePickerDelegate {
         "profile selector"
     }
 
-    fn placeholder_text(&self, _: &mut Window, _: &mut App) -> Arc<str> {
+    fn placeholder_text(&self, _window: &mut Window, _: &mut App) -> Arc<str> {
         "Search profiles…".into()
     }
 
@@ -501,7 +501,12 @@ impl PickerDelegate for ProfilePickerDelegate {
         self.selected_index
     }
 
-    fn set_selected_index(&mut self, ix: usize, _: &mut Window, cx: &mut Context<Picker<Self>>) {
+    fn set_selected_index(
+        &mut self,
+        ix: usize,
+        _window: &mut Window,
+        cx: &mut Context<Picker<Self>>,
+    ) {
         self.selected_index = ix.min(self.filtered_entries.len().saturating_sub(1));
         cx.notify();
     }
@@ -614,7 +619,7 @@ impl PickerDelegate for ProfilePickerDelegate {
         &self,
         ix: usize,
         selected: bool,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         match self.filtered_entries.get(ix)? {
@@ -626,7 +631,7 @@ impl PickerDelegate for ProfilePickerDelegate {
                         this.mt_1p5()
                             .pt_2()
                             .border_t_1()
-                            .border_color(cx.theme().colors().border_variant)
+                            .border_color(window.theme(cx).colors().border_variant)
                     })
                     .child(
                         Label::new(label.clone())
@@ -726,7 +731,7 @@ impl PickerDelegate for ProfilePickerDelegate {
 
         Some(DocumentationAside {
             side,
-            render: Rc::new(move |cx| {
+            render: Rc::new(move |window, cx| {
                 v_flex()
                     .gap_1p5()
                     .when_some(description.clone(), |this, description| {
@@ -737,7 +742,7 @@ impl PickerDelegate for ProfilePickerDelegate {
                             this.child(
                                 div()
                                     .border_t_1()
-                                    .border_color(cx.theme().colors().border_variant),
+                                    .border_color(window.theme(cx).colors().border_variant),
                             )
                         })
                         .child(
@@ -774,7 +779,7 @@ impl PickerDelegate for ProfilePickerDelegate {
 
     fn render_footer(
         &self,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<gpui::AnyElement> {
         let focus_handle = self.focus_handle.clone();
@@ -787,7 +792,7 @@ impl PickerDelegate for ProfilePickerDelegate {
                     h_flex()
                         .w_full()
                         .border_t_1()
-                        .border_color(cx.theme().colors().border_variant)
+                        .border_color(window.theme(cx).colors().border_variant)
                         .p_1p5()
                         .child(
                             Button::new("configure", "Configure")
@@ -814,7 +819,7 @@ impl PickerDelegate for ProfilePickerDelegate {
                         h_flex()
                             .w_full()
                             .border_t_1()
-                            .border_color(cx.theme().colors().border_variant)
+                            .border_color(window.theme(cx).colors().border_variant)
                             .p_1p5()
                             .child(
                                 Button::new("restricted-mode", "Restricted Mode")

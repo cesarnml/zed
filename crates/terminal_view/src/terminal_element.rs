@@ -17,7 +17,7 @@ use terminal::{
     TerminalBounds, is_app_chosen_exact_color as terminal_is_app_chosen_exact_color,
     is_default_background_color, terminal_settings::TerminalSettings,
 };
-use theme::{ActiveTheme, Theme};
+use theme::{Theme, WindowTheme};
 use theme_settings::ThemeSettings;
 use ui::utils::ensure_minimum_contrast;
 use ui::{ParentElement, Tooltip};
@@ -441,6 +441,7 @@ impl TerminalElement {
         text_style: &TextStyle,
         hyperlink: Option<(HighlightStyle, &Range)>,
         minimum_contrast: f32,
+        window: &Window,
         cx: &App,
     ) -> (
         Vec<LayoutRect>,
@@ -448,7 +449,7 @@ impl TerminalElement {
         Vec<BlockElementLayoutRect>,
     ) {
         let start_time = Instant::now();
-        let theme = cx.theme();
+        let theme = window.theme(cx);
 
         // Pre-allocate with estimated capacity to reduce reallocations
         let estimated_cells = grid.size_hint().0;
@@ -1244,7 +1245,7 @@ impl Element for TerminalElement {
                         }),
                 };
 
-                let theme = cx.theme().clone();
+                let theme = window.theme(cx).clone();
 
                 let link_style = HighlightStyle {
                     color: Some(theme.colors().link_text_hover),
@@ -1452,6 +1453,7 @@ impl Element for TerminalElement {
                             .as_ref()
                             .map(|last_hovered_word| (link_style, &last_hovered_word.word_match)),
                         minimum_contrast,
+                        window,
                         cx,
                     )
                 } else {
@@ -1483,6 +1485,7 @@ impl Element for TerminalElement {
                             .as_ref()
                             .map(|last_hovered_word| (link_style, &last_hovered_word.word_match)),
                         minimum_contrast,
+                        window,
                         cx,
                     )
                 };
@@ -1801,7 +1804,7 @@ impl InputHandler for TerminalInputHandler {
     fn selected_text_range(
         &mut self,
         _ignore_disabled_input: bool,
-        _: &mut Window,
+        _window: &mut Window,
         _cx: &mut App,
     ) -> Option<UTF16Selection> {
         // Always return a valid selection for IME positioning,
@@ -1825,7 +1828,7 @@ impl InputHandler for TerminalInputHandler {
         &mut self,
         _: std::ops::Range<usize>,
         _: &mut Option<std::ops::Range<usize>>,
-        _: &mut Window,
+        _window: &mut Window,
         _: &mut App,
     ) -> Option<String> {
         None

@@ -334,7 +334,7 @@ fn render_api_key_provider(
                 .map(|this| if has_key { this.mt_1() } else { this.mt_4() })
                 .px_neg_8()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(additional_fields),
         )
     })

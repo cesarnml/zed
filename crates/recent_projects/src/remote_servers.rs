@@ -315,7 +315,7 @@ impl PickerDelegate for DevContainerPickerDelegate {
 
     fn render_footer(
         &self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<AnyElement> {
         Some(
@@ -325,7 +325,7 @@ impl PickerDelegate for DevContainerPickerDelegate {
                 .gap_1()
                 .justify_start()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(
                     Button::new("run-action", "Start Dev Container")
                         .key_binding(
@@ -582,7 +582,7 @@ impl gpui::Render for ProjectPicker {
             .child(
                 div()
                     .border_t_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .child(self.picker.clone()),
             )
     }
@@ -1342,7 +1342,7 @@ impl PickerDelegate for RemoteServerPickerDelegate {
 
     fn render_footer(
         &self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<AnyElement> {
         let is_project_selected = matches!(
@@ -1378,7 +1378,7 @@ impl PickerDelegate for RemoteServerPickerDelegate {
                 .p_1p5()
                 .justify_end()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(buttons)
                 .into_any(),
         )
@@ -2483,7 +2483,7 @@ impl RemoteServerProjects {
             }
         });
 
-        let theme = cx.theme();
+        let theme = window.theme(cx);
 
         v_flex()
             .track_focus(&self.focus_handle(cx))
@@ -2938,7 +2938,7 @@ impl RemoteServerProjects {
                 h_flex()
                     .p_2()
                     .border_t_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .child(state.editor.clone()),
             )
     }
@@ -3077,7 +3077,7 @@ impl EventEmitter<DismissEvent> for RemoteServerProjects {}
 impl Render for RemoteServerProjects {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .w(rems(34.))
             .key_context("RemoteServerModal")
             .on_action(cx.listener(Self::cancel))

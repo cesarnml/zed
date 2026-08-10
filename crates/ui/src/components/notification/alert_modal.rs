@@ -6,7 +6,6 @@ use gpui::FocusHandle;
 use gpui::IntoElement;
 use gpui::Stateful;
 use smallvec::{SmallVec, smallvec};
-use theme::ActiveTheme;
 
 type ActionHandler = Box<dyn FnOnce(Stateful<Div>) -> Stateful<Div>>;
 
@@ -93,7 +92,7 @@ impl AlertModal {
 }
 
 impl RenderOnce for AlertModal {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let width = self.width.unwrap_or_else(|| px(440.).into());
         let has_default_footer = self.primary_action.is_some() || self.dismiss_label.is_some();
 
@@ -105,9 +104,9 @@ impl RenderOnce for AlertModal {
                 this.track_focus(&focus_handle)
             })
             .id(self.id)
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .w(width)
-            .bg(cx.theme().colors().elevated_surface_background)
+            .bg(window.theme(cx).colors().elevated_surface_background)
             .overflow_hidden();
 
         for handler in self.action_handlers {
@@ -132,7 +131,7 @@ impl RenderOnce for AlertModal {
                 v_flex()
                     .p_3()
                     .text_ui(cx)
-                    .text_color(Color::Muted.color(cx))
+                    .text_color(Color::Muted.color(window.theme(cx)))
                     .gap_1()
                     .children(self.children),
             );
@@ -178,7 +177,7 @@ impl Component for AlertModal {
         "A modal dialog that presents an alert message with primary and dismiss actions."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         v_flex()
                 .gap_6()
                 .p_4()
@@ -200,7 +199,7 @@ impl Component for AlertModal {
                             .header(
                                 v_flex()
                                     .p_3()
-                                    .bg(cx.theme().colors().background)
+                                    .bg(window.theme(cx).colors().background)
                                     .gap_1()
                                     .child(
                                         h_flex()

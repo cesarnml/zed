@@ -89,7 +89,7 @@ impl Render for AgentNotification {
         let ui_font = theme_settings::setup_ui_font(window, cx);
         let line_height = window.line_height();
 
-        let bg = cx.theme().colors().elevated_surface_background;
+        let bg = window.theme(cx).colors().elevated_surface_background;
         let gradient_overflow = || {
             div()
                 .h_full()
@@ -110,10 +110,10 @@ impl Render for AgentNotification {
             .p_3()
             .gap_4()
             .justify_between()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .text_ui(cx)
             .font(ui_font)
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .rounded_xl()
             .child(
                 h_flex()
@@ -135,7 +135,7 @@ impl Render for AgentNotification {
                                 div()
                                     .relative()
                                     .text_size(px(14.))
-                                    .text_color(cx.theme().colors().text)
+                                    .text_color(window.theme(cx).colors().text)
                                     .truncate()
                                     .child(self.title.clone())
                                     .child(gradient_overflow()),
@@ -145,7 +145,7 @@ impl Render for AgentNotification {
                                     .relative()
                                     .gap_1p5()
                                     .text_size(px(12.))
-                                    .text_color(cx.theme().colors().text_muted)
+                                    .text_color(window.theme(cx).colors().text_muted)
                                     .truncate()
                                     .when_some(
                                         self.project_name.clone(),
@@ -158,8 +158,8 @@ impl Render for AgentNotification {
                                             let mut row = h_flex().gap_1p5().child(project);
                                             if has_caption {
                                                 row = row.child(
-                                                    div().size(px(3.)).rounded_full().bg(cx
-                                                        .theme()
+                                                    div().size(px(3.)).rounded_full().bg(window
+                                                        .theme(cx)
                                                         .colors()
                                                         .text
                                                         .opacity(0.5)),

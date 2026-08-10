@@ -1,6 +1,7 @@
 use std::ops::Range;
 use std::sync::Arc;
 use std::time::Duration;
+use ui::WindowTheme as _;
 
 use acp_thread::{
     AcpThread, AcpThreadEvent, AgentThreadEntry, AssistantMessageChunk, ContentBlock,
@@ -709,9 +710,9 @@ impl ThreadSearchBar {
 }
 
 impl Render for ThreadSearchBar {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let focus_handle = self.query_editor.focus_handle(cx);
-        let theme = cx.theme().colors();
+        let theme = window.theme(cx).colors();
 
         let has_matches = !self.matches.is_empty();
         let query_empty = self.query_editor.read(cx).text(cx).is_empty();
@@ -747,6 +748,7 @@ impl Render for ThreadSearchBar {
                     .child(div().px_1().flex_1().child(render_query_input(
                         &self.query_editor,
                         in_error_state,
+                        window,
                         cx,
                     )))
                     .child(
@@ -823,10 +825,15 @@ impl Render for ThreadSearchBar {
     }
 }
 
-fn render_query_input(editor: &Entity<Editor>, has_error: bool, app: &App) -> impl IntoElement {
-    let theme = app.theme().colors();
+fn render_query_input(
+    editor: &Entity<Editor>,
+    has_error: bool,
+    window: &Window,
+    app: &App,
+) -> impl IntoElement {
+    let theme = window.theme(app).colors();
     let (color, use_syntax) = if has_error {
-        (Color::Error.color(app), false)
+        (Color::Error.color(window.theme(app)), false)
     } else {
         (theme.text, true)
     };
@@ -845,12 +852,12 @@ fn render_query_input(editor: &Entity<Editor>, has_error: bool, app: &App) -> im
     };
     let mut style = EditorStyle {
         background: theme.editor_background,
-        local_player: app.theme().players().local(),
+        local_player: window.theme(app).players().local(),
         text: text_style,
         ..EditorStyle::default()
     };
     if use_syntax {
-        style.syntax = app.theme().syntax().clone();
+        style.syntax = window.theme(app).syntax().clone();
     }
     EditorElement::new(editor, style)
 }

@@ -42,21 +42,21 @@ pub struct Popover {
 }
 
 impl RenderOnce for Popover {
-    fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         div()
             .flex()
             .gap_1()
             .child(
                 v_flex()
-                    .elevation_2(cx)
+                    .elevation_2(window.theme(cx))
                     .py(POPOVER_Y_PADDING / 2.)
                     .child(div().children(self.children)),
             )
             .when_some(self.aside, |this, aside| {
                 this.child(
                     v_flex()
-                        .elevation_2(cx)
-                        .bg(cx.theme().colors().surface_background)
+                        .elevation_2(window.theme(cx))
+                        .bg(window.theme(cx).colors().surface_background)
                         .px_1()
                         .child(aside),
                 )

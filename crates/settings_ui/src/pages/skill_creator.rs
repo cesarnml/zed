@@ -783,7 +783,7 @@ impl SkillCreatorPage {
 
     fn render_body_field(&self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let settings = ThemeSettings::get_global(cx);
-        let theme = cx.theme().clone();
+        let theme = window.theme(cx).clone();
 
         let has_error = self.body_error.is_some();
 
@@ -826,14 +826,14 @@ impl SkillCreatorPage {
                         ..Default::default()
                     },
                     syntax: theme.syntax().clone(),
-                    inlay_hints_style: editor::make_inlay_hints_style(cx),
-                    edit_prediction_styles: editor::make_suggestion_styles(cx),
+                    inlay_hints_style: editor::make_inlay_hints_style(window, cx),
+                    edit_prediction_styles: editor::make_suggestion_styles(window, cx),
                     ..EditorStyle::default()
                 },
             ))
     }
 
-    fn render_footer(&self, _window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render_footer(&self, window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
         let saving = self.saving;
         let main_action = if saving { "Saving…" } else { "Save Skill" };
 
@@ -842,7 +842,7 @@ impl SkillCreatorPage {
             .py_2p5()
             .px_8()
             .border_t_1()
-            .border_color(cx.theme().colors().border_variant.opacity(0.4))
+            .border_color(window.theme(cx).colors().border_variant.opacity(0.4))
             .when(self.save_error.is_some(), |this| {
                 this.gap_2().child(
                     Banner::new()

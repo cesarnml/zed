@@ -11,7 +11,7 @@ use picker::{MatchLocation, PreviewBackend, PreviewLayout, PreviewSource, Previe
 use project::{Project, Symbol};
 use rope::Point;
 use settings::Settings;
-use ui::{ActiveTheme, Color, div, prelude::*, v_flex};
+use ui::{Color, div, prelude::*, v_flex};
 use util::ResultExt as _;
 use util::rel_path::RelPath;
 
@@ -36,9 +36,9 @@ impl PreviewBackend for EditorPreviewHandle {
             .update(cx, |content, cx| content.update(update, window, cx));
     }
 
-    fn render(&self, layout: PreviewLayout, cx: &mut App) -> AnyElement {
+    fn render(&self, layout: PreviewLayout, window: &mut Window, cx: &mut App) -> AnyElement {
         self.0.update(cx, |content, cx| {
-            content.render(layout, cx).into_any_element()
+            content.render(layout, window, cx).into_any_element()
         })
     }
 
@@ -249,7 +249,7 @@ impl EditorPreview {
 
             editor.highlight_rows::<SearchMatchLineHighlight>(
                 range.clone(),
-                |cx| cx.theme().colors().editor_active_line_background,
+                |theme| theme.colors().editor_active_line_background,
                 RowHighlightOptions::default(),
                 cx,
             );
@@ -276,7 +276,7 @@ impl EditorPreview {
             // There is at most one highlighted match in the preview, so take the
             // first background highlight range as the match to focus.
             let Some((range, _)) = editor
-                .background_highlights_in_range(search_range, &display_snapshot, cx.theme())
+                .background_highlights_in_range(search_range, &display_snapshot, window.theme(cx))
                 .into_iter()
                 .next()
             else {
@@ -303,32 +303,32 @@ impl EditorPreview {
         })
     }
 
-    fn render(&self, layout: PreviewLayout, cx: &App) -> impl IntoElement {
+    fn render(&self, layout: PreviewLayout, window: &Window, cx: &App) -> impl IntoElement {
         match layout {
-            PreviewLayout::Below => self.render_preview_below(cx).into_any_element(),
-            PreviewLayout::Right => self.render_preview_right(cx).into_any_element(),
+            PreviewLayout::Below => self.render_preview_below(window, cx).into_any_element(),
+            PreviewLayout::Right => self.render_preview_right(window, cx).into_any_element(),
             PreviewLayout::Hidden => gpui::Empty.into_any_element(),
         }
     }
 
-    fn render_preview_right(&self, cx: &App) -> impl IntoElement {
+    fn render_preview_right(&self, window: &Window, cx: &App) -> impl IntoElement {
         v_flex()
             .size_full()
             .rounded_t_md()
             .rounded_b_md()
-            .child(self.render_message_or_editor(cx))
+            .child(self.render_message_or_editor(window, cx))
     }
 
-    fn render_preview_below(&self, cx: &App) -> impl IntoElement {
+    fn render_preview_below(&self, window: &Window, cx: &App) -> impl IntoElement {
         v_flex()
             .size_full()
             .rounded_b_md()
-            .child(self.render_message_or_editor(cx))
+            .child(self.render_message_or_editor(window, cx))
     }
 
-    fn render_message_or_editor(&self, cx: &App) -> impl IntoElement {
+    fn render_message_or_editor(&self, window: &Window, cx: &App) -> impl IntoElement {
         if let Some(message) = &self.message {
-            self.render_message(message, cx).into_any_element()
+            self.render_message(message, window, cx).into_any_element()
         } else {
             div()
                 .flex_1()
@@ -338,7 +338,12 @@ impl EditorPreview {
         }
     }
 
-    fn render_message(&self, message: &HighlightedText, cx: &App) -> impl IntoElement {
+    fn render_message(
+        &self,
+        message: &HighlightedText,
+        window: &Window,
+        cx: &App,
+    ) -> impl IntoElement {
         // `with_highlights` inherits the container's text style (set below),
         // while keeping the message's own highlights (e.g. the file path in
         // the file finder's "Create new file" entry).
@@ -351,7 +356,7 @@ impl EditorPreview {
             .justify_center()
             .font_ui(cx)
             .text_ui(cx)
-            .text_color(Color::Muted.color(cx))
+            .text_color(Color::Muted.color(window.theme(cx)))
             .child(content)
     }
 

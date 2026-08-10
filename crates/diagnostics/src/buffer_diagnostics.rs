@@ -886,7 +886,7 @@ impl Item for BufferDiagnosticsEditor {
 }
 
 impl Render for BufferDiagnosticsEditor {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let path_style = self.project.read(cx).path_style(cx);
         let filename = self.project_path.path.display(path_style).to_string();
         let error_count = self.summary.error_count;
@@ -908,7 +908,7 @@ impl Render for BufferDiagnosticsEditor {
                 .justify_center()
                 .items_center()
                 .text_center()
-                .bg(cx.theme().colors().editor_background)
+                .bg(window.theme(cx).colors().editor_background)
                 .child(
                     div()
                         .h_flex()

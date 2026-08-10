@@ -1670,8 +1670,8 @@ impl Editor {
             refresh_linked_ranges(self, window, cx);
 
             self.refresh_selected_text_highlights(&display_map, false, window, cx);
-            self.refresh_matching_bracket_highlights(&display_map, cx);
-            self.refresh_outline_symbols_at_cursor(cx);
+            self.refresh_matching_bracket_highlights(&display_map, window, cx);
+            self.refresh_outline_symbols_at_cursor(window, cx);
             self.update_visible_edit_prediction(window, cx);
             self.hide_blame_popover(true, cx);
             if self.git_blame_inline_enabled {

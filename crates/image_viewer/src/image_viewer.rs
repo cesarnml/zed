@@ -432,7 +432,7 @@ impl Element for ImageContentElement {
         let zoom_level = initial_zoom_level.unwrap_or(image_view.zoom_level);
 
         let pan_offset = image_view.pan_offset;
-        let border_color = cx.theme().colors().border;
+        let border_color = window.theme(cx).colors().border;
 
         let is_dragging = image_view.is_dragging();
 
@@ -481,7 +481,7 @@ impl Element for ImageContentElement {
                             .top_0()
                             .left_0()
                             .child(div().size_full().bg(checkerboard(
-                                cx.theme().colors().panel_background,
+                                window.theme(cx).colors().panel_background,
                                 BASE_SQUARE_SIZE * zoom_level,
                             )))
                             .border_1()
@@ -603,7 +603,7 @@ impl Item for ImageView {
             .into()
     }
 
-    fn tab_icon(&self, _: &Window, cx: &App) -> Option<Icon> {
+    fn tab_icon(&self, _window: &Window, cx: &App) -> Option<Icon> {
         let path = self.image_item.read(cx).abs_path(cx)?;
         ItemSettings::get_global(cx)
             .file_icons
@@ -621,7 +621,11 @@ impl Item for ImageView {
         }
     }
 
-    fn breadcrumbs(&self, cx: &App) -> Option<(Vec<HighlightedText>, Option<Font>)> {
+    fn breadcrumbs(
+        &self,
+        _window: &Window,
+        cx: &App,
+    ) -> Option<(Vec<HighlightedText>, Option<Font>)> {
         let text = breadcrumbs_text_for_image(self.project.read(cx), self.image_item.read(cx), cx);
         let font = ThemeSettings::get_global(cx).buffer_font.clone();
 
@@ -765,7 +769,7 @@ impl Focusable for ImageView {
 }
 
 impl Render for ImageView {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
             .track_focus(&self.focus_handle(cx))
             .key_context("ImageViewer")
@@ -777,7 +781,7 @@ impl Render for ImageView {
             .on_action(cx.listener(Self::reveal_in_file_manager))
             .size_full()
             .relative()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child({
                 let container = div()
                     .id("image-container")
@@ -860,7 +864,7 @@ impl ImageViewToolbarControls {
             let mut editor = Editor::single_line(window, cx);
             editor.set_text(zoom_percentage.to_string(), window, cx);
             editor.set_text_style_refinement(gpui::TextStyleRefinement {
-                color: Some(cx.theme().colors().text),
+                color: Some(window.theme(cx).colors().text),
                 text_align: Some(gpui::TextAlign::Center),
                 font_size: Some(TextSize::Small.rems(cx).into()),
                 ..Default::default()

@@ -190,7 +190,7 @@ impl TableView {
         window: &mut Window,
         cx: &mut App,
     ) -> AnyElement {
-        let theme = cx.theme();
+        let theme = window.theme(cx);
 
         let line_height = window.line_height();
 

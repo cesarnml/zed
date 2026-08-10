@@ -1,9 +1,10 @@
 use std::ops::Range;
+use theme::WindowTheme;
 
 use collections::HashMap;
 use futures::FutureExt;
 use futures::future::join_all;
-use gpui::{App, Context, HighlightStyle, Task};
+use gpui::{App, Context, HighlightStyle, Task, Window};
 use itertools::Itertools as _;
 use language::language_settings::LanguageSettings;
 use language::{Buffer, OutlineItem};
@@ -12,7 +13,7 @@ use multi_buffer::{
     ToOffset as _,
 };
 use text::BufferId;
-use theme::{ActiveTheme as _, SyntaxTheme};
+use theme::SyntaxTheme;
 use unicode_segmentation::UnicodeSegmentation as _;
 use util::maybe;
 
@@ -26,6 +27,7 @@ impl Editor {
     pub fn buffer_outline_items(
         &self,
         buffer_id: BufferId,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Task<Vec<OutlineItem<text::Anchor>>> {
         let Some(buffer) = self.buffer.read(cx).buffer(buffer_id) else {
@@ -49,7 +51,7 @@ impl Editor {
             })
         } else {
             let buffer_snapshot = buffer.read(cx).snapshot();
-            let syntax = cx.theme().syntax().clone();
+            let syntax = window.theme(cx).syntax().clone();
             cx.background_executor()
                 .spawn(async move { buffer_snapshot.outline(Some(&syntax)).items })
         }
@@ -143,6 +145,7 @@ impl Editor {
     pub(super) fn refresh_document_symbols(
         &mut self,
         for_buffer: Option<BufferId>,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if !self.lsp_data_enabled() {
@@ -181,7 +184,7 @@ impl Editor {
             retain
         });
         if symbols_altered {
-            self.refresh_outline_symbols_at_cursor(cx);
+            self.refresh_outline_symbols_at_cursor(window, cx);
         }
 
         if buffers_to_query.is_empty() {
@@ -189,7 +192,7 @@ impl Editor {
         }
 
         self.refresh_document_symbols_task = cx
-            .spawn(async move |editor, cx| {
+            .spawn_in(window, async move |editor, cx| {
                 cx.background_executor()
                     .timer(LSP_REQUEST_DEBOUNCE_TIMEOUT)
                     .await;
@@ -214,8 +217,8 @@ impl Editor {
 
                 let results = join_all(tasks).await.into_iter().collect::<HashMap<_, _>>();
                 editor
-                    .update(cx, |editor, cx| {
-                        let syntax = cx.theme().syntax().clone();
+                    .update_in(cx, |editor, window, cx| {
+                        let syntax = window.theme(cx).syntax().clone();
                         let display_snapshot =
                             editor.display_map.update(cx, |map, cx| map.snapshot(cx));
                         let mut highlighted_results = results;
@@ -229,7 +232,7 @@ impl Editor {
                             }
                         }
                         editor.lsp_document_symbols.extend(highlighted_results);
-                        editor.refresh_outline_symbols_at_cursor(cx);
+                        editor.refresh_outline_symbols_at_cursor(window, cx);
                     })
                     .ok();
             })
@@ -333,7 +336,7 @@ mod tests {
     };
 
     use futures::StreamExt as _;
-    use gpui::{App, TestAppContext};
+    use gpui::{App, TestAppContext, Window};
     use multi_buffer::ToPoint;
     use settings::{DocumentSymbols, SettingsStore};
     use text::Point;
@@ -358,9 +361,9 @@ mod tests {
             .collect()
     }
 
-    fn breadcrumb_texts(editor: &Editor, cx: &App) -> Vec<String> {
+    fn breadcrumb_texts(editor: &Editor, window: &Window, cx: &App) -> Vec<String> {
         editor
-            .breadcrumbs(cx)
+            .breadcrumbs(window, cx)
             .expect("Should have breadcrumbs")
             .0
             .into_iter()
@@ -1037,16 +1040,16 @@ mod tests {
         assert!(symbol_request.next().await.is_some());
         cx.run_until_parked();
 
-        cx.update_editor(|editor, _window, cx| {
+        cx.update_editor(|editor, window, cx| {
             assert_eq!(
-                breadcrumb_texts(editor, cx),
+                breadcrumb_texts(editor, window, cx),
                 vec![path!("dir/file.rs").to_string()],
                 "Breadcrumbs should fall back to the file name when the language server returns no symbols"
             );
 
             editor.set_breadcrumb_header("Last 1000 lines in the log".to_string());
             assert_eq!(
-                breadcrumb_texts(editor, cx),
+                breadcrumb_texts(editor, window, cx),
                 vec!["Last 1000 lines in the log".to_string()],
                 "A custom breadcrumb header should never disappear"
             );
@@ -1075,9 +1078,9 @@ mod tests {
         cx.set_state("fn maˇin() {\n    let x = 1;\n}\n");
         cx.run_until_parked();
 
-        cx.update_editor(|editor, _window, cx| {
+        cx.update_editor(|editor, window, cx| {
             assert_eq!(
-                breadcrumb_texts(editor, cx),
+                breadcrumb_texts(editor, window, cx),
                 vec![path!("dir/file.rs").to_string(), "fn main".to_string()],
                 "With tree-sitter symbols, breadcrumbs should show the file name and the symbol"
             );
@@ -1104,9 +1107,9 @@ mod tests {
         assert!(symbol_request.next().await.is_some());
         cx.run_until_parked();
 
-        cx.update_editor(|editor, _window, cx| {
+        cx.update_editor(|editor, window, cx| {
             assert_eq!(
-                breadcrumb_texts(editor, cx),
+                breadcrumb_texts(editor, window, cx),
                 vec![path!("dir/file.rs").to_string()],
                 "After enabling LSP symbols that return nothing, breadcrumbs should keep the file name"
             );
@@ -1122,9 +1125,9 @@ mod tests {
         });
         cx.run_until_parked();
 
-        cx.update_editor(|editor, _window, cx| {
+        cx.update_editor(|editor, window, cx| {
             assert_eq!(
-                breadcrumb_texts(editor, cx),
+                breadcrumb_texts(editor, window, cx),
                 vec![path!("dir/file.rs").to_string(), "fn main".to_string()],
                 "After disabling LSP symbols, tree-sitter breadcrumbs should return"
             );

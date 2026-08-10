@@ -302,7 +302,7 @@ impl TelemetryLogView {
 
         let base_size = TextSize::Editor.rems(cx);
         let text_style = window.text_style();
-        let theme = cx.theme().clone();
+        let theme = window.theme(cx).clone();
         let colors = theme.colors();
         let border_color = colors.border;
         let element_background = colors.element_background;
@@ -503,7 +503,7 @@ impl Render for TelemetryLogView {
         v_flex()
             .track_focus(&self.focus_handle)
             .size_full()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child(if self.filtered_indices.is_empty() {
                 h_flex()
                     .size_full()

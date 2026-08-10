@@ -39,7 +39,6 @@ use std::{
     time::Duration,
 };
 use text::{BufferId, OffsetRangeExt};
-use theme::ActiveTheme;
 use toolbar_controls::DiagnosticsToolbarEditor;
 pub use toolbar_controls::ToolbarControls;
 use ui::{Icon, IconName, Label, h_flex, prelude::*};
@@ -94,7 +93,7 @@ const DIAGNOSTICS_UPDATE_DEBOUNCE: Duration = Duration::from_millis(50);
 const DIAGNOSTICS_SUMMARY_UPDATE_DEBOUNCE: Duration = Duration::from_millis(30);
 
 impl Render for ProjectDiagnosticsEditor {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let warning_count = if self.include_warnings {
             self.summary.warning_count
         } else {
@@ -115,7 +114,7 @@ impl Render for ProjectDiagnosticsEditor {
                     .justify_center()
                     .items_center()
                     .text_center()
-                    .bg(cx.theme().colors().editor_background)
+                    .bg(window.theme(cx).colors().editor_background)
                     .child(Label::new(label).color(Color::Muted))
                     .when(self.summary.warning_count > 0, |this| {
                         let plural_suffix = if self.summary.warning_count > 1 {
@@ -416,7 +415,12 @@ impl ProjectDiagnosticsEditor {
         }
     }
 
-    fn toggle_warnings(&mut self, _: &ToggleWarnings, _: &mut Window, cx: &mut Context<Self>) {
+    fn toggle_warnings(
+        &mut self,
+        _: &ToggleWarnings,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         cx.set_global(IncludeWarnings(!self.include_warnings));
     }
 
@@ -814,7 +818,7 @@ impl Item for ProjectDiagnosticsEditor {
     fn set_nav_history(
         &mut self,
         nav_history: ItemNavHistory,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.editor.update(cx, |editor, _| {

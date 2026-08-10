@@ -32,7 +32,7 @@ use std::{
     path::PathBuf,
     sync::Arc,
 };
-use theme::ActiveTheme;
+use theme::WindowTheme;
 use ui::{ContextMenu, DiffStat, Disclosure, Divider, Tooltip, WithScrollbar, prelude::*};
 use util::{ResultExt, paths::PathStyle, rel_path::RelPath, truncate_and_trailoff};
 use workspace::item::TabTooltipContent;
@@ -573,7 +573,7 @@ impl CommitView {
             let editor = editor.rhs_editor().clone();
             editor.update(cx, |editor, cx| {
                 let snapshot = editor.snapshot(window, cx);
-                let style = editor.style(cx);
+                let style = editor.style(window, cx);
                 let font_id = window.text_system().resolve_font(&style.text.font());
                 let font_size = style.text.font_size.to_pixels(window.rem_size());
                 snapshot
@@ -611,7 +611,7 @@ impl CommitView {
             .py_2p5()
             .gap_2()
             .border_b_1()
-            .border_color(cx.theme().colors().border_variant)
+            .border_color(window.theme(cx).colors().border_variant)
             .child(
                 h_flex()
                     .pr_2p5()
@@ -1248,7 +1248,7 @@ impl Render for CommitView {
             .key_context(if is_stash { "StashDiff" } else { "CommitDiff" })
             .on_action(cx.listener(Self::open_file_at_head_action))
             .size_full()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child(self.render_header(window, cx))
             .when(
                 !self.editor.read(cx).rhs_editor().read(cx).is_empty(cx),

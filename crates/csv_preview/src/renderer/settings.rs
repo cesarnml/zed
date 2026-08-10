@@ -1,7 +1,7 @@
+use ui::WindowTheme as _;
 use ui::{
-    ActiveTheme as _, AnyElement, ButtonSize, Checkbox, Context, ContextMenu, DropdownMenu,
-    ElementId, IntoElement as _, ParentElement as _, Styled as _, ToggleState, Tooltip, Window,
-    div, h_flex,
+    AnyElement, ButtonSize, Checkbox, Context, ContextMenu, DropdownMenu, ElementId,
+    IntoElement as _, ParentElement as _, Styled as _, ToggleState, Tooltip, Window, div, h_flex,
 };
 
 use crate::{
@@ -73,9 +73,9 @@ impl CsvPreviewView {
         let panel = h_flex()
             .gap_4()
             .p_2()
-            .bg(cx.theme().colors().surface_background)
+            .bg(window.theme(cx).colors().surface_background)
             .border_b_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .flex_wrap()
             .child(
                 h_flex()
@@ -84,7 +84,7 @@ impl CsvPreviewView {
                     .child(
                         div()
                             .text_sm()
-                            .text_color(cx.theme().colors().text_muted)
+                            .text_color(window.theme(cx).colors().text_muted)
                             .child("Text Alignment:"),
                     )
                     .child(
@@ -106,7 +106,7 @@ impl CsvPreviewView {
                     .child(
                         div()
                             .text_sm()
-                            .text_color(cx.theme().colors().text_muted)
+                            .text_color(window.theme(cx).colors().text_muted)
                             .child("Filter Sort:"),
                     )
                     .child(
@@ -154,7 +154,7 @@ impl CsvPreviewView {
                 .child(
                     div()
                         .text_sm()
-                        .text_color(cx.theme().colors().text_muted)
+                        .text_color(window.theme(cx).colors().text_muted)
                         .child("Dev-only:"),
                 )
                 .child(create_dev_only_popover_menu(cx)),

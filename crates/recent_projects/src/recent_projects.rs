@@ -834,7 +834,7 @@ impl Focusable for RecentProjects {
 }
 
 impl Render for RecentProjects {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .key_context("RecentProjects")
             .on_action(cx.listener(Self::handle_toggle_open_menu))
@@ -958,7 +958,7 @@ impl PickerDelegate for RecentProjectsDelegate {
     fn update_matches(
         &mut self,
         query: String,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> gpui::Task<()> {
         let query = query.trim_start();
@@ -1659,7 +1659,11 @@ impl PickerDelegate for RecentProjectsDelegate {
         }
     }
 
-    fn render_footer(&self, _: &mut Window, cx: &mut Context<Picker<Self>>) -> Option<AnyElement> {
+    fn render_footer(
+        &self,
+        window: &mut Window,
+        cx: &mut Context<Picker<Self>>,
+    ) -> Option<AnyElement> {
         let focus_handle = self.focus_handle.clone();
         let popover_style = matches!(self.style, ProjectPickerStyle::Popover);
 
@@ -1686,7 +1690,7 @@ impl PickerDelegate for RecentProjectsDelegate {
                     .p_1p5()
                     .gap_1()
                     .border_t_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .child({
                         ButtonLike::new("open_local_folder")
                             .child(
@@ -1808,7 +1812,7 @@ impl PickerDelegate for RecentProjectsDelegate {
                 .gap_1()
                 .justify_end()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .when_some(secondary_footer_actions, |this, actions| {
                     this.child(actions)
                 })

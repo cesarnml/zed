@@ -1000,11 +1000,16 @@ impl MessageEditor {
         .detach();
     }
 
-    fn chat(&mut self, _: &Chat, _: &mut Window, cx: &mut Context<Self>) {
+    fn chat(&mut self, _: &Chat, _window: &mut Window, cx: &mut Context<Self>) {
         self.send(cx);
     }
 
-    fn send_immediately(&mut self, _: &SendImmediately, _: &mut Window, cx: &mut Context<Self>) {
+    fn send_immediately(
+        &mut self,
+        _: &SendImmediately,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         if self.is_empty(cx) {
             return;
         }
@@ -1031,7 +1036,12 @@ impl MessageEditor {
         self.send(cx);
     }
 
-    fn cancel(&mut self, _: &editor::actions::Cancel, _: &mut Window, cx: &mut Context<Self>) {
+    fn cancel(
+        &mut self,
+        _: &editor::actions::Cancel,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         cx.emit(MessageEditorEvent::Cancel)
     }
 
@@ -1313,7 +1323,7 @@ impl MessageEditor {
         });
     }
 
-    fn copy(&mut self, _: &Copy, _: &mut Window, cx: &mut Context<Self>) {
+    fn copy(&mut self, _: &Copy, _window: &mut Window, cx: &mut Context<Self>) {
         let Some((text, _)) = self.serialize_selection_with_mentions(false, cx) else {
             cx.propagate();
             return;
@@ -2002,7 +2012,7 @@ impl Focusable for MessageEditor {
 }
 
 impl Render for MessageEditor {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
             .key_context("MessageEditor")
             .on_action(cx.listener(Self::chat))
@@ -2018,7 +2028,7 @@ impl Render for MessageEditor {
                 let settings = ThemeSettings::get_global(cx);
 
                 let text_style = TextStyle {
-                    color: cx.theme().colors().text,
+                    color: window.theme(cx).colors().text,
                     font_family: settings.agent_buffer_font_family().clone(),
                     font_fallbacks: settings.buffer_font.fallbacks.clone(),
                     font_features: settings.buffer_font.features.clone(),
@@ -2031,11 +2041,11 @@ impl Render for MessageEditor {
                 EditorElement::new(
                     &self.editor,
                     EditorStyle {
-                        background: cx.theme().colors().editor_background,
-                        local_player: cx.theme().players().local(),
+                        background: window.theme(cx).colors().editor_background,
+                        local_player: window.theme(cx).players().local(),
                         text: text_style,
-                        syntax: cx.theme().syntax().clone(),
-                        inlay_hints_style: editor::make_inlay_hints_style(cx),
+                        syntax: window.theme(cx).syntax().clone(),
+                        inlay_hints_style: editor::make_inlay_hints_style(window, cx),
                         ..Default::default()
                     },
                 )

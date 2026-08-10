@@ -1,6 +1,5 @@
 //! UI-related utilities
 
-use gpui::App;
 use theme::ActiveTheme;
 
 mod apca_contrast;
@@ -20,8 +19,8 @@ pub use search_input::*;
 pub use with_rem_size::*;
 
 /// Returns true if the current theme is light or vibrant light.
-pub fn is_light(cx: &mut App) -> bool {
-    cx.theme().appearance.is_light()
+pub fn is_light(theme: &impl ActiveTheme) -> bool {
+    theme.theme().appearance.is_light()
 }
 
 /// Returns the platform-appropriate label for the "reveal in file manager" action.

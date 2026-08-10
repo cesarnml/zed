@@ -283,7 +283,7 @@ impl ThemePreviewTile {
 }
 
 impl RenderOnce for ThemePreviewTile {
-    fn render(self, _window: &mut ui::Window, _cx: &mut ui::App) -> impl IntoElement {
+    fn render(self, window: &mut ui::Window, cx: &mut ui::App) -> impl IntoElement {
         match self.style {
             ThemePreviewStyle::Bordered => {
                 Self::render_border(self.seed, self.theme).into_any_element()
@@ -295,7 +295,7 @@ impl RenderOnce for ThemePreviewTile {
                 self.seed,
                 self.theme,
                 other_theme,
-                _cx.theme().colors().border,
+                window.theme(cx).colors().border,
             )
             .into_any_element(),
         }
@@ -319,7 +319,7 @@ impl Component for ThemePreviewTile {
         Self::DOCS
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let theme_registry = ThemeRegistry::global(cx);
 
         let one_dark = theme_registry.get("One Dark");

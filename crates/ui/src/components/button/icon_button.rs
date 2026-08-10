@@ -247,7 +247,7 @@ impl RenderOnce for IconButton {
         } else if is_selected {
             self.selected_icon_color.unwrap_or(Color::Selected)
         } else {
-            let base_color = self.icon_color.color(cx);
+            let base_color = self.icon_color.color(window.theme(cx));
             Color::Custom(base_color.opacity(self.alpha.unwrap_or(1.0)))
         };
 

@@ -206,8 +206,8 @@ impl KeybindingHint {
 
 impl RenderOnce for KeybindingHint {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let colors = cx.theme().colors();
-        let is_light = cx.theme().appearance() == Appearance::Light;
+        let colors = window.theme(cx).colors();
+        let is_light = window.theme(cx).appearance() == Appearance::Light;
 
         let border_color =
             self.background_color
@@ -258,10 +258,10 @@ impl Component for KeybindingHint {
         "Displays a keyboard shortcut hint with optional prefix and suffix text"
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let enter = KeyBinding::for_action(&menu::Confirm, cx);
 
-        let bg_color = cx.theme().colors().surface_background;
+        let bg_color = window.theme(cx).colors().surface_background;
 
         v_flex()
             .gap_6()

@@ -77,26 +77,26 @@ impl RenderOnce for Banner {
             Severity::Info => (
                 IconName::Info,
                 Color::Muted,
-                cx.theme().status().info_background.opacity(0.5),
-                cx.theme().colors().border.opacity(0.5),
+                window.theme(cx).status().info_background.opacity(0.5),
+                window.theme(cx).colors().border.opacity(0.5),
             ),
             Severity::Success => (
                 IconName::Check,
                 Color::Success,
-                cx.theme().status().success.opacity(0.1),
-                cx.theme().status().success.opacity(0.2),
+                window.theme(cx).status().success.opacity(0.1),
+                window.theme(cx).status().success.opacity(0.2),
             ),
             Severity::Warning => (
                 IconName::Warning,
                 Color::Warning,
-                cx.theme().status().warning_background.opacity(0.5),
-                cx.theme().status().warning_border.opacity(0.4),
+                window.theme(cx).status().warning_background.opacity(0.5),
+                window.theme(cx).status().warning_border.opacity(0.4),
             ),
             Severity::Error => (
                 IconName::XCircle,
                 Color::Error,
-                cx.theme().status().error.opacity(0.1),
-                cx.theme().status().error.opacity(0.2),
+                window.theme(cx).status().error.opacity(0.1),
+                window.theme(cx).status().error.opacity(0.2),
             ),
         };
 

@@ -1298,7 +1298,7 @@ impl Focusable for FailedToSpawnTerminal {
 }
 
 impl Render for FailedToSpawnTerminal {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let popover_menu = PopoverMenu::new("settings-popover")
             .trigger(
                 IconButton::new("icon-button-popover", IconName::ChevronDown)
@@ -1326,7 +1326,7 @@ impl Render for FailedToSpawnTerminal {
             .p_4()
             .items_center()
             .justify_center()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child(
                 v_flex()
                     .max_w_112()
@@ -1596,7 +1596,7 @@ impl Panel for TerminalPanel {
         self.active_pane.read(cx).is_zoomed()
     }
 
-    fn set_zoomed(&mut self, zoomed: bool, _: &mut Window, cx: &mut Context<Self>) {
+    fn set_zoomed(&mut self, zoomed: bool, _window: &mut Window, cx: &mut Context<Self>) {
         for pane in self.center.panes() {
             pane.update(cx, |pane, cx| {
                 pane.set_zoomed(zoomed, cx);

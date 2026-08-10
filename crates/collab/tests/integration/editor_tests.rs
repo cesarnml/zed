@@ -6322,9 +6322,9 @@ async fn test_document_symbols(cx_a: &mut TestAppContext, cx_b: &mut TestAppCont
     executor.advance_clock(LSP_REQUEST_DEBOUNCE_TIMEOUT + Duration::from_millis(100));
     executor.run_until_parked();
 
-    editor_a.update(cx_a, |editor, cx| {
+    editor_a.update_in(cx_a, |editor, window, cx| {
         let (breadcrumbs, _) = editor
-            .breadcrumbs(cx)
+            .breadcrumbs(window, cx)
             .expect("Host should have breadcrumbs");
         let texts: Vec<_> = breadcrumbs.iter().map(|b| b.text.as_str()).collect();
         assert_eq!(
@@ -6354,10 +6354,10 @@ async fn test_document_symbols(cx_a: &mut TestAppContext, cx_b: &mut TestAppCont
     executor.advance_clock(LSP_REQUEST_DEBOUNCE_TIMEOUT + Duration::from_millis(100));
     executor.run_until_parked();
 
-    editor_b.update(cx_b, |editor, cx| {
+    editor_b.update_in(cx_b, |editor, window, cx| {
         assert_eq!(
             editor
-                .breadcrumbs(cx)
+                .breadcrumbs(window, cx)
                 .expect("Client B should have breadcrumbs")
                 .0
                 .iter()

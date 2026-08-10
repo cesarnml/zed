@@ -52,7 +52,7 @@ use std::mem;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::Arc;
-use theme::{ActiveTheme, CLIENT_SIDE_DECORATION_ROUNDING};
+use theme::{CLIENT_SIDE_DECORATION_ROUNDING, WindowTheme};
 use ui::{
     AgentThreadStatus, CommonAnimationExt, ContextMenu, ContextMenuEntry, Divider, GradientFade,
     HighlightedLabel, KeyBinding, PopoverMenu, PopoverMenuHandle, ProjectEmptyState, ScrollAxes,
@@ -2211,12 +2211,15 @@ impl Sidebar {
                     is_selected,
                     *has_threads,
                     // has_active_draft,
+                    window,
                     cx,
                 )
             }
-            ListEntry::Thread(thread) => self.render_thread(ix, thread, is_active, is_selected, cx),
+            ListEntry::Thread(thread) => {
+                self.render_thread(ix, thread, is_active, is_selected, window, cx)
+            }
             ListEntry::Terminal(terminal) => {
-                self.render_terminal(ix, terminal, is_active, is_selected, cx)
+                self.render_terminal(ix, terminal, is_active, is_selected, window, cx)
             }
         };
 
@@ -2224,7 +2227,7 @@ impl Sidebar {
             v_flex()
                 .w_full()
                 .border_t_1()
-                .border_color(cx.theme().colors().border)
+                .border_color(window.theme(cx).colors().border)
                 .child(rendered)
                 .into_any_element()
         } else {
@@ -2269,6 +2272,7 @@ impl Sidebar {
         is_active: bool,
         is_focused: bool,
         has_threads: bool,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let host = key.host();
@@ -2292,7 +2296,7 @@ impl Sidebar {
         // The fade gradient renders as a visible patch on transparent windows,
         // so truncate the label instead.
         let opaque_window =
-            cx.theme().window_background_appearance() == WindowBackgroundAppearance::Opaque;
+            window.theme(cx).window_background_appearance() == WindowBackgroundAppearance::Opaque;
 
         let label = if highlight_positions.is_empty() {
             Label::new(label.clone())
@@ -2306,7 +2310,7 @@ impl Sidebar {
                 .into_any_element()
         };
 
-        let color = cx.theme().colors();
+        let color = window.theme(cx).colors();
         let sidebar_base_bg = color
             .title_bar_background
             .blend(color.panel_background.opacity(0.25));
@@ -2463,7 +2467,7 @@ impl Sidebar {
                         .pb_2()
                         .gap(px(7.))
                         .child(Icon::new(IconName::Circle).size(IconSize::Small).color(
-                            Color::Custom(cx.theme().colors().icon_placeholder.opacity(0.1)),
+                            Color::Custom(window.theme(cx).colors().icon_placeholder.opacity(0.1)),
                         ))
                         .child(
                             Label::new("No threads yet")
@@ -3187,6 +3191,7 @@ impl Sidebar {
             *is_active,
             is_selected,
             *has_threads,
+            window,
             cx,
         );
 
@@ -3204,7 +3209,7 @@ impl Sidebar {
             })
             .unwrap_or(px(0.));
 
-        let color = cx.theme().colors();
+        let color = window.theme(cx).colors();
         let background = color
             .title_bar_background
             .blend(color.panel_background.opacity(0.2));
@@ -6104,6 +6109,7 @@ impl Sidebar {
         thread: &ThreadEntry,
         is_active: bool,
         is_focused: bool,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let has_notification = self.contents.is_thread_notified(&thread.metadata.thread_id);
@@ -6129,7 +6135,7 @@ impl Sidebar {
 
         let id = SharedString::from(format!("thread-entry-{}", ix));
 
-        let color = cx.theme().colors();
+        let color = window.theme(cx).colors();
         let sidebar_bg = color
             .title_bar_background
             .blend(color.panel_background.opacity(0.25));
@@ -6162,7 +6168,9 @@ impl Sidebar {
             .base_bg(sidebar_bg)
             .icon(icon)
             .when(is_draft, |this| {
-                this.icon_color(Color::Custom(cx.theme().colors().icon_muted.opacity(0.2)))
+                this.icon_color(Color::Custom(
+                    window.theme(cx).colors().icon_muted.opacity(0.2),
+                ))
             })
             .status(thread.status)
             .is_remote(is_remote)
@@ -6466,12 +6474,13 @@ impl Sidebar {
         terminal: &TerminalEntry,
         is_active: bool,
         is_focused: bool,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let id = ElementId::from(format!("terminal-{}", terminal.metadata.terminal_id));
         let timestamp = format_history_entry_timestamp(terminal.metadata.created_at);
         let is_hovered = self.hovered_thread_index == Some(ix);
-        let color = cx.theme().colors();
+        let color = window.theme(cx).colors();
         let sidebar_bg = color
             .title_bar_background
             .blend(color.panel_background.opacity(0.25));
@@ -7230,7 +7239,7 @@ impl Sidebar {
             .gap_1()
             .when(!no_open_projects, |this| {
                 this.border_b_1()
-                    .border_color(cx.theme().colors().border)
+                    .border_color(window.theme(cx).colors().border)
                     .when(traffic_lights, |this| {
                         this.child(Divider::vertical().color(ui::DividerColor::Border))
                     })
@@ -7284,10 +7293,14 @@ impl Sidebar {
         )
     }
 
-    fn render_sidebar_toggle_button(&self, _cx: &mut Context<Self>) -> impl IntoElement {
-        let on_right = AgentSettings::get_global(_cx).sidebar_side() == SidebarSide::Right;
+    fn render_sidebar_toggle_button(
+        &self,
+        _window: &Window,
+        cx: &mut Context<Self>,
+    ) -> impl IntoElement {
+        let on_right = AgentSettings::get_global(cx).sidebar_side() == SidebarSide::Right;
 
-        sidebar_side_context_menu("sidebar-toggle-menu", _cx)
+        sidebar_side_context_menu("sidebar-toggle-menu", cx)
             .anchor(if on_right {
                 gpui::Anchor::BottomRight
             } else {
@@ -7306,7 +7319,7 @@ impl Sidebar {
                 };
                 IconButton::new("sidebar-close-toggle", icon)
                     .icon_size(IconSize::Small)
-                    .tooltip(Tooltip::element(move |_window, cx| {
+                    .tooltip(Tooltip::element(move |window, cx| {
                         v_flex()
                             .gap_1()
                             .child(
@@ -7321,7 +7334,7 @@ impl Sidebar {
                                     .pt_1()
                                     .gap_2()
                                     .border_t_1()
-                                    .border_color(cx.theme().colors().border_variant)
+                                    .border_color(window.theme(cx).colors().border_variant)
                                     .justify_between()
                                     .child(Label::new("Focus Sidebar"))
                                     .child(KeyBinding::for_action(&FocusWorkspaceSidebar, cx)),
@@ -7338,7 +7351,11 @@ impl Sidebar {
             })
     }
 
-    fn render_sidebar_bottom_bar(&mut self, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render_sidebar_bottom_bar(
+        &mut self,
+        window: &Window,
+        cx: &mut Context<Self>,
+    ) -> impl IntoElement {
         let is_archive = matches!(self.view, SidebarView::Archive(..));
         let on_right = self.side(cx) == SidebarSide::Right;
 
@@ -7347,8 +7364,8 @@ impl Sidebar {
             .gap_1()
             .when(on_right, |this| this.flex_row_reverse())
             .border_t_1()
-            .border_color(cx.theme().colors().border)
-            .child(self.render_sidebar_toggle_button(cx))
+            .border_color(window.theme(cx).colors().border)
+            .child(self.render_sidebar_toggle_button(window, cx))
             .child(
                 IconButton::new("history", IconName::Clock)
                     .icon_size(IconSize::Small)
@@ -7441,6 +7458,7 @@ impl Sidebar {
     fn render_acp_import_onboarding(
         &mut self,
         verbose_labels: bool,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         let on_import = cx.listener(|this, _, window, cx| {
@@ -7458,6 +7476,7 @@ impl Sidebar {
             },
             |_, _window, cx| AcpThreadImportOnboarding::dismiss(cx),
             on_import,
+            window,
             cx,
         )
     }
@@ -7470,6 +7489,7 @@ impl Sidebar {
     fn render_cross_channel_import_onboarding(
         &mut self,
         verbose_labels: bool,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         let channel_names = self
@@ -7510,6 +7530,7 @@ impl Sidebar {
             },
             |_, _window, cx| CrossChannelImportOnboarding::dismiss(cx),
             on_import,
+            window,
             cx,
         )
     }
@@ -7614,17 +7635,18 @@ fn render_import_onboarding_banner(
     button_label: impl Into<SharedString>,
     on_dismiss: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
     on_import: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
+    window: &Window,
     cx: &App,
 ) -> impl IntoElement {
     let id: SharedString = id.into();
-    let bg = cx.theme().colors().text_accent;
+    let bg = window.theme(cx).colors().text_accent;
 
     v_flex()
         .min_w_0()
         .w_full()
         .p_2()
         .border_t_1()
-        .border_color(cx.theme().colors().border)
+        .border_color(window.theme(cx).colors().border)
         .bg(linear_gradient(
             360.,
             linear_color_stop(bg.opacity(0.06), 1.),
@@ -7656,7 +7678,9 @@ fn render_import_onboarding_banner(
         .child(
             Button::new(SharedString::from(format!("import-{id}")), button_label)
                 .full_width()
-                .style(ButtonStyle::OutlinedCustom(cx.theme().colors().border))
+                .style(ButtonStyle::OutlinedCustom(
+                    window.theme(cx).colors().border,
+                ))
                 .label_size(LabelSize::Small)
                 .start_icon(
                     Icon::new(IconName::Download)
@@ -7756,7 +7780,7 @@ impl Render for Sidebar {
         let ui_font = theme_settings::setup_ui_font(window, cx);
         let sticky_header = self.render_sticky_header(window, cx);
 
-        let color = cx.theme().colors();
+        let color = window.theme(cx).colors();
         let bg = color
             .title_bar_background
             .blend(color.panel_background.opacity(0.25));
@@ -7886,13 +7910,13 @@ impl Render for Sidebar {
                     .get_or_insert(show_acp && show_cross_channel);
 
                 this.when(show_acp, |this| {
-                    this.child(self.render_acp_import_onboarding(verbose, cx))
+                    this.child(self.render_acp_import_onboarding(verbose, window, cx))
                 })
                 .when(show_cross_channel, |this| {
-                    this.child(self.render_cross_channel_import_onboarding(verbose, cx))
+                    this.child(self.render_cross_channel_import_onboarding(verbose, window, cx))
                 })
             })
-            .child(self.render_sidebar_bottom_bar(cx))
+            .child(self.render_sidebar_bottom_bar(window, cx))
     }
 }
 

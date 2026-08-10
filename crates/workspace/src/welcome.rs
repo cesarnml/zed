@@ -326,9 +326,14 @@ impl WelcomePage {
         }
     }
 
-    fn render_agent_card(&self, tab_index: usize, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render_agent_card(
+        &self,
+        tab_index: usize,
+        window: &Window,
+        cx: &mut Context<Self>,
+    ) -> impl IntoElement {
         let focus = self.focus_handle.clone();
-        let color = cx.theme().colors();
+        let color = window.theme(cx).colors();
 
         let description = "Run multiple threads at once, mix and match any ACP-compatible agent, and keep work conflict-free with worktrees.";
 
@@ -412,7 +417,7 @@ impl WelcomePage {
 }
 
 impl Render for WelcomePage {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let (first_section, second_section) = CONTENT;
         let first_section_entries = first_section.entries.len();
         let mut next_tab_index = first_section_entries + second_section.entries.len();
@@ -460,7 +465,7 @@ impl Render for WelcomePage {
             .on_action(cx.listener(Self::select_next))
             .on_action(cx.listener(Self::open_recent_project))
             .size_full()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .justify_center()
             .child(
                 v_flex()
@@ -492,7 +497,7 @@ impl Render for WelcomePage {
                     .when(ai_enabled && !showing_recent_projects, |this| {
                         let agent_tab_index = next_tab_index;
                         next_tab_index += 1;
-                        this.child(self.render_agent_card(agent_tab_index, cx))
+                        this.child(self.render_agent_card(agent_tab_index, window, cx))
                     })
                     .when(!self.fallback_to_recent_projects, |this| {
                         this.child(

@@ -287,7 +287,7 @@ impl Render for WslOpenModal {
         div()
             .on_mouse_down_out(cx.listener(|_, _, _, cx| cx.emit(DismissEvent)))
             .on_action(cx.listener(Self::cancel))
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .w(rems(34.))
             .flex_1()
             .overflow_hidden()

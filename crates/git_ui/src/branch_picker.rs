@@ -408,7 +408,7 @@ impl BranchList {
     pub fn handle_modifiers_changed(
         &mut self,
         ev: &ModifiersChangedEvent,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.picker.update(cx, |picker, cx| {
@@ -490,7 +490,7 @@ impl Focusable for BranchList {
 }
 
 impl Render for BranchList {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .key_context("GitBranchSelector")
             .on_modifiers_changed(cx.listener(Self::handle_modifiers_changed))
@@ -862,7 +862,7 @@ impl DeleteBranchTooltip {
 }
 
 impl Render for DeleteBranchTooltip {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let force_delete = self
             .picker
             .read_with(cx, |picker, _| {
@@ -1610,7 +1610,7 @@ impl PickerDelegate for BranchListDelegate {
         cx.emit(DismissEvent);
     }
 
-    fn dismissed(&mut self, _: &mut Window, cx: &mut Context<Picker<Self>>) {
+    fn dismissed(&mut self, _window: &mut Window, cx: &mut Context<Picker<Self>>) {
         self.state = PickerState::List;
         cx.emit(DismissEvent);
     }
@@ -1619,7 +1619,7 @@ impl PickerDelegate for BranchListDelegate {
         &self,
         ix: usize,
         selected: bool,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         let entry = &self.matches.get(ix)?;
@@ -1965,7 +1965,7 @@ impl PickerDelegate for BranchListDelegate {
                         .when(show_divider, |this| {
                             this.mt_1()
                                 .border_t_1()
-                                .border_color(cx.theme().colors().border_variant)
+                                .border_color(window.theme(cx).colors().border_variant)
                         })
                         .child(ListSubHeader::new(section_header).inset(true))
                 })
@@ -1974,7 +1974,11 @@ impl PickerDelegate for BranchListDelegate {
         )
     }
 
-    fn render_footer(&self, _: &mut Window, cx: &mut Context<Picker<Self>>) -> Option<AnyElement> {
+    fn render_footer(
+        &self,
+        window: &mut Window,
+        cx: &mut Context<Picker<Self>>,
+    ) -> Option<AnyElement> {
         if self.is_select_only()
             || !self.show_footer
             || self.editor_position() == PickerEditorPosition::End
@@ -1988,7 +1992,7 @@ impl PickerDelegate for BranchListDelegate {
                 .w_full()
                 .p_1p5()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
         };
 
         match self.state {
@@ -3113,7 +3117,7 @@ mod tests {
                         BranchListStyle::Modal,
                         rems(34.),
                         Some("main".into()),
-                        Arc::new(|_: Branch, _: &mut Window, _: &mut App| {}),
+                        Arc::new(|_: Branch, _window: &mut Window, _: &mut App| {}),
                         window,
                         cx,
                     )

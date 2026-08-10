@@ -1,5 +1,6 @@
 use gpui::{AnyElement, Empty, Entity, FocusHandle, Focusable, ListState, Subscription, list};
 use project::debugger::session::{Session, SessionEvent};
+use ui::WindowTheme as _;
 use ui::prelude::*;
 use util::maybe;
 
@@ -35,7 +36,7 @@ impl LoadedSourceList {
         }
     }
 
-    fn render_entry(&mut self, ix: usize, cx: &mut Context<Self>) -> AnyElement {
+    fn render_entry(&mut self, ix: usize, window: &Window, cx: &mut Context<Self>) -> AnyElement {
         let Some(source) = maybe!({
             self.session
                 .update(cx, |state, cx| state.loaded_sources(cx).get(ix).cloned())
@@ -48,7 +49,7 @@ impl LoadedSourceList {
             .w_full()
             .group("")
             .p_1()
-            .hover(|s| s.bg(cx.theme().colors().element_hover))
+            .hover(|s| s.bg(window.theme(cx).colors().element_hover))
             .child(
                 h_flex()
                     .gap_0p5()
@@ -58,7 +59,7 @@ impl LoadedSourceList {
             .child(
                 h_flex()
                     .text_ui_xs(cx)
-                    .text_color(cx.theme().colors().text_muted)
+                    .text_color(window.theme(cx).colors().text_muted)
                     .when_some(source.path, |this, path| this.child(path)),
             )
             .into_any()
@@ -89,7 +90,7 @@ impl Render for LoadedSourceList {
             .child(
                 list(
                     self.list.clone(),
-                    cx.processor(|this, ix, _window, cx| this.render_entry(ix, cx)),
+                    cx.processor(|this, ix, window, cx| this.render_entry(ix, window, cx)),
                 )
                 .size_full(),
             )

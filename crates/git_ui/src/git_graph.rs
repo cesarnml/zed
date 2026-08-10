@@ -44,6 +44,7 @@ use std::{
     sync::{Arc, OnceLock},
     time::{Duration, Instant},
 };
+use ui::WindowTheme as _;
 use zed_actions::{
     buffer_search,
     search::{SelectNextMatch, SelectPreviousMatch, ToggleCaseSensitive},
@@ -1453,7 +1454,7 @@ impl GitGraph {
         cx.on_focus(&focus_handle, window, |_, _, cx| cx.notify())
             .detach();
 
-        let accent_colors = cx.theme().accents();
+        let accent_colors = window.theme(cx).accents();
         let graph = GraphData::new(accent_colors_count(accent_colors));
         let log_source = log_source.unwrap_or_default();
         let log_order = LogOrder::default();
@@ -1835,7 +1836,7 @@ impl GitGraph {
                     author_name = "".into();
                 }
 
-                let accent_colors = cx.theme().accents();
+                let accent_colors = window.theme(cx).accents();
                 let accent_color = accent_colors
                     .0
                     .get(commit.color_idx)
@@ -2008,7 +2009,7 @@ impl GitGraph {
         cx.notify();
     }
 
-    fn search(&mut self, query: SharedString, cx: &mut Context<Self>) {
+    fn search(&mut self, query: SharedString, window: &Window, cx: &mut Context<Self>) {
         let Some(repo) = self.get_repository(cx) else {
             return;
         };
@@ -2039,6 +2040,7 @@ impl GitGraph {
             );
         });
 
+        let error_color = Color::Error.color(window.theme(cx));
         let search_task = cx.spawn(async move |this, cx| {
             while let Ok(first_oid) = request_rx.recv().await {
                 let mut pending_oids = vec![first_oid];
@@ -2060,9 +2062,9 @@ impl GitGraph {
 
             this.update(cx, |this, cx| {
                 if this.search_state.matches.is_empty() {
-                    this.search_state.editor.update(cx, |editor, cx| {
+                    this.search_state.editor.update(cx, |editor, _cx| {
                         editor.set_text_style_refinement(TextStyleRefinement {
-                            color: Some(Color::Error.color(cx)),
+                            color: Some(error_color),
                             ..Default::default()
                         });
                     });
@@ -2075,9 +2077,9 @@ impl GitGraph {
         cx.emit(ItemEvent::Edit);
     }
 
-    fn confirm_search(&mut self, _: &menu::Confirm, _window: &mut Window, cx: &mut Context<Self>) {
+    fn confirm_search(&mut self, _: &menu::Confirm, window: &mut Window, cx: &mut Context<Self>) {
         let query = self.search_state.editor.read(cx).text(cx).into();
-        self.search(query, cx);
+        self.search(query, window, cx);
     }
 
     fn activate_search_editor_if_focused(&self, window: &mut Window, cx: &mut Context<Self>) {
@@ -2359,7 +2361,7 @@ impl GitGraph {
     fn copy_selected_commit_sha(
         &mut self,
         _: &CopyCommitSha,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         let Some(selected_entry_index) = self.selected_entry_idx else {
@@ -2534,8 +2536,8 @@ impl GitGraph {
         self.set_context_menu(context_menu, position, None, window, cx);
     }
 
-    fn render_search_bar(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        let color = cx.theme().colors();
+    fn render_search_bar(&self, window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let color = window.theme(cx).colors();
         let query_focus_handle = self
             .search_state
             .editor
@@ -2719,7 +2721,7 @@ impl GitGraph {
             .as_ref()
             .map(|branch| SharedString::from(branch.name().to_string()));
 
-        let accent_colors = cx.theme().accents();
+        let accent_colors = window.theme(cx).accents();
         let accent_color = accent_colors
             .0
             .get(commit_entry.color_idx)
@@ -2827,7 +2829,7 @@ impl GitGraph {
         v_flex()
             .min_w(px(300.))
             .h_full()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .flex_basis(DefiniteLength::Fraction(
                 self.commit_details_split_state.read(cx).right_ratio(),
             ))
@@ -3121,7 +3123,7 @@ impl GitGraph {
                                     list.with_decoration(
                                         ui::indent_guides(
                                             px(TREE_INDENT),
-                                            IndentGuideColors::panel(cx),
+                                            IndentGuideColors::panel(window.theme(cx)),
                                         )
                                         .with_left_offset(
                                             ui::LIST_ITEM_INDENT_GUIDE_LEFT_OFFSET - px(2.),
@@ -3228,13 +3230,13 @@ impl GitGraph {
                 graph_canvas_bounds.set(Some(bounds));
 
                 window.paint_layer(bounds, |window| {
-                    let accent_colors = cx.theme().accents();
+                    let accent_colors = window.theme(cx).accents();
 
-                    let hover_bg = cx.theme().colors().element_hover.opacity(0.6);
+                    let hover_bg = window.theme(cx).colors().element_hover.opacity(0.6);
                     let selected_bg = if is_focused {
-                        cx.theme().colors().element_selected
+                        window.theme(cx).colors().element_selected
                     } else {
-                        cx.theme().colors().element_hover
+                        window.theme(cx).colors().element_hover
                     };
 
                     for visible_row_idx in 0..rows.len() {
@@ -3624,7 +3626,7 @@ impl GitGraph {
 
     fn render_commit_view_resize_handle(
         &self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
         div()
@@ -3633,7 +3635,7 @@ impl GitGraph {
             .h_full()
             .flex_shrink_0()
             .w(px(1.))
-            .bg(cx.theme().colors().border_variant)
+            .bg(window.theme(cx).colors().border_variant)
             .child(
                 div()
                     .id("commit-view-split-resize-handle")
@@ -3714,7 +3716,7 @@ impl Render for GitGraph {
         if let QueryState::Pending(query) = &mut self.search_state.state {
             let query = std::mem::take(query);
             self.search_state.state = QueryState::Empty;
-            self.search(query, cx);
+            self.search(query, window, cx);
         }
         let (commit_count, is_loading) = self.commit_count_and_loading_state(cx);
 
@@ -3846,6 +3848,7 @@ impl Render for GitGraph {
                                     header_context,
                                     Some(header_resize_info),
                                     Some(self.column_widths.entity_id()),
+                                    window,
                                     cx,
                                 )),
                         )
@@ -3904,11 +3907,12 @@ impl Render for GitGraph {
                                     let weak_for_hover = weak.clone();
                                     let weak_for_context_menu = weak.clone();
 
-                                    let hover_bg = cx.theme().colors().element_hover.opacity(0.6);
+                                    let hover_bg =
+                                        window.theme(cx).colors().element_hover.opacity(0.6);
                                     let selected_bg = if is_focused {
-                                        cx.theme().colors().element_selected
+                                        window.theme(cx).colors().element_selected
                                     } else {
-                                        cx.theme().colors().element_hover
+                                        window.theme(cx).colors().element_hover
                                     };
 
                                     row.h(row_height)
@@ -4046,7 +4050,7 @@ impl Render for GitGraph {
             .key_context("GitGraph")
             .track_focus(&self.focus_handle)
             .size_full()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .on_action(cx.listener(|this, _: &OpenCommitView, window, cx| {
                 this.open_selected_commit_view(window, cx);
             }))
@@ -4084,7 +4088,7 @@ impl Render for GitGraph {
             .child(
                 v_flex()
                     .size_full()
-                    .child(self.render_search_bar(cx))
+                    .child(self.render_search_bar(window, cx))
                     .child(div().flex_1().child(content)),
             )
             .children(self.context_menu.as_ref().map(|context_menu| {
@@ -4290,7 +4294,7 @@ impl workspace::SerializableItem for GitGraph {
                             .search_state
                             .editor
                             .update(cx, |editor, cx| editor.set_text(query.as_str(), window, cx));
-                        graph.search(query.clone().into(), cx);
+                        graph.search(query.clone().into(), window, cx);
                     }
                 });
 
@@ -4567,8 +4571,13 @@ mod persistence {
 
 #[cfg(any(test, feature = "test-support"))]
 impl GitGraph {
-    pub fn search_for_test(&mut self, query: SharedString, cx: &mut Context<Self>) {
-        self.search(query, cx);
+    pub fn search_for_test(
+        &mut self,
+        query: SharedString,
+        window: &Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.search(query, window, cx);
     }
 
     pub fn search_matches_for_test(&self) -> Vec<Oid> {
@@ -6204,8 +6213,8 @@ mod tests {
         });
         cx.run_until_parked();
 
-        git_graph.update(cx, |graph, cx| {
-            graph.search_for_test("0202020".into(), cx);
+        git_graph.update_in(cx, |graph, window, cx| {
+            graph.search_for_test("0202020".into(), window, cx);
         });
         cx.run_until_parked();
 
@@ -6218,8 +6227,8 @@ mod tests {
             assert_eq!(selected_sha, Some(target_sha));
         });
 
-        git_graph.update(cx, |graph, cx| {
-            graph.search_for_test("docs".into(), cx);
+        git_graph.update_in(cx, |graph, window, cx| {
+            graph.search_for_test("docs".into(), window, cx);
         });
         cx.run_until_parked();
 

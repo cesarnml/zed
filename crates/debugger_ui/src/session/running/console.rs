@@ -26,6 +26,7 @@ use settings::Settings;
 use std::{ops::Range, rc::Rc, usize};
 use theme::Theme;
 use theme_settings::ThemeSettings;
+use ui::WindowTheme as _;
 use ui::{ContextMenu, Divider, PopoverMenu, SplitButton, Tooltip, prelude::*};
 use util::ResultExt;
 
@@ -217,7 +218,7 @@ impl Console {
                         let style = HighlightStyle {
                             color: Some(terminal_view::terminal_element::convert_color(
                                 &color,
-                                cx.theme(),
+                                window.theme(cx),
                             )),
                             ..Default::default()
                         };
@@ -371,14 +372,14 @@ impl Console {
             .anchor(gpui::Anchor::TopRight)
     }
 
-    fn render_console(&self, cx: &Context<Self>) -> impl IntoElement {
-        EditorElement::new(&self.console, Self::editor_style(&self.console, cx))
+    fn render_console(&self, window: &mut Window, cx: &Context<Self>) -> impl IntoElement {
+        EditorElement::new(&self.console, Self::editor_style(&self.console, window, cx))
     }
 
-    fn editor_style(editor: &Entity<Editor>, cx: &Context<Self>) -> EditorStyle {
+    fn editor_style(editor: &Entity<Editor>, window: &Window, cx: &Context<Self>) -> EditorStyle {
         let is_read_only = editor.read(cx).read_only(cx);
         let settings = ThemeSettings::get_global(cx);
-        let theme = cx.theme();
+        let theme = window.theme(cx);
         let text_style = TextStyle {
             color: if is_read_only {
                 theme.colors().text_muted
@@ -400,8 +401,11 @@ impl Console {
         }
     }
 
-    fn render_query_bar(&self, cx: &Context<Self>) -> impl IntoElement {
-        EditorElement::new(&self.query_bar, Self::editor_style(&self.query_bar, cx))
+    fn render_query_bar(&self, window: &mut Window, cx: &Context<Self>) -> impl IntoElement {
+        EditorElement::new(
+            &self.query_bar,
+            Self::editor_style(&self.query_bar, window, cx),
+        )
     }
 
     pub(crate) fn update_output(&mut self, window: &mut Window, cx: &mut Context<Self>) {
@@ -456,8 +460,8 @@ impl Render for Console {
             .on_action(cx.listener(Self::watch_expression))
             .size_full()
             .border_2()
-            .bg(cx.theme().colors().editor_background)
-            .child(self.render_console(cx))
+            .bg(window.theme(cx).colors().editor_background)
+            .child(self.render_console(window, cx))
             .when(self.is_running(cx), |this| {
                 this.child(Divider::horizontal()).child(
                     h_flex()
@@ -465,8 +469,8 @@ impl Render for Console {
                         .on_action(cx.listener(Self::next_query))
                         .p_1()
                         .gap_1()
-                        .bg(cx.theme().colors().editor_background)
-                        .child(self.render_query_bar(cx))
+                        .bg(window.theme(cx).colors().editor_background)
+                        .child(self.render_query_bar(window, cx))
                         .child(SplitButton::new(
                             ui::ButtonLike::new_rounded_all(ElementId::Name(
                                 "split-button-left-confirm-button".into(),

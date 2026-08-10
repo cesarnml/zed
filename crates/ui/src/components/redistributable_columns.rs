@@ -3,15 +3,15 @@ use super::data_table::{
     table_row::{IntoTableRow as _, TableRow},
 };
 use crate::{
-    ActiveTheme as _, AnyElement, App, Context, Div, FluentBuilder as _, InteractiveElement,
-    IntoElement, ParentElement, Pixels, StatefulInteractiveElement, Styled, Window, div, h_flex,
-    px,
+    AnyElement, App, Context, Div, FluentBuilder as _, InteractiveElement, IntoElement,
+    ParentElement, Pixels, StatefulInteractiveElement, Styled, Window, div, h_flex, px,
 };
 use gpui::{
     AbsoluteLength, AppContext as _, Bounds, DefiniteLength, DragMoveEvent, Empty, Entity,
     EntityId, Length, Stateful, WeakEntity,
 };
 use std::rc::Rc;
+use theme::WindowTheme;
 
 pub(crate) const RESIZE_COLUMN_WIDTH: f32 = 8.0;
 pub(crate) const RESIZE_DIVIDER_WIDTH: f32 = 1.0;
@@ -673,8 +673,8 @@ pub(crate) fn render_column_resize_divider(
     cx: &mut App,
 ) -> AnyElement {
     window.with_id(col_idx, |window| {
-        let mut resize_divider = divider.w(px(RESIZE_DIVIDER_WIDTH)).h_full().bg(cx
-            .theme()
+        let mut resize_divider = divider.w(px(RESIZE_DIVIDER_WIDTH)).h_full().bg(window
+            .theme(cx)
             .colors()
             .border
             .opacity(0.8));
@@ -690,7 +690,7 @@ pub(crate) fn render_column_resize_divider(
             let is_highlighted = window.use_state(cx, |_window, _cx| false);
 
             resize_divider = resize_divider.when(*is_highlighted.read(cx), |div| {
-                div.bg(cx.theme().colors().border_focused)
+                div.bg(window.theme(cx).colors().border_focused)
             });
 
             resize_handle = resize_handle

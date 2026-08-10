@@ -15,8 +15,7 @@ use semver::Version;
 use settings::Settings;
 use theme_settings::ThemeSettings;
 use ui::{
-    ActiveTheme, CommonAnimationExt, Context, InteractiveElement, KeyBinding, ListItem, Tooltip,
-    prelude::*,
+    CommonAnimationExt, Context, InteractiveElement, KeyBinding, ListItem, Tooltip, prelude::*,
 };
 use ui_input::{ERASED_EDITOR_FACTORY, ErasedEditor};
 use workspace::{DismissDecision, ModalView, Workspace};
@@ -127,7 +126,7 @@ impl Render for RemoteConnectionPrompt {
             font_family: Some(theme.buffer_font.family.clone()),
             font_features: Some(FontFeatures::disable_ligatures()),
             font_size: Some(theme.buffer_font_size(cx).into()),
-            color: Some(cx.theme().colors().editor_foreground),
+            color: Some(window.theme(cx).colors().editor_foreground),
             background_color: Some(gpui::transparent_black()),
             ..Default::default()
         };
@@ -135,7 +134,7 @@ impl Render for RemoteConnectionPrompt {
         text_style.refine(&refinement);
         let markdown_style = MarkdownStyle {
             base_text_style: text_style,
-            selection_background_color: cx.theme().colors().element_selection_background,
+            selection_background_color: window.theme(cx).colors().element_selection_background,
             ..Default::default()
         };
 
@@ -272,7 +271,7 @@ impl RemoteConnectionModal {
         cx.emit(DismissEvent);
     }
 
-    fn dismiss(&mut self, _: &menu::Cancel, _: &mut Window, cx: &mut Context<Self>) {
+    fn dismiss(&mut self, _: &menu::Cancel, _window: &mut Window, cx: &mut Context<Self>) {
         if let Some(tx) = self
             .prompt
             .update(cx, |prompt, _cx| prompt.cancellation.take())
@@ -293,8 +292,8 @@ pub struct SshConnectionHeader {
 }
 
 impl RenderOnce for SshConnectionHeader {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let theme = cx.theme();
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let theme = window.theme(cx);
 
         let mut header_color = theme.colors().text;
         header_color.fade_out(0.96);
@@ -355,11 +354,11 @@ impl Render for RemoteConnectionModal {
         let is_wsl = self.prompt.read(cx).is_wsl;
         let is_devcontainer = self.prompt.read(cx).is_devcontainer;
 
-        let theme = cx.theme().clone();
+        let theme = window.theme(cx).clone();
         let body_color = theme.colors().editor_background;
 
         v_flex()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .w(rems(34.))
             .border_1()
             .border_color(theme.colors().border)

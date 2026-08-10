@@ -3,7 +3,9 @@
 //! Provides a semi-transparent overlay in the bottom-right corner showing
 //! CSV parsing performance metrics for developer experience.
 
-use ui::{ActiveTheme, Context, IntoElement, ParentElement, Styled, StyledTypography, div};
+use ui::{
+    Context, IntoElement, ParentElement, Styled, StyledTypography, Window, WindowTheme as _, div,
+};
 
 use crate::{CsvPreviewView, PerformanceMetrics};
 
@@ -14,9 +16,10 @@ impl CsvPreviewView {
     /// The overlay is positioned absolutely and styled with reduced opacity.
     pub(crate) fn render_performance_metrics_overlay(
         &mut self,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
-        let theme = cx.theme();
+        let theme = window.theme(cx);
 
         let children = div()
             .absolute()

@@ -6,6 +6,7 @@ use gpui::{
     TextStyle, Window, combine_highlights,
 };
 use language::BufferSnapshot;
+use theme::WindowTheme;
 
 use markdown::{CopyButtonVisibility, Markdown, MarkdownElement};
 use multi_buffer::{Anchor, MultiBufferOffset, ToOffset};
@@ -15,9 +16,9 @@ use std::time::Duration;
 use text::Rope;
 use theme_settings::ThemeSettings;
 use ui::{
-    ActiveTheme, AnyElement, ButtonCommon, ButtonStyle, Clickable, FluentBuilder, IconButton,
-    IconButtonShape, IconName, IconSize, InteractiveElement, IntoElement, Label, LabelCommon,
-    LabelSize, ParentElement, Pixels, SharedString, StatefulInteractiveElement, Styled, StyledExt,
+    AnyElement, ButtonCommon, ButtonStyle, Clickable, FluentBuilder, IconButton, IconButtonShape,
+    IconName, IconSize, InteractiveElement, IntoElement, Label, LabelCommon, LabelSize,
+    ParentElement, Pixels, SharedString, StatefulInteractiveElement, Styled, StyledExt,
     WithScrollbar, div, relative,
 };
 
@@ -220,7 +221,7 @@ impl Editor {
                 let signature_help = lsp_task.await;
 
                 editor
-                    .update(cx, |editor, cx| {
+                    .update_in(cx, |editor, window, cx| {
                         let Some(mut signature_help) =
                             signature_help.unwrap_or_default().into_iter().next()
                         else {
@@ -239,7 +240,8 @@ impl Editor {
                                     .flat_map(|(range, highlight_id, fallbacks)| {
                                         Some((
                                             range,
-                                            *cx.theme()
+                                            *window
+                                                .theme(cx)
                                                 .syntax()
                                                 .style_for_captures(highlight_id, &fallbacks)?,
                                         ))
@@ -251,7 +253,7 @@ impl Editor {
                         }
                         let settings = ThemeSettings::get_global(cx);
                         let style = TextStyle {
-                            color: cx.theme().colors().text,
+                            color: window.theme(cx).colors().text,
                             font_family: settings.buffer_font.family.clone(),
                             font_fallbacks: settings.buffer_font.fallbacks.clone(),
                             font_features: settings.buffer_font.features.clone(),
@@ -407,12 +409,14 @@ impl SignatureHelpPopover {
                     .when_some(
                         signature.parameter_documentation.clone(),
                         |this, param_doc| {
-                            this.child(div().h_px().bg(cx.theme().colors().border_variant).my_1())
-                                .child(
-                                    MarkdownElement::new(
-                                        param_doc,
-                                        hover_markdown_style(window, cx),
-                                    )
+                            this.child(
+                                div()
+                                    .h_px()
+                                    .bg(window.theme(cx).colors().border_variant)
+                                    .my_1(),
+                            )
+                            .child(
+                                MarkdownElement::new(param_doc, hover_markdown_style(window, cx))
                                     .code_block_renderer(markdown::CodeBlockRenderer::Default {
                                         copy_button_visibility: CopyButtonVisibility::Hidden,
                                         wrap_button_visibility:
@@ -433,31 +437,35 @@ impl SignatureHelpPopover {
                                             )
                                         }
                                     }),
-                                )
+                            )
                         },
                     )
                     .when_some(signature.documentation.clone(), |this, description| {
-                        this.child(div().h_px().bg(cx.theme().colors().border_variant).my_1())
-                            .child(
-                                MarkdownElement::new(description, hover_markdown_style(window, cx))
-                                    .code_block_renderer(markdown::CodeBlockRenderer::Default {
-                                        copy_button_visibility: CopyButtonVisibility::Hidden,
-                                        wrap_button_visibility:
-                                            markdown::WrapButtonVisibility::Hidden,
-                                        border: false,
-                                    })
-                                    .on_url_click(move |link, window, cx| {
-                                        open_markdown_url(
-                                            editor
-                                                .read_with(cx, |editor, _| editor.workspace())
-                                                .ok()
-                                                .flatten(),
-                                            link,
-                                            window,
-                                            cx,
-                                        )
-                                    }),
-                            )
+                        this.child(
+                            div()
+                                .h_px()
+                                .bg(window.theme(cx).colors().border_variant)
+                                .my_1(),
+                        )
+                        .child(
+                            MarkdownElement::new(description, hover_markdown_style(window, cx))
+                                .code_block_renderer(markdown::CodeBlockRenderer::Default {
+                                    copy_button_visibility: CopyButtonVisibility::Hidden,
+                                    wrap_button_visibility: markdown::WrapButtonVisibility::Hidden,
+                                    border: false,
+                                })
+                                .on_url_click(move |link, window, cx| {
+                                    open_markdown_url(
+                                        editor
+                                            .read_with(cx, |editor, _| editor.workspace())
+                                            .ok()
+                                            .flatten(),
+                                        link,
+                                        window,
+                                        cx,
+                                    )
+                                }),
+                        )
                     }),
             )
             .vertical_scrollbar_for(&self.scroll_handle, window, cx);
@@ -511,7 +519,7 @@ impl SignatureHelpPopover {
             None
         };
         div()
-            .elevation_2(cx)
+            .elevation_2(window.theme(cx))
             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
             .on_mouse_move(|_, _, cx| cx.stop_propagation())
             .flex()
@@ -519,7 +527,7 @@ impl SignatureHelpPopover {
             .when_some(controls, |this, controls| {
                 this.children(vec![
                     div().flex().items_end().child(controls),
-                    div().w_px().bg(cx.theme().colors().border_variant),
+                    div().w_px().bg(window.theme(cx).colors().border_variant),
                 ])
             })
             .child(main_content)

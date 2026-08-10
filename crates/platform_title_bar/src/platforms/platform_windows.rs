@@ -119,10 +119,10 @@ impl RenderOnce for WindowsCaptionButton {
                 )
             }
             _ => (
-                cx.theme().colors().ghost_element_hover,
-                cx.theme().colors().text,
-                cx.theme().colors().ghost_element_active,
-                cx.theme().colors().text,
+                window.theme(cx).colors().ghost_element_hover,
+                window.theme(cx).colors().text,
+                window.theme(cx).colors().ghost_element_active,
+                window.theme(cx).colors().text,
             ),
         };
 
@@ -135,7 +135,7 @@ impl RenderOnce for WindowsCaptionButton {
             .h_full()
             .text_size(px(10.0))
             .when(!enabled, |style| {
-                style.text_color(cx.theme().colors().text_disabled)
+                style.text_color(window.theme(cx).colors().text_disabled)
             })
             .when(enabled, |style| {
                 style

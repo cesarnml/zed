@@ -104,7 +104,7 @@ impl TerminalToolHeader {
 }
 
 impl RenderOnce for TerminalToolHeader {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let show_elapsed = self
             .elapsed
             .is_some_and(|elapsed| elapsed > ELAPSED_DISPLAY_THRESHOLD);
@@ -127,11 +127,11 @@ impl RenderOnce for TerminalToolHeader {
 
         let child_id = |name: &str| format!("terminal-tool-{name}-{id}");
 
-        let header_bg = cx
-            .theme()
+        let header_bg = window
+            .theme(cx)
             .colors()
             .element_background
-            .blend(cx.theme().colors().editor_foreground.opacity(0.025));
+            .blend(window.theme(cx).colors().editor_foreground.opacity(0.025));
 
         let header_row = h_flex()
             .id(child_id("header"))
@@ -260,14 +260,14 @@ impl Component for TerminalToolHeader {
         "The top of a terminal tool call card in the agent panel."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let working_dir = "/Users/you/projects/zed";
 
         let card = |_id: &'static str, header: TerminalToolHeader| {
             v_flex()
                 .w_full()
                 .border_1()
-                .border_color(cx.theme().colors().border.opacity(0.6))
+                .border_color(window.theme(cx).colors().border.opacity(0.6))
                 .rounded_md()
                 .overflow_hidden()
                 .child(

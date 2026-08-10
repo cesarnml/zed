@@ -12,7 +12,6 @@ use gpui::{
 };
 use language::Buffer;
 use text::{Bias, Point};
-use theme::ActiveTheme;
 use ui::prelude::*;
 use util::paths::FILE_ROW_COLUMN_DELIMITER;
 use workspace::{DismissDecision, ModalView};
@@ -197,7 +196,7 @@ impl GoToLine {
             let end = snapshot.anchor_after(end_point);
             editor.highlight_rows::<GoToLineRowHighlights>(
                 start..end,
-                |cx| cx.theme().colors().editor_highlighted_line_background,
+                |theme| theme.colors().editor_highlighted_line_background,
                 RowHighlightOptions {
                     autoscroll: true,
                     ..Default::default()
@@ -281,7 +280,7 @@ impl GoToLine {
         Some((row, column))
     }
 
-    fn cancel(&mut self, _: &menu::Cancel, _: &mut Window, cx: &mut Context<Self>) {
+    fn cancel(&mut self, _: &menu::Cancel, _window: &mut Window, cx: &mut Context<Self>) {
         cx.emit(DismissEvent);
     }
 
@@ -306,7 +305,7 @@ impl GoToLine {
 }
 
 impl Render for GoToLine {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let help_text = if let Some(offset) = self.relative_line_from_query(cx) {
             let target_line = if offset >= 0 {
                 self.current_line.saturating_add(offset as u32)
@@ -326,14 +325,14 @@ impl Render for GoToLine {
 
         v_flex()
             .w(rems(24.))
-            .elevation_2(cx)
+            .elevation_2(window.theme(cx))
             .key_context("GoToLine")
             .on_action(cx.listener(Self::cancel))
             .on_action(cx.listener(Self::confirm))
             .child(
                 div()
                     .border_b_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .px_2()
                     .py_1()
                     .child(self.line_editor.clone()),

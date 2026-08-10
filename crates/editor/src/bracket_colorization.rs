@@ -419,7 +419,7 @@ mod tests {
     use text::{Bias, OffsetRangeExt, ToOffset};
     use theme::Appearance;
     use theme_settings::ThemeStyleContent;
-    use ui::ActiveTheme;
+    use ui::ConfiguredTheme;
 
     use util::{path, post_inc};
 
@@ -1793,7 +1793,7 @@ mod foo «1{
         );
 
         cx.update(|cx| {
-            let theme = cx.theme().name.clone();
+            let theme = cx.configured_theme().name.clone();
             SettingsStore::update_global(cx, |store, cx| {
                 store.update_user_settings(cx, |settings| {
                     settings.theme.theme_overrides = HashMap::from_iter([(
@@ -1820,8 +1820,8 @@ mod foo «1{
                     Hsla::from(Rgba::try_from("#ff0000").expect("valid override accent")),
                     Hsla::from(Rgba::try_from("#0000ff").expect("valid override accent")),
                 ],
-                cx.theme().appearance,
-                cx.theme().colors().editor_background,
+                cx.configured_theme().appearance,
+                cx.configured_theme().colors().editor_background,
             )
         });
         let expected_markup = format!(

@@ -383,7 +383,7 @@ impl Focusable for State {
 }
 impl Render for AddToolchainState {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = cx.theme().clone();
+        let theme = window.theme(cx).clone();
         let weak = self.weak.upgrade();
         let label = SharedString::new_static("Add");
 
@@ -391,9 +391,9 @@ impl Render for AddToolchainState {
             .size_full()
             // todo: These modal styles shouldn't be needed as the modal picker already has `elevation_3`
             // They get duplicated in the middle state of adding a virtual env, but then are needed for this last state
-            .bg(cx.theme().colors().elevated_surface_background)
+            .bg(window.theme(cx).colors().elevated_surface_background)
             .border_1()
-            .border_color(cx.theme().colors().border_variant)
+            .border_color(window.theme(cx).colors().border_variant)
             .rounded_lg()
             .when_some(weak, |this, weak| {
                 this.on_action(window.listener_for(

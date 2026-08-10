@@ -684,7 +684,7 @@ impl DebugPanel {
                 .px_1p5()
                 .justify_between()
                 .border_b_1()
-                .border_color(cx.theme().colors().border)
+                .border_color(window.theme(cx).colors().border)
                 .when(is_side, |this| this.gap_1().h(Tab::container_height(cx)))
                 .child(
                     h_flex()
@@ -1835,7 +1835,7 @@ impl Render for DebugPanel {
                                 .w_full()
                                 .justify_between()
                                 .border_b_1()
-                                .border_color(cx.theme().colors().border_variant)
+                                .border_color(window.theme(cx).colors().border_variant)
                                 .child(Label::new("Breakpoints").size(LabelSize::Small))
                                 .child(
                                     h_flex().visible_on_hover("base-breakpoint-list").child(

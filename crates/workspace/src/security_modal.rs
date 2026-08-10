@@ -15,7 +15,7 @@ use project::{
     worktree_store::WorktreeStore,
 };
 use smallvec::SmallVec;
-use theme::ActiveTheme;
+use theme::WindowTheme;
 use ui::{
     AlertModal, Checkbox, FluentBuilder, KeyBinding, ListBulletItem, ToggleState, WithScrollbar,
     prelude::*,
@@ -115,9 +115,9 @@ impl Render for SecurityModal {
                     .p_3()
                     .gap_1()
                     .rounded_t_md()
-                    .bg(cx.theme().colors().editor_background.opacity(0.5))
+                    .bg(window.theme(cx).colors().editor_background.opacity(0.5))
                     .border_b_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .child(
                         h_flex()
                             .gap_2()

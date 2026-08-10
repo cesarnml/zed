@@ -96,7 +96,7 @@ impl AnnouncementToast {
 }
 
 impl RenderOnce for AnnouncementToast {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let has_illustration = self.illustration.is_some();
         let illustration = self.illustration;
 
@@ -105,7 +105,7 @@ impl RenderOnce for AnnouncementToast {
             .occlude()
             .relative()
             .w_full()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .when_some(illustration, |this, i| this.child(i))
             .child(
                 v_flex()
@@ -113,7 +113,7 @@ impl RenderOnce for AnnouncementToast {
                     .gap_4()
                     .when(has_illustration, |s| {
                         s.border_t_1()
-                            .border_color(cx.theme().colors().border_variant)
+                            .border_color(window.theme(cx).colors().border_variant)
                     })
                     .child(
                         v_flex()

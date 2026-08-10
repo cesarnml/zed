@@ -1,7 +1,9 @@
+use gpui::Window;
+use ui::WindowTheme as _;
 use ui::{
-    ActiveTheme as _, AnyElement, Button, ButtonCommon as _, ButtonSize, ButtonStyle,
-    Clickable as _, Context, ElementId, IntoElement as _, ParentElement as _, SharedString,
-    Styled as _, StyledTypography as _, Tooltip, div,
+    AnyElement, Button, ButtonCommon as _, ButtonSize, ButtonStyle, Clickable as _, Context,
+    ElementId, IntoElement as _, ParentElement as _, SharedString, Styled as _,
+    StyledTypography as _, Tooltip, div,
 };
 
 use crate::{
@@ -144,6 +146,7 @@ impl CsvPreviewView {
         &self,
         display_row: DisplayRow,
         data_row: DataRow,
+        window: &Window,
         cx: &Context<'_, CsvPreviewView>,
     ) -> Option<AnyElement> {
         let row_identifier: SharedString = match self.settings.numbering_type {
@@ -164,10 +167,10 @@ impl CsvPreviewView {
         let value = div()
             .flex()
             .px_1()
-            .border_color(cx.theme().colors().border_variant)
-            .bg(cx.theme().colors().panel_background)
+            .border_color(window.theme(cx).colors().border_variant)
+            .bg(window.theme(cx).colors().panel_background)
             .h_full()
-            .text_color(cx.theme().colors().text_muted)
+            .text_color(window.theme(cx).colors().text_muted)
             .justify_center()
             .items_center()
             .font_buffer(cx)

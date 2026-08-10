@@ -30,7 +30,6 @@ use std::{
     time::Instant,
 };
 use task::{HideStrategy, RevealStrategy, SaveStrategy, Shell, SpawnInTerminal, TaskId};
-use ui::ActiveTheme;
 use util::{
     ResultExt,
     paths::PathStyle,
@@ -2540,7 +2539,7 @@ impl ShellExec {
             }
             editor.highlight_rows::<ShellExec>(
                 input_range.clone().unwrap(),
-                |cx| cx.theme().status().unreachable_background,
+                |theme| theme.status().unreachable_background,
                 Default::default(),
                 cx,
             );

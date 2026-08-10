@@ -596,7 +596,7 @@ impl Component for ExtensionCard {
 }
 
 impl RenderOnce for ExtensionCard {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let Self {
             details,
             actions,
@@ -629,9 +629,13 @@ impl RenderOnce for ExtensionCard {
                 .h(rems_from_px(110.))
                 .p_3()
                 .gap_2()
-                .bg(cx.theme().colors().elevated_surface_background.opacity(0.5))
+                .bg(window
+                    .theme(cx)
+                    .colors()
+                    .elevated_surface_background
+                    .opacity(0.5))
                 .border_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .rounded_md()
                 .child(
                     h_flex()
@@ -762,7 +766,11 @@ impl RenderOnce for ExtensionCard {
                             .cursor_default()
                             .size_full()
                             .justify_center()
-                            .bg(cx.theme().colors().elevated_surface_background.alpha(0.8))
+                            .bg(window
+                                .theme(cx)
+                                .colors()
+                                .elevated_surface_background
+                                .alpha(0.8))
                             .child(Label::new("Overridden by dev extension.")),
                     )
                 }),

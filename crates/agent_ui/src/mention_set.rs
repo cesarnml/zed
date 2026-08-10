@@ -1182,9 +1182,9 @@ fn render_fold_icon_button(
     mention_uri: Option<MentionUri>,
     workspace: Option<WeakEntity<Workspace>>,
     editor: WeakEntity<Editor>,
-) -> Arc<dyn Send + Sync + Fn(FoldId, Range<Anchor>, &mut App) -> AnyElement> {
+) -> Arc<dyn Send + Sync + Fn(FoldId, Range<Anchor>, &mut Window, &mut App) -> AnyElement> {
     Arc::new({
-        move |fold_id, fold_range, cx| {
+        move |fold_id, fold_range, _window, cx| {
             let is_in_text_selection = editor
                 .update(cx, |editor, cx| editor.is_range_selected(&fold_range, cx))
                 .unwrap_or_default();
@@ -1338,7 +1338,7 @@ fn render_mention_fold_button(
     editor: WeakEntity<Editor>,
     cx: &mut App,
 ) -> (
-    Arc<dyn Send + Sync + Fn(FoldId, Range<Anchor>, &mut App) -> AnyElement>,
+    Arc<dyn Send + Sync + Fn(FoldId, Range<Anchor>, &mut Window, &mut App) -> AnyElement>,
     Entity<LoadingContext>,
 ) {
     let loading = cx.new(|cx| {
@@ -1364,8 +1364,11 @@ fn render_mention_fold_button(
         }
     });
     let loading_clone = loading.clone();
-    let render: Arc<dyn Send + Sync + Fn(FoldId, Range<Anchor>, &mut App) -> AnyElement> =
-        Arc::new(move |_fold_id, _fold_range, _cx| loading_clone.clone().into_any_element());
+    let render: Arc<
+        dyn Send + Sync + Fn(FoldId, Range<Anchor>, &mut Window, &mut App) -> AnyElement,
+    > = Arc::new(move |_fold_id, _fold_range, _window, _cx| {
+        loading_clone.clone().into_any_element()
+    });
     (render, loading)
 }
 
@@ -1428,11 +1431,11 @@ struct ImageHover {
 }
 
 impl Render for ImageHover {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         if let Some(image) = self.image.clone() {
             div()
                 .p_1p5()
-                .elevation_2(cx)
+                .elevation_2(window.theme(cx))
                 .child(gpui::img(image).h_auto().max_w_96().rounded_sm())
                 .into_any_element()
         } else {

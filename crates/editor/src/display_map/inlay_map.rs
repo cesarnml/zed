@@ -24,7 +24,8 @@ use std::{
 };
 use sum_tree::{Bias, Cursor, Dimensions, SumTree};
 use text::{ChunkBitmaps, Patch};
-use ui::{ActiveTheme, IntoElement as _, ParentElement as _, Styled as _, div};
+use theme::WindowTheme as _;
+use ui::{IntoElement as _, ParentElement as _, Styled as _, div};
 
 use super::{Highlights, custom_highlights::CustomHighlightsChunks, fold_map::ChunkRendererId};
 
@@ -349,7 +350,7 @@ impl<'a> Iterator for InlayChunks<'a> {
                         renderer = Some(ChunkRenderer {
                             id: ChunkRendererId::Inlay(inlay.id),
                             render: Arc::new(move |cx| {
-                                let colors = cx.theme().colors();
+                                let colors = cx.window.theme(cx.context).colors();
                                 div()
                                     .flex()
                                     .flex_row()
@@ -386,7 +387,12 @@ impl<'a> Iterator for InlayChunks<'a> {
                                                 .size_3()
                                                 .border_1()
                                                 .border_color(
-                                                    if cx.theme().appearance().is_light() {
+                                                    if cx
+                                                        .window
+                                                        .theme(cx.context)
+                                                        .appearance()
+                                                        .is_light()
+                                                    {
                                                         gpui::black().opacity(0.5)
                                                     } else {
                                                         gpui::white().opacity(0.5)

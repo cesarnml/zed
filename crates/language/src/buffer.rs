@@ -67,7 +67,7 @@ pub use text::{
     SelectionGoal, Subscription, TextDimension, TextSummary, ToOffset, ToOffsetUtf16, ToPoint,
     ToPointUtf16, Transaction, TransactionId, Unclipped,
 };
-use theme::{ActiveTheme as _, SyntaxTheme};
+use theme::SyntaxTheme;
 #[cfg(any(test, feature = "test-support"))]
 use util::RandomCharIter;
 use util::{RangeExt, debug_panic, maybe, paths::PathStyle, rel_path::RelPath};
@@ -851,7 +851,7 @@ impl EditPreview {
         current_snapshot: &BufferSnapshot,
         edits: &[(Range<Anchor>, impl AsRef<str>)],
         include_deletions: bool,
-        cx: &App,
+        theme: &theme::Theme,
     ) -> HighlightedText {
         let Some(visible_range_in_preview_snapshot) = self.compute_visible_range(edits) else {
             return HighlightedText::default();
@@ -864,14 +864,14 @@ impl EditPreview {
         let mut offset_in_preview_snapshot = visible_range_in_preview_snapshot.start;
 
         let insertion_highlight_style = HighlightStyle {
-            background_color: Some(cx.theme().status().created_background),
+            background_color: Some(theme.status().created_background),
             ..Default::default()
         };
         let deletion_highlight_style = HighlightStyle {
-            background_color: Some(cx.theme().status().deleted_background),
+            background_color: Some(theme.status().deleted_background),
             ..Default::default()
         };
-        let syntax_theme = cx.theme().syntax();
+        let syntax_theme = theme.syntax();
 
         for (range, edit_text) in edits {
             let edit_new_end_in_preview_snapshot = range

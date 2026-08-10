@@ -1,9 +1,11 @@
 use std::{collections::hash_map, sync::Arc, time::Duration};
+use theme::WindowTheme as _;
 
 use collections::{HashMap, HashSet};
 use futures::future::join_all;
 use gpui::{
     App, Context, FontStyle, FontWeight, HighlightStyle, StrikethroughStyle, Task, UnderlineStyle,
+    Window,
 };
 use itertools::Itertools;
 use language::{LanguageName, LanguageRegistry, language_settings::LanguageSettings};
@@ -19,7 +21,6 @@ use settings::{
 };
 use text::BufferId;
 use theme::SyntaxTheme;
-use ui::ActiveTheme as _;
 
 use crate::{
     Editor,
@@ -97,12 +98,12 @@ impl Editor {
     pub fn toggle_semantic_highlights(
         &mut self,
         _: &ToggleSemanticHighlights,
-        _window: &mut gpui::Window,
+        window: &mut gpui::Window,
         cx: &mut Context<Self>,
     ) {
         self.semantic_token_state.toggle_enabled();
         self.invalidate_semantic_tokens(None);
-        self.refresh_semantic_tokens(None, false, cx);
+        self.refresh_semantic_tokens(None, false, window, cx);
     }
 
     pub(super) fn invalidate_semantic_tokens(&mut self, for_buffer: Option<BufferId>) {
@@ -116,6 +117,7 @@ impl Editor {
         &mut self,
         buffer_id: Option<BufferId>,
         server_refreshed: bool,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if !self.lsp_data_enabled() || !self.semantic_token_state.enabled() {
@@ -196,7 +198,7 @@ impl Editor {
             });
         }
 
-        self.semantic_token_state.update_task = cx.spawn(async move |editor, cx| {
+        self.semantic_token_state.update_task = cx.spawn_in(window, async move |editor, cx| {
             cx.background_executor()
                 .timer(Duration::from_millis(50))
                 .await;
@@ -229,7 +231,7 @@ impl Editor {
 
             let all_semantic_tokens = join_all(all_semantic_tokens_task).await;
             editor
-                .update(cx, |editor, cx| {
+                .update_in(cx, |editor, window, cx| {
                     editor.display_map.update(cx, |display_map, _| {
                         for buffer_id in invalidate_semantic_highlights_for_buffers {
                             display_map.invalidate_semantic_highlights(buffer_id);
@@ -309,7 +311,7 @@ impl Editor {
                                     ) else {
                                         continue;
                                     };
-                                    let theme = cx.theme().syntax();
+                                    let theme = window.theme(cx).syntax();
                                     token_highlights.reserve(2 * server_tokens.len());
                                     token_highlights.extend(buffer_into_editor_highlights(
                                         &server_tokens,
@@ -2258,7 +2260,7 @@ mod tests {
         use collections::IndexMap;
         use gpui::{Hsla, Rgba, UpdateGlobal as _};
         use theme_settings::{HighlightStyleContent, ThemeStyleContent};
-        use ui::ActiveTheme as _;
+        use ui::ConfiguredTheme as _;
 
         init_test(cx, |_| {});
 
@@ -2320,7 +2322,7 @@ mod tests {
 
         // Per-theme overrides (theme_overrides keyed by theme name) also go through
         // GlobalTheme reload → theme_changed → refresh_semantic_token_highlights.
-        let theme_name = cx.update(|_, cx| cx.theme().name.to_string());
+        let theme_name = cx.update(|_, cx| cx.configured_theme().name.to_string());
         let green_color: Hsla = Rgba {
             r: 0.0,
             g: 1.0,

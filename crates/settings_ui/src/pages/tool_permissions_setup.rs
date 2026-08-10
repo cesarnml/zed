@@ -8,6 +8,7 @@ use settings::{Settings as _, SettingsStore, ToolPermissionMode};
 use shell_command_parser::extract_commands;
 use std::sync::Arc;
 use theme_settings::ThemeSettings;
+use ui::WindowTheme as _;
 use ui::{Banner, ContextMenu, Divider, PopoverMenu, Severity, Tooltip, prelude::*};
 use util::ResultExt as _;
 use util::shell::ShellKind;
@@ -121,8 +122,8 @@ const fn tool_index(id: &str) -> usize {
 
 /// Parses a string containing backtick-delimited code spans into a `StyledText`
 /// with code background highlights applied to each span.
-fn render_inline_code_markdown(text: &str, cx: &App) -> StyledText {
-    let code_background = cx.theme().colors().surface_background;
+fn render_inline_code_markdown(text: &str, window: &Window, cx: &App) -> StyledText {
+    let code_background = window.theme(cx).colors().surface_background;
     let mut plain = String::new();
     let mut highlights: Vec<(std::ops::Range<usize>, HighlightStyle)> = Vec::new();
     let mut in_code = false;
@@ -364,7 +365,7 @@ pub(crate) fn render_tool_config_page(
                 ),
         )
         .when(tool.id == TerminalTool::NAME, |this| {
-            this.child(render_hardcoded_security_banner(cx))
+            this.child(render_hardcoded_security_banner(window, cx))
         })
         .child(render_verification_section(tool.id, window, cx))
         .when_some(
@@ -399,6 +400,7 @@ pub(crate) fn render_tool_config_page(
                     "If any of these regexes match, the tool action will be denied.",
                     ToolPermissionMode::Deny,
                     &rules.always_deny,
+                    window,
                     cx,
                 ))
                 .child(Divider::horizontal().color(ui::DividerColor::BorderFaded))
@@ -408,6 +410,7 @@ pub(crate) fn render_tool_config_page(
                     "If any of these regexes match, the action will be approved—unless an Always Confirm or Always Deny matches.",
                     ToolPermissionMode::Allow,
                     &rules.always_allow,
+                    window,
                     cx,
                 ))
                 .child(Divider::horizontal().color(ui::DividerColor::BorderFaded))
@@ -417,6 +420,7 @@ pub(crate) fn render_tool_config_page(
                     "If any of these regexes match, a confirmation will be shown unless an Always Deny regex matches.",
                     ToolPermissionMode::Confirm,
                     &rules.always_confirm,
+                    window,
                     cx,
                 ))
                 .when(!rules.invalid_patterns.is_empty(), |this| {
@@ -424,6 +428,7 @@ pub(crate) fn render_tool_config_page(
                         .child(render_invalid_patterns_section(
                             tool.id,
                             &rules.invalid_patterns,
+                            window,
                             cx,
                         ))
                 }),
@@ -431,7 +436,7 @@ pub(crate) fn render_tool_config_page(
         .into_any_element()
 }
 
-fn render_hardcoded_rules(smaller_font_size: bool, cx: &App) -> AnyElement {
+fn render_hardcoded_rules(smaller_font_size: bool, window: &Window, cx: &App) -> AnyElement {
     div()
         .map(|this| {
             if smaller_font_size {
@@ -440,15 +445,22 @@ fn render_hardcoded_rules(smaller_font_size: bool, cx: &App) -> AnyElement {
                 this.text_sm()
             }
         })
-        .text_color(cx.theme().colors().text_muted)
-        .child(render_inline_code_markdown(HARDCODED_RULES_DESCRIPTION, cx))
+        .text_color(window.theme(cx).colors().text_muted)
+        .child(render_inline_code_markdown(
+            HARDCODED_RULES_DESCRIPTION,
+            window,
+            cx,
+        ))
         .into_any_element()
 }
 
-fn render_hardcoded_security_banner(cx: &mut Context<SettingsWindow>) -> AnyElement {
+fn render_hardcoded_security_banner(
+    window: &Window,
+    cx: &mut Context<SettingsWindow>,
+) -> AnyElement {
     div()
         .mt_3()
-        .child(Banner::new().child(render_hardcoded_rules(false, cx)))
+        .child(Banner::new().child(render_hardcoded_rules(false, window, cx)))
         .into_any_element()
 }
 
@@ -520,7 +532,7 @@ fn render_verification_section(
         None => (None, true),
     };
 
-    let color = cx.theme().colors();
+    let color = window.theme(cx).colors();
 
     v_flex()
         .mt_3()
@@ -561,12 +573,12 @@ fn render_verification_section(
                                     .color(Color::Muted),
                             )
                         } else {
-                            this.child(render_matched_patterns(&matched_patterns, cx))
+                            this.child(render_matched_patterns(&matched_patterns, window, cx))
                         }
                     })
                     .when(!patterns_agree, |this| {
                         if is_hardcoded_denial {
-                            this.child(render_hardcoded_rules(true, cx))
+                            this.child(render_hardcoded_rules(true, window, cx))
                         } else if let Some(reason) = &denial_reason {
                             this.child(
                                 Label::new(format!("Denied: {}", reason))
@@ -584,7 +596,7 @@ fn render_verification_section(
                         }
                     })
                     .when(is_hardcoded_denial && patterns_agree, |this| {
-                        this.child(render_hardcoded_rules(true, cx))
+                        this.child(render_hardcoded_rules(true, window, cx))
                     })
                     .child(render_verdict_label(mode))
                     .when_some(
@@ -680,7 +692,7 @@ fn find_matched_patterns(tool_id: &str, input: &str, cx: &App) -> Vec<MatchedPat
     matched
 }
 
-fn render_matched_patterns(patterns: &[MatchedPattern], cx: &App) -> AnyElement {
+fn render_matched_patterns(patterns: &[MatchedPattern], window: &Window, cx: &App) -> AnyElement {
     v_flex()
         .gap_1()
         .children(patterns.iter().map(|pattern| {
@@ -708,7 +720,9 @@ fn render_matched_patterns(patterns: &[MatchedPattern], cx: &App) -> AnyElement 
                 .child(
                     Icon::new(IconName::Dash)
                         .size(IconSize::Small)
-                        .color(Color::Custom(cx.theme().colors().icon_muted.opacity(0.4))),
+                        .color(Color::Custom(
+                            window.theme(cx).colors().icon_muted.opacity(0.4),
+                        )),
                 )
                 .child(
                     Label::new(type_label)
@@ -803,10 +817,11 @@ fn render_verdict_label(mode: ToolPermissionMode) -> AnyElement {
 fn render_invalid_patterns_section(
     tool_id: &'static str,
     invalid_patterns: &[InvalidPatternView],
+    window: &Window,
     cx: &mut Context<SettingsWindow>,
 ) -> AnyElement {
     let section_id = format!("{}-invalid-patterns-section", tool_id);
-    let theme_colors = cx.theme().colors();
+    let theme_colors = window.theme(cx).colors();
 
     v_flex()
         .id(section_id)
@@ -908,6 +923,7 @@ fn render_rule_section(
     description: &'static str,
     rule_type: ToolPermissionMode,
     patterns: &[String],
+    window: &Window,
     cx: &mut Context<SettingsWindow>,
 ) -> AnyElement {
     let section_id = format!("{}-{:?}-section", tool_id, rule_type);
@@ -928,7 +944,7 @@ fn render_rule_section(
                 .w_full()
                 .gap_1p5()
                 .when(patterns.is_empty(), |this| {
-                    this.child(render_pattern_empty_state(cx))
+                    this.child(render_pattern_empty_state(window, cx))
                 })
                 .when(!user_patterns.is_empty(), |this| {
                     this.child(v_flex().gap_1p5().children(user_patterns.iter().map(
@@ -948,13 +964,13 @@ fn render_rule_section(
         .into_any_element()
 }
 
-fn render_pattern_empty_state(cx: &mut Context<SettingsWindow>) -> AnyElement {
+fn render_pattern_empty_state(window: &Window, cx: &mut Context<SettingsWindow>) -> AnyElement {
     h_flex()
         .p_2()
         .rounded_md()
         .border_1()
         .border_dashed()
-        .border_color(cx.theme().colors().border_variant)
+        .border_color(window.theme(cx).colors().border_variant)
         .child(
             Label::new("No patterns configured")
                 .size(LabelSize::Small)

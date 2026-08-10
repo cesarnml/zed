@@ -454,7 +454,7 @@ impl CopilotCodeVerification {
 }
 
 impl Render for CopilotCodeVerification {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let prompt = match &self.status {
             Status::SigningIn { prompt: None } => Icon::new(IconName::ArrowCircle)
                 .color(Color::Muted)
@@ -489,7 +489,7 @@ impl Render for CopilotCodeVerification {
             .gap_2()
             .items_center()
             .justify_center()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .on_action(cx.listener(|_, _: &menu::Cancel, _, cx| {
                 cx.emit(DismissEvent);
             }))
@@ -498,7 +498,7 @@ impl Render for CopilotCodeVerification {
             }))
             .child(
                 Vector::new(VectorName::ZedXCopilot, rems(8.), rems(4.))
-                    .color(Color::Custom(cx.theme().colors().icon)),
+                    .color(Color::Custom(window.theme(cx).colors().icon)),
             )
             .child(prompt)
     }
@@ -690,7 +690,7 @@ impl CopilotChatCodeVerification {
 }
 
 impl Render for CopilotChatCodeVerification {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let prompt = match self.status.clone() {
             CopilotChatStatus::Starting | CopilotChatStatus::SignedOut => {
                 Icon::new(IconName::ArrowCircle)
@@ -721,7 +721,7 @@ impl Render for CopilotChatCodeVerification {
             .gap_2()
             .items_center()
             .justify_center()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .on_action(cx.listener(|_, _: &menu::Cancel, _, cx| {
                 cx.emit(DismissEvent);
             }))
@@ -730,7 +730,7 @@ impl Render for CopilotChatCodeVerification {
             }))
             .child(
                 Vector::new(VectorName::ZedXCopilot, rems(8.), rems(4.))
-                    .color(Color::Custom(cx.theme().colors().icon)),
+                    .color(Color::Custom(window.theme(cx).colors().icon)),
             )
             .child(prompt)
     }

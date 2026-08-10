@@ -534,7 +534,7 @@ impl RenderOnce for DiffStyleControls {
                 IconButton::new("diff-style-split", split_icon)
                     .icon_size(IconSize::Small)
                     .toggle_state(is_split_set)
-                    .tooltip(Tooltip::element(move |_, cx| {
+                    .tooltip(Tooltip::element(move |window, cx| {
                         let message = if is_split_pending {
                             format!("Split when wider than {} columns", min_columns).into()
                         } else {
@@ -547,7 +547,7 @@ impl RenderOnce for DiffStyleControls {
                                 h_flex()
                                     .gap_0p5()
                                     .text_ui_sm(cx)
-                                    .text_color(Color::Muted.color(cx))
+                                    .text_color(Color::Muted.color(window.theme(cx)))
                                     .children(render_modifiers(
                                         &gpui::Modifiers::secondary_key(),
                                         PlatformStyle::platform(),
@@ -1190,7 +1190,7 @@ impl SplittableEditor {
         }
     }
 
-    fn unsplit(&mut self, _: &mut Window, cx: &mut Context<Self>) {
+    fn unsplit(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
         let Some(lhs) = self.lhs.take() else {
             return;
         };
@@ -1433,7 +1433,7 @@ impl SplittableEditor {
 
         let min_ems = EditorSettings::get_global(cx).minimum_split_diff_width;
 
-        let style = self.rhs_editor.read(cx).create_style(cx);
+        let style = self.rhs_editor.read(cx).create_style(window, cx);
         let font_id = window.text_system().resolve_font(&style.text.font());
         let font_size = style.text.font_size.to_pixels(window.rem_size());
         let em_advance = window
@@ -2120,8 +2120,12 @@ impl Item for SplittableEditor {
         self.rhs_editor.read(cx).breadcrumb_location(cx)
     }
 
-    fn breadcrumbs(&self, cx: &App) -> Option<(Vec<HighlightedText>, Option<Font>)> {
-        self.rhs_editor.read(cx).breadcrumbs(cx)
+    fn breadcrumbs(
+        &self,
+        window: &Window,
+        cx: &App,
+    ) -> Option<(Vec<HighlightedText>, Option<Font>)> {
+        self.rhs_editor.read(cx).breadcrumbs(window, cx)
     }
 
     fn pixel_position_of_cursor(&self, cx: &App) -> Option<gpui::Point<gpui::Pixels>> {
@@ -2316,12 +2320,12 @@ impl Focusable for SplittableEditor {
 impl Render for SplittableEditor {
     fn render(
         &mut self,
-        _window: &mut ui::Window,
+        window: &mut ui::Window,
         cx: &mut ui::Context<Self>,
     ) -> impl ui::IntoElement {
         let is_split = self.lhs.is_some();
         let inner = if is_split {
-            let style = self.rhs_editor.read(cx).create_style(cx);
+            let style = self.rhs_editor.read(cx).create_style(window, cx);
             SplitEditorView::new(cx.entity(), style, self.split_state.clone()).into_any_element()
         } else {
             self.rhs_editor.clone().into_any_element()

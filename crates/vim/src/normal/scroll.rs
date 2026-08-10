@@ -312,7 +312,7 @@ mod test {
         let (line_height, visible_line_count) = cx.update_editor(|editor, window, cx| {
             (
                 editor
-                    .style(cx)
+                    .style(window, cx)
                     .text
                     .line_height_in_pixels(window.rem_size()),
                 editor.visible_line_count().unwrap(),

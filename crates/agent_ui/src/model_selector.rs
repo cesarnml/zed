@@ -361,7 +361,7 @@ impl PickerDelegate for ModelPickerDelegate {
 
             DocumentationAside::new(
                 side,
-                Rc::new(move |_| Label::new(description.clone()).into_any_element()),
+                Rc::new(move |_, _| Label::new(description.clone()).into_any_element()),
             )
         })
     }

@@ -360,11 +360,11 @@ fn mermaid_font_family(font_family: &str) -> String {
 }
 
 fn build_mermaid_theme(cx: &Context<Markdown>) -> mermaid_render::MermaidTheme {
-    let colors = cx.theme().colors();
+    let colors = cx.configured_theme().colors();
     let theme_settings = ThemeSettings::get_global(cx);
-    let is_dark = !cx.theme().appearance.is_light();
+    let is_dark = !cx.configured_theme().appearance.is_light();
 
-    let players = cx.theme().players();
+    let players = cx.configured_theme().players();
     let git_branch_colors = std::array::from_fn(|i| players.0[i % players.0.len()].cursor);
     let git_branch_label_colors = git_branch_colors.map(mermaid_render::text_color_for_background);
 
@@ -392,8 +392,8 @@ fn build_mermaid_theme(cx: &Context<Markdown>) -> mermaid_render::MermaidTheme {
         git_branch_label_colors,
         er_attr_bg_odd: colors.surface_background,
         er_attr_bg_even: colors.element_background,
-        error_color: cx.theme().status().error,
-        warning_color: cx.theme().status().warning,
+        error_color: cx.configured_theme().status().error,
+        warning_color: cx.configured_theme().status().warning,
         accent_colors: players
             .0
             .iter()
@@ -787,7 +787,7 @@ fn with_mermaid_horizontal_scrollbar(
         .tracked_scroll_handle(scroll_handle)
         .with_track_along(
             ScrollAxes::Horizontal,
-            cx.theme().colors().editor_background,
+            window.theme(cx).colors().editor_background,
         )
         .notify_content();
 
@@ -1040,7 +1040,7 @@ mod tests {
         struct TestWindow;
 
         impl Render for TestWindow {
-            fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+            fn render(&mut self, _window: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
                 div()
             }
         }
@@ -1752,7 +1752,7 @@ mod tests {
         struct TestWindow;
 
         impl Render for TestWindow {
-            fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+            fn render(&mut self, _window: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
                 div()
             }
         }

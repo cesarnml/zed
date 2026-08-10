@@ -213,26 +213,26 @@ impl Transformable for Icon {
 }
 
 impl RenderOnce for Icon {
-    fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         match self.source {
             IconSource::Embedded(path) => svg()
                 .with_transformation(self.transformation)
                 .size(self.size)
                 .flex_none()
                 .path(path)
-                .text_color(self.color.color(cx))
+                .text_color(self.color.color(window.theme(cx)))
                 .into_any_element(),
             IconSource::ExternalSvg(path) => svg()
                 .external_path(path)
                 .with_transformation(self.transformation)
                 .size(self.size)
                 .flex_none()
-                .text_color(self.color.color(cx))
+                .text_color(self.color.color(window.theme(cx)))
                 .into_any_element(),
             IconSource::External(path) => img(path)
                 .size(self.size)
                 .flex_none()
-                .text_color(self.color.color(cx))
+                .text_color(self.color.color(window.theme(cx)))
                 .into_any_element(),
         }
     }
@@ -273,10 +273,10 @@ impl IconWithIndicator {
 }
 
 impl RenderOnce for IconWithIndicator {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let indicator_border_color = self
             .indicator_border_color
-            .unwrap_or_else(|| cx.theme().colors().elevated_surface_background);
+            .unwrap_or_else(|| window.theme(cx).colors().elevated_surface_background);
 
         div()
             .relative()
@@ -307,7 +307,7 @@ impl Component for Icon {
         with customizable size, color, and transformations."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         v_flex()
             .gap_6()
             .children(vec![
@@ -339,8 +339,8 @@ impl Component for Icon {
                                     .p_1p5()
                                     .gap_2()
                                     .border_1()
-                                    .border_color(cx.theme().colors().border_variant)
-                                    .bg(cx.theme().colors().element_disabled)
+                                    .border_color(window.theme(cx).colors().border_variant)
+                                    .bg(window.theme(cx).colors().element_disabled)
                                     .rounded_sm()
                                     .items_center()
                                     .child(Icon::new(icon_name))

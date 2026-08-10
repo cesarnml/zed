@@ -778,7 +778,7 @@ impl Render for BreakpointList {
             .custom_scrollbars(
                 ui::Scrollbars::new(ScrollAxes::Both)
                     .tracked_scroll_handle(&self.scroll_handle)
-                    .with_track_along(ScrollAxes::Both, cx.theme().colors().panel_background)
+                    .with_track_along(ScrollAxes::Both, window.theme(cx).colors().panel_background)
                     .tracked_entity(cx.entity_id()),
                 window,
                 cx,
@@ -789,12 +789,12 @@ impl Render for BreakpointList {
                         h_flex()
                             .p_1()
                             .rounded_sm()
-                            .bg(cx.theme().colors().editor_background)
+                            .bg(window.theme(cx).colors().editor_background)
                             .border_1()
                             .when(
                                 self.input.focus_handle(cx).contains_focused(window, cx),
                                 |this| {
-                                    let colors = cx.theme().colors();
+                                    let colors = window.theme(cx).colors();
 
                                     let border_color = if self.input.read(cx).read_only(cx) {
                                         colors.border_disabled
@@ -1360,7 +1360,7 @@ impl BreakpointOptionsStrip {
         move |this: Div| {
             // Avoid layout shifts in case there's no colored border
             let this = this.border_1().rounded_sm();
-            let color = cx.theme().colors();
+            let color = window.theme(cx).colors();
 
             if self.is_selected && self.strip_mode == Some(kind) {
                 if self.focus_handle.is_focused(window) {

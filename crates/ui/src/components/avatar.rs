@@ -91,7 +91,7 @@ impl RenderOnce for Avatar {
                 self.image
                     .size(image_size)
                     .rounded_full()
-                    .bg(cx.theme().colors().element_disabled)
+                    .bg(window.theme(cx).colors().element_disabled)
                     .with_fallback(|| {
                         h_flex()
                             .size_full()
@@ -160,7 +160,7 @@ impl RenderOnce for AvatarAudioStatusIndicator {
                     .justify_center()
                     .px(padding_x)
                     .py(px(2.))
-                    .bg(cx.theme().status().error_background)
+                    .bg(window.theme(cx).status().error_background)
                     .rounded_sm()
                     .child(
                         Icon::new(match self.audio_status {
@@ -238,8 +238,8 @@ impl RenderOnce for AvatarAvailabilityIndicator {
                 this.border(border_width).border_color(color)
             })
             .bg(match self.availability {
-                CollaboratorAvailability::Free => cx.theme().status().created,
-                CollaboratorAvailability::Busy => cx.theme().status().deleted,
+                CollaboratorAvailability::Free => window.theme(cx).status().created,
+                CollaboratorAvailability::Busy => window.theme(cx).status().deleted,
             })
     }
 }
@@ -254,7 +254,7 @@ impl Component for Avatar {
         Avatar::DOCS
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let example_avatar = "https://avatars.githubusercontent.com/u/1714999?v=4";
 
         v_flex()
@@ -271,7 +271,7 @@ impl Component for Avatar {
                         single_example(
                             "Border",
                             Avatar::new(example_avatar)
-                                .border_color(cx.theme().colors().border)
+                                .border_color(window.theme(cx).colors().border)
                                 .into_any_element(),
                         ).description("Can be used to create visual space by setting the border color to match the background, which creates the appearance of a gap around the avatar."),
                     ]),

@@ -111,7 +111,7 @@ impl<D: PickerDelegate> Picker<D> {
                 .p_1p5()
                 .justify_between()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .when(self.preview.is_some(), |this| {
                     this.child(self.render_preview_controls(window, cx))
                 })

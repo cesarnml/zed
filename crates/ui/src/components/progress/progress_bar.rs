@@ -18,14 +18,19 @@ pub struct ProgressBar {
 }
 
 impl ProgressBar {
-    pub fn new(id: impl Into<ElementId>, value: f32, max_value: f32, cx: &App) -> Self {
+    pub fn new(
+        id: impl Into<ElementId>,
+        value: f32,
+        max_value: f32,
+        theme: &impl ActiveTheme,
+    ) -> Self {
         Self {
             id: id.into(),
             value,
             max_value,
-            bg_color: cx.theme().colors().background,
-            over_color: cx.theme().status().error,
-            fg_color: cx.theme().status().info,
+            bg_color: theme.theme().colors().background,
+            over_color: theme.theme().status().error,
+            fg_color: theme.theme().status().info,
         }
     }
 
@@ -96,7 +101,7 @@ impl Component for ProgressBar {
         Self::DOCS
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let max_value = 180.0;
         let container = || v_flex().w_full().gap_1();
 
@@ -113,7 +118,7 @@ impl Component for ProgressBar {
                                 .child(Label::new("0%"))
                                 .child(Label::new("Empty")),
                         )
-                        .child(ProgressBar::new("empty", 0.0, max_value, cx)),
+                        .child(ProgressBar::new("empty", 0.0, max_value, window.theme(cx))),
                 )
                 .child(
                     container()
@@ -123,7 +128,12 @@ impl Component for ProgressBar {
                                 .child(Label::new("38%"))
                                 .child(Label::new("Partial")),
                         )
-                        .child(ProgressBar::new("partial", max_value * 0.35, max_value, cx)),
+                        .child(ProgressBar::new(
+                            "partial",
+                            max_value * 0.35,
+                            max_value,
+                            window.theme(cx),
+                        )),
                 )
                 .child(
                     container()
@@ -133,7 +143,12 @@ impl Component for ProgressBar {
                                 .child(Label::new("100%"))
                                 .child(Label::new("Complete")),
                         )
-                        .child(ProgressBar::new("filled", max_value, max_value, cx)),
+                        .child(ProgressBar::new(
+                            "filled",
+                            max_value,
+                            max_value,
+                            window.theme(cx),
+                        )),
                 )
                 .into_any_element(),
         )])

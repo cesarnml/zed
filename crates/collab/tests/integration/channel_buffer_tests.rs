@@ -315,7 +315,7 @@ fn assert_remote_selections(
     let collaborators = hub.collaborators(cx);
     let range = Anchor::Min..Anchor::Max;
     let remote_selections = snapshot
-        .remote_selections_in_range(&range, hub, cx)
+        .remote_selections_in_range(&range, hub, window, cx)
         .map(|s| {
             let CollaboratorId::PeerId(peer_id) = s.collaborator_id else {
                 panic!("unexpected collaborator id");

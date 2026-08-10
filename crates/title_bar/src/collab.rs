@@ -15,7 +15,6 @@ use project::WorktreeSettings;
 use remote_connection::RemoteConnectionModal;
 use rpc::proto::{self};
 use settings::{Settings as _, SettingsLocation};
-use theme::ActiveTheme;
 use ui::{
     Avatar, AvatarAudioStatusIndicator, ContextMenu, ContextMenuItem, Divider, DividerColor,
     Facepile, KeyBinding, PopoverMenu, SplitButton, SplitButtonStyle, TintColor, Tooltip,
@@ -144,7 +143,7 @@ fn render_color_ribbon(color: Hsla) -> impl Element {
 impl TitleBar {
     pub(crate) fn render_collaborator_list(
         &self,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         let room = ActiveCall::global(cx).read(cx).room().cloned();
@@ -161,7 +160,7 @@ impl TitleBar {
             .when_some(
                 current_user.zip(client.peer_id()).zip(room),
                 |this, ((current_user, peer_id), room)| {
-                    let player_colors = cx.theme().players();
+                    let player_colors = window.theme(cx).players();
                     let room = room.read(cx);
                     let mut remote_participants =
                         room.remote_participants().values().collect::<Vec<_>>();
@@ -177,6 +176,7 @@ impl TitleBar {
                         room,
                         project_id,
                         &current_user,
+                        window,
                         cx,
                     );
 
@@ -210,6 +210,7 @@ impl TitleBar {
                             room,
                             project_id,
                             &current_user,
+                            window,
                             cx,
                         )?;
 
@@ -260,6 +261,7 @@ impl TitleBar {
         room: &Room,
         project_id: Option<u64>,
         current_user: &Arc<User>,
+        window: &Window,
         cx: &App,
     ) -> Option<Div> {
         if room.role_for_user(user.legacy_id) == Some(proto::ChannelRole::Guest) {
@@ -285,7 +287,7 @@ impl TitleBar {
                             Avatar::new(user.avatar_uri.clone())
                                 .grayscale(!is_present)
                                 .border_color(if is_speaking {
-                                    cx.theme().status().info
+                                    window.theme(cx).status().info
                                 } else {
                                     // We draw the border in a transparent color rather to avoid
                                     // the layout shift that would come with adding/removing the border.

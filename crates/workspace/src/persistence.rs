@@ -1051,6 +1051,9 @@ impl Domain for WorkspaceDb {
         sql!(
             ALTER TABLE bookmarks ADD COLUMN label TEXT NOT NULL DEFAULT "";
         ),
+        sql!(
+            ALTER TABLE workspaces ADD COLUMN theme_override TEXT;
+        ),
     ];
 
     // Allow recovering from bad migration that was initially shipped to nightly
@@ -1108,6 +1111,7 @@ impl WorkspaceDb {
             window_bounds,
             display,
             centered_layout,
+            theme_override,
             docks,
             window_id,
         ): (
@@ -1119,6 +1123,7 @@ impl WorkspaceDb {
             Option<SerializedWindowBounds>,
             Option<Uuid>,
             Option<bool>,
+            Option<String>,
             DockStructure,
             Option<u64>,
         ) = self
@@ -1136,6 +1141,7 @@ impl WorkspaceDb {
                     window_height,
                     display,
                     centered_layout,
+                    theme_override,
                     left_dock_visible,
                     left_dock_active_panel,
                     left_dock_zoom,
@@ -1195,6 +1201,7 @@ impl WorkspaceDb {
                 .log_err()?,
             window_bounds,
             centered_layout: centered_layout.unwrap_or(false),
+            theme_override,
             display,
             docks,
             session_id: None,
@@ -1218,6 +1225,7 @@ impl WorkspaceDb {
             window_bounds,
             display,
             centered_layout,
+            theme_override,
             docks,
             window_id,
             remote_connection_id,
@@ -1229,6 +1237,7 @@ impl WorkspaceDb {
             Option<SerializedWindowBounds>,
             Option<Uuid>,
             Option<bool>,
+            Option<String>,
             DockStructure,
             Option<u64>,
             Option<i32>,
@@ -1246,6 +1255,7 @@ impl WorkspaceDb {
                     window_height,
                     display,
                     centered_layout,
+                    theme_override,
                     left_dock_visible,
                     left_dock_active_panel,
                     left_dock_zoom,
@@ -1299,6 +1309,7 @@ impl WorkspaceDb {
                 .log_err()?,
             window_bounds,
             centered_layout: centered_layout.unwrap_or(false),
+            theme_override,
             display,
             docks,
             session_id: None,
@@ -1597,9 +1608,10 @@ impl WorkspaceDb {
                         bottom_dock_zoom,
                         session_id,
                         window_id,
+                        theme_override,
                         timestamp
                     )
-                    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, CURRENT_TIMESTAMP)
+                    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, CURRENT_TIMESTAMP)
                     ON CONFLICT DO
                     UPDATE SET
                         paths = ?2,
@@ -1618,6 +1630,7 @@ impl WorkspaceDb {
                         bottom_dock_zoom = ?15,
                         session_id = ?16,
                         window_id = ?17,
+                        theme_override = ?18,
                         timestamp = CURRENT_TIMESTAMP
                 );
                 let mut prepared_query = conn.exec_bound(query)?;
@@ -1631,6 +1644,7 @@ impl WorkspaceDb {
                     workspace.docks,
                     workspace.session_id,
                     workspace.window_id,
+                    workspace.theme_override.clone(),
                 );
 
                 prepared_query(args).context("Updating workspace")?;
@@ -2453,6 +2467,14 @@ impl WorkspaceDb {
     }
 
     query! {
+        pub(crate) async fn set_theme_override(workspace_id: WorkspaceId, theme_override: Option<String>) -> Result<()> {
+            UPDATE workspaces
+            SET theme_override = ?2
+            WHERE workspace_id = ?1
+        }
+    }
+
+    query! {
         pub(crate) async fn set_session_id(workspace_id: WorkspaceId, session_id: Option<String>) -> Result<()> {
             UPDATE workspaces
             SET session_id = ?2
@@ -2918,6 +2940,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             bookmarks: Default::default(),
             breakpoints: {
                 let mut map = collections::BTreeMap::default();
@@ -3075,6 +3098,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             bookmarks: Default::default(),
             breakpoints: {
                 let mut map = collections::BTreeMap::default();
@@ -3125,6 +3149,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             bookmarks: Default::default(),
             breakpoints: collections::BTreeMap::default(),
             session_id: None,
@@ -3225,6 +3250,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             bookmarks: Default::default(),
             breakpoints: Default::default(),
             session_id: None,
@@ -3242,6 +3268,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             bookmarks: Default::default(),
             breakpoints: Default::default(),
             session_id: None,
@@ -3353,6 +3380,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: None,
             window_id: Some(999),
             user_toolchains: Default::default(),
@@ -3369,6 +3397,66 @@ mod tests {
 
         let round_trip_workspace = db.workspace_for_roots(&["/tmp", "/tmp2"]);
         assert_eq!(workspace, round_trip_workspace.unwrap());
+    }
+
+    #[gpui::test]
+    async fn test_theme_override_persistence() {
+        zlog::init_test();
+
+        let db = WorkspaceDb::open_test_db("test_theme_override_persistence").await;
+
+        let mut workspace = SerializedWorkspace {
+            id: WorkspaceId(1),
+            paths: PathList::new(&["/tmp"]),
+            identity_paths: None,
+            location: SerializedWorkspaceLocation::Local,
+            center_group: Default::default(),
+            window_bounds: Default::default(),
+            bookmarks: Default::default(),
+            breakpoints: Default::default(),
+            display: Default::default(),
+            docks: Default::default(),
+            centered_layout: false,
+            theme_override: None,
+            session_id: None,
+            window_id: Some(1),
+            user_toolchains: Default::default(),
+        };
+        db.save_workspace(workspace.clone()).await;
+        assert_eq!(
+            db.workspace_for_roots(&["/tmp"]).unwrap().theme_override,
+            None
+        );
+
+        // An override written outside of full serialization survives a reload.
+        db.set_theme_override(WorkspaceId(1), Some("One Dark".to_string()))
+            .await
+            .unwrap();
+        assert_eq!(
+            db.workspace_for_roots(&["/tmp"])
+                .unwrap()
+                .theme_override
+                .as_deref(),
+            Some("One Dark")
+        );
+
+        // A full workspace save writes the in-memory override through the upsert.
+        workspace.theme_override = Some("Ayu Dark".to_string());
+        db.save_workspace(workspace.clone()).await;
+        assert_eq!(
+            db.workspace_for_roots(&["/tmp"])
+                .unwrap()
+                .theme_override
+                .as_deref(),
+            Some("Ayu Dark")
+        );
+
+        // Clearing the override persists too.
+        db.set_theme_override(WorkspaceId(1), None).await.unwrap();
+        assert_eq!(
+            db.workspace_for_roots(&["/tmp"]).unwrap().theme_override,
+            None
+        );
     }
 
     #[gpui::test]
@@ -3389,6 +3477,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: None,
             window_id: Some(1),
             user_toolchains: Default::default(),
@@ -3404,6 +3493,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             bookmarks: Default::default(),
             breakpoints: Default::default(),
             session_id: None,
@@ -3450,6 +3540,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: None,
             window_id: Some(3),
             user_toolchains: Default::default(),
@@ -3488,6 +3579,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             bookmarks: Default::default(),
             breakpoints: Default::default(),
             session_id: Some("session-id-1".to_owned()),
@@ -3505,6 +3597,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             bookmarks: Default::default(),
             breakpoints: Default::default(),
             session_id: Some("session-id-1".to_owned()),
@@ -3522,6 +3615,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             bookmarks: Default::default(),
             breakpoints: Default::default(),
             session_id: Some("session-id-2".to_owned()),
@@ -3539,6 +3633,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             bookmarks: Default::default(),
             breakpoints: Default::default(),
             session_id: None,
@@ -3567,6 +3662,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             bookmarks: Default::default(),
             breakpoints: Default::default(),
             session_id: Some("session-id-2".to_owned()),
@@ -3586,6 +3682,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: Some("session-id-3".to_owned()),
             window_id: Some(60),
             user_toolchains: Default::default(),
@@ -3645,6 +3742,7 @@ mod tests {
             bookmarks: Default::default(),
             breakpoints: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: None,
             window_id: None,
             user_toolchains: Default::default(),
@@ -3686,6 +3784,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: Some("one-session".to_owned()),
             bookmarks: Default::default(),
             breakpoints: Default::default(),
@@ -3787,6 +3886,7 @@ mod tests {
             bookmarks: Default::default(),
             breakpoints: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: session_id.map(|s| s.to_owned()),
             window_id: Some(id),
             user_toolchains: Default::default(),
@@ -3811,6 +3911,7 @@ mod tests {
             bookmarks: Default::default(),
             breakpoints: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: None,
             window_id: Some(id),
             user_toolchains: Default::default(),
@@ -4067,6 +4168,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: Some("one-session".to_owned()),
             bookmarks: Default::default(),
             breakpoints: Default::default(),
@@ -4432,6 +4534,7 @@ mod tests {
             bookmarks: Default::default(),
             breakpoints: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: None,
             window_id: None,
             user_toolchains: Default::default(),
@@ -4508,6 +4611,7 @@ mod tests {
                 display: Default::default(),
                 docks: Default::default(),
                 centered_layout: false,
+                theme_override: None,
                 session_id: Some("test-session".to_owned()),
                 bookmarks: Default::default(),
                 breakpoints: Default::default(),
@@ -4795,6 +4899,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: Some(session_id.clone()),
             bookmarks: Default::default(),
             breakpoints: Default::default(),
@@ -4892,6 +4997,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: Some(session_id.to_owned()),
             bookmarks: Default::default(),
             breakpoints: Default::default(),
@@ -4910,6 +5016,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: Some(session_id.to_owned()),
             bookmarks: Default::default(),
             breakpoints: Default::default(),
@@ -4990,6 +5097,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            theme_override: None,
             session_id: Some(session_id.clone()),
             bookmarks: Default::default(),
             breakpoints: Default::default(),

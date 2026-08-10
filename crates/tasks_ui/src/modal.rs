@@ -13,9 +13,8 @@ use picker::{Picker, PickerDelegate, highlighted_match_with_paths::HighlightedMa
 use project::{TaskSourceKind, task_store::TaskStore};
 use task::{DebugScenario, ResolvedTask, RevealTarget, TaskContext, TaskTemplate};
 use ui::{
-    ActiveTheme, Clickable, FluentBuilder as _, IconButtonShape, IconWithIndicator, Indicator,
-    IntoElement, KeyBinding, ListItem, ListItemSpacing, RenderOnce, Toggleable, Tooltip, div,
-    prelude::*,
+    Clickable, FluentBuilder as _, IconButtonShape, IconWithIndicator, Indicator, IntoElement,
+    KeyBinding, ListItem, ListItemSpacing, RenderOnce, Toggleable, Tooltip, div, prelude::*,
 };
 
 use util::{ResultExt, truncate_and_trailoff};
@@ -504,7 +503,7 @@ impl PickerDelegate for TasksModalDelegate {
         };
         let icon = icon.map(|icon| {
             IconWithIndicator::new(icon, indicator)
-                .indicator_border_color(Some(cx.theme().colors().border_transparent))
+                .indicator_border_color(Some(window.theme(cx).colors().border_transparent))
         });
         let history_run_icon = if Some(ix) <= self.divider_index {
             Some(
@@ -656,7 +655,7 @@ impl PickerDelegate for TasksModalDelegate {
                 .p_1p5()
                 .justify_between()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .child(
                     left_button
                         .map(|(label, action)| {

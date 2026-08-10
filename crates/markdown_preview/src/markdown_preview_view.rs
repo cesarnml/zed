@@ -23,7 +23,7 @@ use markdown::{
 use project::search::SearchQuery;
 use project::{Project, ProjectPath};
 use settings::{SeedQuerySetting, Settings, update_settings_file};
-use theme::{SystemAppearance, Theme, ThemeRegistry};
+use theme::{SystemAppearance, Theme, ThemeRegistry, WindowTheme};
 use theme_settings::ThemeSettings;
 use ui::utils::WithRemSize;
 use ui::{ContextMenu, LinkPreview, WithScrollbar, prelude::*, right_click_menu};
@@ -1561,7 +1561,7 @@ impl Render for MarkdownPreviewView {
         let bg_color = preview_theme
             .as_ref()
             .map(|theme| theme.colors().editor_background)
-            .unwrap_or_else(|| cx.theme().colors().editor_background);
+            .unwrap_or_else(|| window.theme(cx).colors().editor_background);
         let preview_font_size = ThemeSettings::get_global(cx).markdown_preview_font_size(cx);
         let hovered_url = self.hovered_url.clone();
         div()

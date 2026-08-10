@@ -3,8 +3,8 @@ use gpui::{
     KeybindingKeystroke, Keystroke, Modifiers, ModifiersChangedEvent, Subscription, Task, actions,
 };
 use ui::{
-    ActiveTheme as _, Color, IconButton, IconButtonShape, IconName, IconSize, Label, LabelSize,
-    ParentElement as _, Render, Styled as _, Tooltip, Window, prelude::*,
+    Color, IconButton, IconButtonShape, IconName, IconSize, Label, LabelSize, ParentElement as _,
+    Render, Styled as _, Tooltip, Window, prelude::*,
 };
 
 actions!(
@@ -464,7 +464,7 @@ impl Focusable for KeystrokeInput {
 
 impl Render for KeystrokeInput {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let colors = cx.theme().colors();
+        let colors = window.theme(cx).colors();
         let is_focused = self.outer_focus_handle.contains_focused(window, cx);
         let is_recording = self.is_recording(window);
 
@@ -484,7 +484,7 @@ impl Render for KeystrokeInput {
                         .repeat()
                         .with_easing(gpui::pulsating_between(0.4, 0.8)),
                     {
-                        let color = color.color(cx);
+                        let color = color.color(window.theme(cx));
                         move |this, delta| this.color(Color::Custom(color.opacity(delta)))
                     },
                 )

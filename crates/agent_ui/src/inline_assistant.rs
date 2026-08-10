@@ -4,6 +4,7 @@ use language_models::provider::anthropic::telemetry::{
 use std::mem;
 use std::ops::Range;
 use std::sync::Arc;
+use ui::WindowTheme as _;
 use uuid::Uuid;
 
 use crate::context::load_context;
@@ -500,7 +501,7 @@ impl InlineAssistant {
             }
 
             let [prompt_block_id, tool_description_block_id, end_block_id] =
-                self.insert_assist_blocks(&editor, &range, &prompt_editor, cx);
+                self.insert_assist_blocks(&editor, &range, &prompt_editor, window, cx);
 
             assists.push((
                 assist_id,
@@ -606,6 +607,7 @@ impl InlineAssistant {
         editor: &Entity<Editor>,
         range: &Range<Anchor>,
         prompt_editor: &Entity<PromptEditor<BufferCodegen>>,
+        _window: &Window,
         cx: &mut App,
     ) -> [CustomBlockId; 3] {
         let prompt_editor_height = prompt_editor.update(cx, |prompt_editor, cx| {
@@ -638,7 +640,7 @@ impl InlineAssistant {
                         .h_full()
                         .w_full()
                         .border_t_1()
-                        .border_color(cx.theme().status().info_border)
+                        .border_color(cx.window.theme(cx.app).status().info_border)
                         .into_any_element()
                 }),
                 priority: 0,
@@ -1320,7 +1322,7 @@ impl InlineAssistant {
             } else {
                 editor.highlight_gutter::<GutterPendingRange>(
                     gutter_pending_ranges,
-                    |cx| cx.theme().status().info_background,
+                    |theme| theme.status().info_background,
                     cx,
                 )
             }
@@ -1331,7 +1333,7 @@ impl InlineAssistant {
             } else {
                 editor.highlight_gutter::<GutterTransformedRange>(
                     gutter_transformed_ranges,
-                    |cx| cx.theme().status().info,
+                    |theme| theme.status().info,
                     cx,
                 )
             }
@@ -1354,7 +1356,7 @@ impl InlineAssistant {
             for row_range in inserted_row_ranges {
                 editor.highlight_rows::<InlineAssist>(
                     row_range,
-                    |cx| cx.theme().status().info_background,
+                    |theme| theme.status().info_background,
                     Default::default(),
                     cx,
                 );
@@ -1423,7 +1425,7 @@ impl InlineAssistant {
                     editor.set_show_edit_predictions(Some(false), window, cx);
                     editor.highlight_rows::<DeletedLines>(
                         Anchor::Min..Anchor::Max,
-                        |cx| cx.theme().status().deleted_background,
+                        |theme| theme.status().deleted_background,
                         Default::default(),
                         cx,
                     );
@@ -1439,7 +1441,7 @@ impl InlineAssistant {
                     render: Arc::new(move |cx| {
                         div()
                             .block_mouse_except_scroll()
-                            .bg(cx.theme().status().deleted_background)
+                            .bg(cx.window.theme(cx.app).status().deleted_background)
                             .size_full()
                             .h(height as f32 * cx.window.line_height())
                             .pl(cx.margins.gutter.full_width())

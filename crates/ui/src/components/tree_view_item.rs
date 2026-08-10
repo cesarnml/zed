@@ -131,12 +131,12 @@ impl Toggleable for TreeViewItem {
 }
 
 impl RenderOnce for TreeViewItem {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let selected_bg = cx.theme().colors().element_active.opacity(0.5);
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let selected_bg = window.theme(cx).colors().element_active.opacity(0.5);
 
-        let transparent_border = cx.theme().colors().border.opacity(0.);
-        let selected_border = cx.theme().colors().border.opacity(0.4);
-        let focused_border = cx.theme().colors().border_focused;
+        let transparent_border = window.theme(cx).colors().border.opacity(0.);
+        let selected_border = window.theme(cx).colors().border.opacity(0.4);
+        let focused_border = window.theme(cx).colors().border_focused;
 
         let item_size = rems_from_px(28.);
         let indentation_line = h_flex()
@@ -148,7 +148,7 @@ impl RenderOnce for TreeViewItem {
                 div()
                     .w_px()
                     .h_full()
-                    .bg(cx.theme().colors().border.opacity(0.5)),
+                    .bg(window.theme(cx).colors().border.opacity(0.5)),
             );
 
         let aria_label = self.label.clone();
@@ -185,7 +185,7 @@ impl RenderOnce for TreeViewItem {
                     .when(self.selected, |this| {
                         this.border_color(selected_border).bg(selected_bg)
                     })
-                    .hover(|s| s.bg(cx.theme().colors().element_hover))
+                    .hover(|s| s.bg(window.theme(cx).colors().element_hover))
                     .map(|this| {
                         let label = self.label;
 
@@ -242,14 +242,14 @@ impl Component for TreeViewItem {
         where children can be toggled into view by expanding or collapsing their parent item."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let container = || {
             v_flex()
                 .p_2()
                 .w_64()
                 .border_1()
-                .border_color(cx.theme().colors().border_variant)
-                .bg(cx.theme().colors().panel_background)
+                .border_color(window.theme(cx).colors().border_variant)
+                .bg(window.theme(cx).colors().panel_background)
         };
 
         example_group(vec![

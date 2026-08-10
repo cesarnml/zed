@@ -4,6 +4,7 @@ use std::{
     rc::Rc,
     time::{Duration, Instant},
 };
+use workspace::ui::{ConfiguredTheme as _, WindowTheme as _};
 
 use command_palette_hooks::CommandPaletteFilter;
 use gpui::{
@@ -21,9 +22,9 @@ use util::ResultExt;
 use workspace::{
     Workspace,
     ui::{
-        ActiveTheme, Button, ButtonCommon, ButtonStyle, Checkbox, Clickable, ContextMenu, Divider,
-        DropdownMenu, ScrollAxes, ScrollableHandle as _, Scrollbars, ToggleState, Tooltip,
-        WithScrollbar, h_flex, v_flex,
+        Button, ButtonCommon, ButtonStyle, Checkbox, Clickable, ContextMenu, Divider, DropdownMenu,
+        ScrollAxes, ScrollableHandle as _, Scrollbars, ToggleState, Tooltip, WithScrollbar, h_flex,
+        v_flex,
     },
 };
 use zed_actions::OpenPerformanceProfiler;
@@ -149,7 +150,7 @@ fn open_performance_profiler(
         return;
     }
 
-    let window_background = cx.theme().window_background_appearance();
+    let window_background = cx.configured_theme().window_background_appearance();
     let default_bounds = size(px(1280.), px(720.));
 
     cx.defer(move |cx| {
@@ -432,6 +433,7 @@ impl ProfilerWindow {
         window_start_nanos: u128,
         window_duration_nanos: u128,
         item: TimingBar,
+        window: &gpui::Window,
         cx: &App,
     ) -> Div {
         let time_ms = item.duration_nanos as f32 / NANOS_PER_MS as f32;
@@ -482,7 +484,7 @@ impl ProfilerWindow {
                 div()
                     .flex_1()
                     .h(px(24.0))
-                    .bg(cx.theme().colors().background)
+                    .bg(window.theme(cx).colors().background)
                     .rounded_md()
                     .p(px(2.0))
                     .relative()
@@ -532,8 +534,8 @@ impl Render for ProfilerWindow {
             .font(ui_font)
             .w_full()
             .h_full()
-            .bg(cx.theme().colors().surface_background)
-            .text_color(cx.theme().colors().text)
+            .bg(window.theme(cx).colors().surface_background)
+            .text_color(window.theme(cx).colors().text)
             .child(
                 h_flex()
                     .py_2()
@@ -642,7 +644,7 @@ impl Render for ProfilerWindow {
                         .child(
                             uniform_list("list", display_timings.len(), {
                                 let timings = display_timings.clone();
-                                move |visible_range, _, cx| {
+                                move |visible_range, window, cx| {
                                     let mut items = vec![];
                                     for i in visible_range {
                                         let timing = &timings[i];
@@ -653,10 +655,11 @@ impl Render for ProfilerWindow {
                                                 location: timing.location.clone(),
                                                 start_nanos: timing.start,
                                                 duration_nanos: timing.duration,
-                                                color: cx.theme().accents().color_for_index(
+                                                color: window.theme(cx).accents().color_for_index(
                                                     location_color_index(&timing.location),
                                                 ),
                                             },
+                                            window,
                                             cx,
                                         ));
                                     }

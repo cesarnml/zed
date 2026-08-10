@@ -26,7 +26,7 @@ impl ModelSelectorHeader {
 }
 
 impl RenderOnce for ModelSelectorHeader {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         div()
             .px_2()
             .pb_1()
@@ -34,7 +34,7 @@ impl RenderOnce for ModelSelectorHeader {
                 this.mt_1()
                     .pt_2()
                     .border_t_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
             })
             .child(
                 Label::new(self.title)
@@ -228,7 +228,7 @@ impl ModelSelectorFooter {
 }
 
 impl RenderOnce for ModelSelectorFooter {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let action = self.action;
         let focus_handle = self.focus_handle;
 
@@ -236,7 +236,7 @@ impl RenderOnce for ModelSelectorFooter {
             .w_full()
             .p_1p5()
             .border_t_1()
-            .border_color(cx.theme().colors().border_variant)
+            .border_color(window.theme(cx).colors().border_variant)
             .child(
                 Button::new("configure", "Configure")
                     .full_width()
@@ -271,7 +271,7 @@ impl ModelSelectorTooltip {
 }
 
 impl RenderOnce for ModelSelectorTooltip {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         v_flex()
             .gap_1()
             .child(
@@ -287,7 +287,7 @@ impl RenderOnce for ModelSelectorTooltip {
                         .pt_1()
                         .gap_2()
                         .border_t_1()
-                        .border_color(cx.theme().colors().border_variant)
+                        .border_color(window.theme(cx).colors().border_variant)
                         .justify_between()
                         .child(Label::new("Cycle Favorite Models"))
                         .child(KeyBinding::for_action(&CycleFavoriteModels, cx)),

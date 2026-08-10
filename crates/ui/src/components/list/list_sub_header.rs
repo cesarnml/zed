@@ -45,7 +45,7 @@ impl Toggleable for ListSubHeader {
 }
 
 impl RenderOnce for ListSubHeader {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         h_flex()
             .flex_1()
             .w_full()
@@ -57,7 +57,7 @@ impl RenderOnce for ListSubHeader {
                     .h_5()
                     .when(self.inset, |this| this.px_2())
                     .when(self.selected, |this| {
-                        this.bg(cx.theme().colors().ghost_element_selected)
+                        this.bg(window.theme(cx).colors().ghost_element_selected)
                     })
                     .flex()
                     .flex_1()

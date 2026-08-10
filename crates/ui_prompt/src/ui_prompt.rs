@@ -125,7 +125,7 @@ impl Render for ZedPromptRenderer {
             .w_80()
             .p_4()
             .gap_4()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .overflow_hidden()
             .font_family(settings.ui_font.family.clone())
             .child(div().w_full().child(MarkdownElement::new(
@@ -186,9 +186,9 @@ fn markdown_style(main_message: bool, window: &Window, cx: &App) -> MarkdownStyl
     let font_size = settings.ui_font_size(cx).into();
 
     let color = if main_message {
-        Color::Default.color(cx)
+        Color::Default.color(window.theme(cx))
     } else {
-        Color::Muted.color(cx)
+        Color::Muted.color(window.theme(cx))
     };
 
     base_text_style.refine(&TextStyleRefinement {
@@ -200,7 +200,7 @@ fn markdown_style(main_message: bool, window: &Window, cx: &App) -> MarkdownStyl
 
     MarkdownStyle {
         base_text_style,
-        selection_background_color: cx.theme().colors().element_selection_background,
+        selection_background_color: window.theme(cx).colors().element_selection_background,
         ..Default::default()
     }
 }

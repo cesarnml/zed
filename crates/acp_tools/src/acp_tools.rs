@@ -400,7 +400,7 @@ impl AcpTools {
         let theme_settings = ThemeSettings::get_global(cx);
         let text_style = window.text_style();
 
-        let colors = cx.theme().colors();
+        let colors = window.theme(cx).colors();
         let expanded = self.expanded.contains(&index);
 
         v_flex()
@@ -486,7 +486,7 @@ impl AcpTools {
                                 MarkdownStyle {
                                     base_text_style: text_style,
                                     selection_background_color: colors.element_selection_background,
-                                    syntax: cx.theme().syntax().clone(),
+                                    syntax: window.theme(cx).syntax().clone(),
                                     code_block_overflow_x_scroll: true,
                                     code_block: StyleRefinement {
                                         text: TextStyleRefinement {
@@ -707,7 +707,7 @@ impl Render for AcpTools {
         v_flex()
             .track_focus(&self.focus_handle)
             .size_full()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child(
                 h_flex()
                     .w_full()
@@ -717,7 +717,7 @@ impl Render for AcpTools {
                     .justify_between()
                     .gap_2()
                     .border_b_1()
-                    .border_color(cx.theme().colors().border)
+                    .border_color(window.theme(cx).colors().border)
                     .child(
                         DropdownMenu::new(
                             "acp-connection-selector",

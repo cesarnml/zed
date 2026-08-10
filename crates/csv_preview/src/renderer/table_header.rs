@@ -377,7 +377,7 @@ impl PickerDelegate for ColumnFilterDelegate {
         &self,
         ix: usize,
         selected: bool,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         match self.filtered.get(ix)? {
@@ -387,7 +387,7 @@ impl PickerDelegate for ColumnFilterDelegate {
                     .pt_2()
                     .pb_1()
                     .border_t_1()
-                    .border_color(cx.theme().colors().border_variant)
+                    .border_color(window.theme(cx).colors().border_variant)
                     .child(
                         Label::new(label.clone())
                             .size(LabelSize::XSmall)
@@ -456,7 +456,7 @@ impl PickerDelegate for ColumnFilterDelegate {
 
     fn render_footer(
         &self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<AnyElement> {
         let selected_rows: usize = self
@@ -482,7 +482,7 @@ impl PickerDelegate for ColumnFilterDelegate {
                 .px_2()
                 .py_1()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .justify_between()
                 .items_center()
                 .child(
@@ -519,6 +519,7 @@ impl CsvPreviewView {
     pub(crate) fn create_header_element_with_sort_button(
         &self,
         header_text: SharedString,
+        window: &Window,
         cx: &mut Context<'_, CsvPreviewView>,
         col_idx: AnyColumn,
     ) -> AnyElement {
@@ -530,7 +531,7 @@ impl CsvPreviewView {
         let always_show_buttons = has_active_filter || has_active_sort;
         let group_name = SharedString::from(format!("csv-col-header-{}", col_idx.get()));
 
-        let colors = cx.theme().colors();
+        let colors = window.theme(cx).colors();
         let base_bg = colors.editor_background;
         let grad_width_hovered = px(100.);
         let grad_width = if always_show_buttons {

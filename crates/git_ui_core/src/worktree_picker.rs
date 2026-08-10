@@ -219,7 +219,7 @@ impl WorktreePicker {
     fn handle_modifiers_changed(
         &mut self,
         ev: &ModifiersChangedEvent,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.picker.update(cx, |picker, cx| {
@@ -239,10 +239,10 @@ impl ModalView for WorktreePicker {}
 impl EventEmitter<DismissEvent> for WorktreePicker {}
 
 impl Render for WorktreePicker {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .key_context("WorktreePicker")
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .child(self.picker.clone())
             .on_modifiers_changed(cx.listener(Self::handle_modifiers_changed))
             .on_mouse_down_out(cx.listener(|_, _, _, cx| {
@@ -375,7 +375,7 @@ impl DeleteWorktreeTooltip {
 }
 
 impl Render for DeleteWorktreeTooltip {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let force_delete = self
             .picker
             .read_with(cx, |picker, _| {
@@ -1386,7 +1386,11 @@ impl PickerDelegate for WorktreePickerDelegate {
         )
     }
 
-    fn render_footer(&self, _: &mut Window, cx: &mut Context<Picker<Self>>) -> Option<AnyElement> {
+    fn render_footer(
+        &self,
+        window: &mut Window,
+        cx: &mut Context<Picker<Self>>,
+    ) -> Option<AnyElement> {
         if !self.show_footer {
             return None;
         }
@@ -1424,7 +1428,7 @@ impl PickerDelegate for WorktreePickerDelegate {
             .gap_0p5()
             .justify_between()
             .border_t_1()
-            .border_color(cx.theme().colors().border_variant)
+            .border_color(window.theme(cx).colors().border_variant)
             .child(
                 Button::new("configure-worktree-tasks", "Automate Setup")
                     .key_binding(

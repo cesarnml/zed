@@ -1,13 +1,12 @@
 #![allow(missing_docs)]
 
-use gpui::{App, Hsla, SharedString, WindowBackgroundAppearance};
+use gpui::{Hsla, SharedString, WindowBackgroundAppearance};
 use refineable::Refineable;
 use std::sync::Arc;
 use strum::{AsRefStr, EnumIter, IntoEnumIterator};
 
 use crate::{
-    AccentColors, ActiveTheme, PlayerColors, StatusColors, StatusColorsRefinement, SyntaxTheme,
-    SystemColors,
+    AccentColors, PlayerColors, StatusColors, StatusColorsRefinement, SyntaxTheme, SystemColors,
 };
 
 #[derive(Refineable, Clone, Debug, PartialEq)]
@@ -593,8 +592,7 @@ impl ThemeColors {
     }
 }
 
-pub fn all_theme_colors(cx: &mut App) -> Vec<(Hsla, SharedString)> {
-    let theme = cx.theme();
+pub fn all_theme_colors(theme: &crate::Theme) -> Vec<(Hsla, SharedString)> {
     ThemeColorField::iter()
         .map(|field| {
             let color = theme.colors().color(field);

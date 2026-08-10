@@ -1,6 +1,7 @@
 use crate::types::TableCell;
 use gpui::{AnyElement, Entity};
 use std::ops::Range;
+use ui::WindowTheme as _;
 use ui::{ColumnWidthConfig, ResizableColumnsState, Table, UncheckedTableRow, div, prelude::*};
 
 use crate::{
@@ -15,15 +16,17 @@ impl CsvPreviewView {
     pub(crate) fn create_table(
         &self,
         current_widths: &Entity<ResizableColumnsState>,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
-        self.create_table_inner(self.engine.contents.rows.len(), current_widths, cx)
+        self.create_table_inner(self.engine.contents.rows.len(), current_widths, window, cx)
     }
 
     fn create_table_inner(
         &self,
         row_count: usize,
         current_widths: &Entity<ResizableColumnsState>,
+        window: &Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let cols = current_widths.read(cx).cols();
@@ -44,6 +47,7 @@ impl CsvPreviewView {
 
             headers.push(self.create_header_element_with_sort_button(
                 header_text,
+                window,
                 cx,
                 AnyColumn::from(i),
             ));
@@ -56,11 +60,11 @@ impl CsvPreviewView {
             .disable_base_style()
             .pin_cols(1)
             .map(|table| {
-                let row_identifier_text_color = cx.theme().colors().editor_line_number;
+                let row_identifier_text_color = window.theme(cx).colors().editor_line_number;
                 match self.settings.rendering_with {
                     RowRenderMechanism::VariableList => {
                         table.variable_row_height_list(row_count, self.list_state.clone(), {
-                            cx.processor(move |this, display_row: usize, _window, cx| {
+                            cx.processor(move |this, display_row: usize, window, cx| {
                                 this.performance_metrics.rendered_indices.push(display_row);
 
                                 let display_row = DisplayRow(display_row);
@@ -70,6 +74,7 @@ impl CsvPreviewView {
                                     display_row,
                                     row_identifier_text_color,
                                     this.row_height,
+                                    window,
                                     cx,
                                 )
                                 .unwrap_or_else(|| panic!("Expected to render a table row"))
@@ -78,7 +83,7 @@ impl CsvPreviewView {
                     }
                     RowRenderMechanism::UniformList => {
                         table.uniform_list("csv-table", row_count, {
-                            cx.processor(move |this, range: Range<usize>, _window, cx| {
+                            cx.processor(move |this, range: Range<usize>, window, cx| {
                                 // Record all display indices in the range for performance metrics
                                 this.performance_metrics
                                     .rendered_indices
@@ -93,6 +98,7 @@ impl CsvPreviewView {
                                             DisplayRow(display_index),
                                             row_identifier_text_color,
                                             row_height,
+                                            window,
                                             cx,
                                         )
                                     })
@@ -114,6 +120,7 @@ impl CsvPreviewView {
         display_row: DisplayRow,
         row_identifier_text_color: gpui::Hsla,
         row_height: Pixels,
+        window: &Window,
         cx: &Context<CsvPreviewView>,
     ) -> Option<UncheckedTableRow<AnyElement>> {
         // Get the actual row index from our sorted indices
@@ -121,7 +128,7 @@ impl CsvPreviewView {
         let row = this.engine.contents.get_row(data_row)?;
 
         let mut elements = Vec::with_capacity(cols);
-        elements.push(this.create_row_identifier_cell(display_row, data_row, cx)?);
+        elements.push(this.create_row_identifier_cell(display_row, data_row, window, cx)?);
 
         // Remaining columns: actual CSV data
         for col in (0..this.engine.contents.number_of_cols).map(AnyColumn) {
@@ -147,6 +154,7 @@ impl CsvPreviewView {
                     display_cell_id,
                     cell_content,
                     this.settings.vertical_alignment,
+                    window,
                     cx,
                 ));
 

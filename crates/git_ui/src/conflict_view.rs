@@ -288,8 +288,10 @@ fn update_conflict_highlighting(
     let ours = buffer.buffer_anchor_range_to_anchor_range(conflict.ours.clone())?;
     let theirs = buffer.buffer_anchor_range_to_anchor_range(conflict.theirs.clone())?;
 
-    let ours_background = |cx: &App| cx.theme().colors().version_control_conflict_marker_ours;
-    let theirs_background = |cx: &App| cx.theme().colors().version_control_conflict_marker_theirs;
+    let ours_background =
+        |theme: &theme::Theme| theme.colors().version_control_conflict_marker_ours;
+    let theirs_background =
+        |theme: &theme::Theme| theme.colors().version_control_conflict_marker_theirs;
 
     let options = RowHighlightOptions {
         include_gutter: true,
@@ -298,7 +300,7 @@ fn update_conflict_highlighting(
 
     editor.insert_gutter_highlight::<ConflictsOuter>(
         outer.start..theirs.end,
-        |cx| cx.theme().colors().editor_background,
+        |theme| theme.colors().editor_background,
         cx,
     );
 
@@ -334,7 +336,7 @@ fn render_conflict_buttons(
         .h(cx.line_height)
         .ml(cx.margins.gutter.width)
         .gap_1()
-        .bg(cx.theme().colors().editor_background)
+        .bg(cx.window.theme(cx.app).colors().editor_background)
         .child(
             Button::new("head", format!("Use {}", conflict.ours_branch_name))
                 .label_size(LabelSize::Small)
@@ -604,7 +606,7 @@ impl MergeConflictIndicator {
 }
 
 impl Render for MergeConflictIndicator {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let agent_settings = AgentSettings::get_global(cx);
         if !agent_settings.enabled(cx)
             || !agent_settings.show_merge_conflict_indicator
@@ -633,7 +635,7 @@ impl Render for MergeConflictIndicator {
         )
         .into();
 
-        let border_color = cx.theme().colors().text_accent.opacity(0.2);
+        let border_color = window.theme(cx).colors().text_accent.opacity(0.2);
 
         h_flex()
             .h(rems_from_px(22.))

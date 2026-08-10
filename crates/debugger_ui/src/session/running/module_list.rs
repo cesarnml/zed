@@ -9,6 +9,7 @@ use project::{
     debugger::session::{Session, SessionEvent},
 };
 use std::{ops::Range, path::Path, sync::Arc};
+use ui::WindowTheme as _;
 use ui::{WithScrollbar, prelude::*};
 use workspace::Workspace;
 
@@ -121,7 +122,7 @@ impl ModuleList {
         .detach();
     }
 
-    fn render_entry(&mut self, ix: usize, cx: &mut Context<Self>) -> AnyElement {
+    fn render_entry(&mut self, ix: usize, window: &Window, cx: &mut Context<Self>) -> AnyElement {
         let module = self.entries[ix].clone();
 
         v_flex()
@@ -148,15 +149,15 @@ impl ModuleList {
                 })
             })
             .p_1()
-            .hover(|s| s.bg(cx.theme().colors().element_hover))
+            .hover(|s| s.bg(window.theme(cx).colors().element_hover))
             .when(Some(ix) == self.selected_ix, |s| {
-                s.bg(cx.theme().colors().element_hover)
+                s.bg(window.theme(cx).colors().element_hover)
             })
             .child(h_flex().gap_0p5().text_ui_sm(cx).child(module.name.clone()))
             .child(
                 h_flex()
                     .text_ui_xs(cx)
-                    .text_color(cx.theme().colors().text_muted)
+                    .text_color(window.theme(cx).colors().text_muted)
                     .when_some(module.path, |this, path| this.child(path)),
             )
             .into_any()
@@ -251,8 +252,8 @@ impl ModuleList {
         uniform_list(
             "module-list",
             self.entries.len(),
-            cx.processor(|this, range: Range<usize>, _window, cx| {
-                range.map(|ix| this.render_entry(ix, cx)).collect()
+            cx.processor(|this, range: Range<usize>, window, cx| {
+                range.map(|ix| this.render_entry(ix, window, cx)).collect()
             }),
         )
         .track_scroll(&self.scroll_handle)

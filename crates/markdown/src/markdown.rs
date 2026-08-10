@@ -163,8 +163,8 @@ pub enum MarkdownFont {
 
 impl MarkdownStyle {
     pub fn themed(font: MarkdownFont, window: &Window, cx: &App) -> Self {
-        let colors = cx.theme().colors();
-        let syntax = cx.theme().syntax().clone();
+        let colors = window.theme(cx).colors();
+        let syntax = window.theme(cx).syntax().clone();
         Self::themed_with_overrides(font, colors, &syntax, window, cx)
     }
 
@@ -232,7 +232,7 @@ impl MarkdownStyle {
             rule_color: colors.border,
             block_quote_border_color: colors.border,
             block_quote_kind_colors: {
-                let status = cx.theme().status();
+                let status = window.theme(cx).status();
                 BlockQuoteKindColors {
                     note: status.info,
                     tip: status.success,
@@ -391,8 +391,8 @@ impl MarkdownStyle {
         self
     }
 
-    pub fn with_muted_text(mut self, cx: &App) -> Self {
-        let colors = cx.theme().colors();
+    pub fn with_muted_text(mut self, theme: &impl ActiveTheme) -> Self {
+        let colors = theme.theme().colors();
         self.base_text_style.color = colors.text_muted;
         self
     }
@@ -1102,7 +1102,7 @@ impl Markdown {
         self.active_search_highlight
     }
 
-    fn copy(&self, text: &RenderedText, _: &mut Window, cx: &mut Context<Self>) {
+    fn copy(&self, text: &RenderedText, _window: &mut Window, cx: &mut Context<Self>) {
         if self.selection.end <= self.selection.start {
             return;
         }
@@ -1110,7 +1110,7 @@ impl Markdown {
         cx.write_to_clipboard(ClipboardItem::new_string(text));
     }
 
-    fn copy_as_markdown(&mut self, _: &mut Window, cx: &mut Context<Self>) {
+    fn copy_as_markdown(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
         if let Some(text) = self.context_menu_selected_markdown.take() {
             cx.write_to_clipboard(ClipboardItem::new_string(text.to_string()));
             return;
@@ -1893,6 +1893,7 @@ impl MarkdownElement {
         source: &str,
         metadata_block: &ParsedMetadataBlock,
         markdown_end: usize,
+        window: &Window,
         cx: &App,
     ) {
         let content_range = &metadata_block.content_range;
@@ -1904,7 +1905,7 @@ impl MarkdownElement {
                     .w_full()
                     .mb_2()
                     .border_1()
-                    .border_color(cx.theme().colors().border)
+                    .border_color(window.theme(cx).colors().border)
                     .rounded_sm()
                     .overflow_hidden(),
                 content_range,
@@ -1922,6 +1923,7 @@ impl MarkdownElement {
                         row_index,
                         is_key: true,
                     },
+                    window,
                     cx,
                 );
                 self.push_metadata_cell(
@@ -1934,6 +1936,7 @@ impl MarkdownElement {
                         row_index,
                         is_key: false,
                     },
+                    window,
                     cx,
                 );
             }
@@ -1961,6 +1964,7 @@ impl MarkdownElement {
         block_range: &Range<usize>,
         markdown_end: usize,
         cell_style: MetadataCellStyle,
+        window: &Window,
         cx: &App,
     ) {
         builder.push_div(
@@ -1970,11 +1974,11 @@ impl MarkdownElement {
                 .min_w_0()
                 .px_2()
                 .py_1()
-                .border_color(cx.theme().colors().border)
+                .border_color(window.theme(cx).colors().border)
                 .when(cell_style.row_index > 0, |this| this.border_t_1())
                 .when(!cell_style.is_key, |this| this.border_l_1())
                 .when(cell_style.is_key, |this| {
-                    this.bg(cx.theme().colors().panel_background)
+                    this.bg(window.theme(cx).colors().panel_background)
                 }),
             block_range,
             markdown_end,
@@ -1982,7 +1986,7 @@ impl MarkdownElement {
 
         let text_style = if cell_style.is_key {
             TextStyleRefinement {
-                color: Some(cx.theme().colors().text_muted),
+                color: Some(window.theme(cx).colors().text_muted),
                 font_weight: Some(FontWeight::SEMIBOLD),
                 ..Default::default()
             }
@@ -2060,7 +2064,7 @@ impl MarkdownElement {
     ) {
         let markdown = self.markdown.read(cx);
         let active_index = markdown.active_search_highlight;
-        let colors = cx.theme().colors();
+        let colors = window.theme(cx).colors();
 
         let highlight_bounds = rendered_text.bounds_for_sorted_source_ranges(
             markdown
@@ -2473,8 +2477,8 @@ impl Element for MarkdownElement {
                     if self.show_root_block_markers {
                         builder.pop_root_block(
                             active_root_block == Some(*root_block_index),
-                            cx.theme().colors().border,
-                            cx.theme().colors().border_variant,
+                            window.theme(cx).colors().border,
+                            window.theme(cx).colors().border_variant,
                         );
                     }
                 }
@@ -2623,7 +2627,7 @@ impl Element for MarkdownElement {
                                             .tracked_scroll_handle(scroll_handle)
                                             .with_track_along(
                                                 ScrollAxes::Horizontal,
-                                                cx.theme().colors().editor_background,
+                                                window.theme(cx).colors().editor_background,
                                             )
                                             .notify_content();
 
@@ -2641,7 +2645,7 @@ impl Element for MarkdownElement {
                                         parent_container = parent_container
                                             .rounded_md()
                                             .border_1()
-                                            .border_color(cx.theme().colors().border_variant);
+                                            .border_color(window.theme(cx).colors().border_variant);
                                     }
 
                                     parent_container.style().refine(&self.style.code_block);
@@ -2672,7 +2676,13 @@ impl Element for MarkdownElement {
                         MarkdownTag::HtmlBlock => {
                             builder.push_div(div(), range, markdown_end);
                             if let Some(block) = parsed_markdown.html_blocks.get(&range.start) {
-                                self.render_html_block(block, &mut builder, markdown_end, cx);
+                                self.render_html_block(
+                                    block,
+                                    &mut builder,
+                                    markdown_end,
+                                    window,
+                                    cx,
+                                );
                                 handled_html_block = true;
                             }
                         }
@@ -2727,7 +2737,7 @@ impl Element for MarkdownElement {
                         }),
                         MarkdownTag::Strong => builder.push_text_style(TextStyleRefinement {
                             font_weight: Some(FontWeight::BOLD),
-                            color: Some(cx.theme().colors().text),
+                            color: Some(window.theme(cx).colors().text),
                             ..Default::default()
                         }),
                         MarkdownTag::Strikethrough => {
@@ -2791,6 +2801,7 @@ impl Element for MarkdownElement {
                                     &parsed_markdown.source,
                                     metadata_block,
                                     markdown_end,
+                                    window,
                                     cx,
                                 );
                                 rendered_metadata_block = true;
@@ -2814,7 +2825,7 @@ impl Element for MarkdownElement {
                                     .w_full()
                                     .mb_2()
                                     .border(px(1.5))
-                                    .border_color(cx.theme().colors().border)
+                                    .border_color(window.theme(cx).colors().border)
                                     .rounded_sm()
                                     .restrict_scroll_to_axis()
                                     .custom_scrollbars(
@@ -2853,14 +2864,14 @@ impl Element for MarkdownElement {
                                 .h_full()
                                 .when(col_index > 0, |this| this.border_l_1())
                                 .when(row_index > 0, |this| this.border_t_1())
-                                .border_color(cx.theme().colors().border)
+                                .border_color(window.theme(cx).colors().border)
                                 .px_1()
                                 .py_0p5()
                                 .when(is_header, |this| {
-                                    this.bg(cx.theme().colors().title_bar_background)
+                                    this.bg(window.theme(cx).colors().title_bar_background)
                                 })
                                 .when(!is_header && row_index % 2 == 1, |this| {
-                                    this.bg(cx.theme().colors().panel_background)
+                                    this.bg(window.theme(cx).colors().panel_background)
                                 });
 
                             cell_div = match alignment {
@@ -2941,7 +2952,7 @@ impl Element for MarkdownElement {
                                 let button_row = h_flex()
                                     .gap_0p5()
                                     .absolute()
-                                    .bg(cx.theme().colors().editor_background)
+                                    .bg(window.theme(cx).colors().editor_background)
                                     .when_else(
                                         use_hover,
                                         |this| {
@@ -4471,7 +4482,7 @@ mod tests {
     struct TestWindow;
 
     impl Render for TestWindow {
-        fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+        fn render(&mut self, _window: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
             div()
         }
     }
@@ -4616,7 +4627,7 @@ mod tests {
         struct TestWindow;
 
         impl Render for TestWindow {
-            fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+            fn render(&mut self, _window: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
                 div()
             }
         }
@@ -4627,7 +4638,7 @@ mod tests {
         }
 
         impl Render for TestMarkdowns {
-            fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+            fn render(&mut self, _window: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
                 div()
                     .child(MarkdownElement::new(
                         self.first_markdown.clone(),
@@ -5963,7 +5974,7 @@ mod tests {
         }
 
         impl Render for ImageTestView {
-            fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+            fn render(&mut self, _window: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
                 let image_source = self.image_source.clone();
                 div().size_full().child(
                     MarkdownElement::new(self.markdown.clone(), MarkdownStyle::default())

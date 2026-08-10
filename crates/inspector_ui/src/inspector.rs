@@ -58,7 +58,7 @@ fn render_inspector(
     cx: &mut Context<Inspector>,
 ) -> AnyElement {
     let ui_font = theme_settings::setup_ui_font(window, cx);
-    let colors = cx.theme().colors();
+    let colors = window.theme(cx).colors();
     let inspector_id = inspector.active_element_id();
     let toolbar_height = platform_title_bar_height(window);
 
@@ -98,14 +98,14 @@ fn render_inspector(
                 .py_0p5()
                 .gap_2()
                 .when_some(inspector_id, |this, inspector_id| {
-                    this.child(render_inspector_id(inspector_id, cx))
+                    this.child(render_inspector_id(inspector_id, window, cx))
                 })
                 .children(inspector.render_inspector_states(window, cx)),
         )
         .into_any_element()
 }
 
-fn render_inspector_id(inspector_id: &InspectorElementId, cx: &App) -> Div {
+fn render_inspector_id(inspector_id: &InspectorElementId, window: &Window, cx: &App) -> Div {
     let source_location = inspector_id.path.source_location;
     // For unknown reasons, for some elements the path is absolute.
     let source_location_string = source_location.to_string();
@@ -134,7 +134,7 @@ fn render_inspector_id(inspector_id: &InspectorElementId, cx: &App) -> Div {
             div()
                 .id("source-location")
                 .text_ui(cx)
-                .bg(cx.theme().colors().editor_foreground.opacity(0.025))
+                .bg(window.theme(cx).colors().editor_foreground.opacity(0.025))
                 .underline()
                 .font_buffer(cx)
                 .text_xs()

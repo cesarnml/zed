@@ -1,6 +1,7 @@
 //! Table Cell Rendering
 
 use gpui::{AnyElement, ElementId};
+use ui::WindowTheme as _;
 use ui::{SharedString, Tooltip, div, prelude::*};
 
 use crate::{CsvPreviewView, settings::VerticalAlignment, types::DisplayCellId};
@@ -11,11 +12,18 @@ impl CsvPreviewView {
         display_cell_id: DisplayCellId,
         cell_content: SharedString,
         vertical_alignment: VerticalAlignment,
+        window: &Window,
         cx: &Context<CsvPreviewView>,
     ) -> AnyElement {
-        create_table_cell(display_cell_id, cell_content, vertical_alignment, cx)
-            // Mouse events handlers will be here
-            .into_any_element()
+        create_table_cell(
+            display_cell_id,
+            cell_content,
+            vertical_alignment,
+            window,
+            cx,
+        )
+        // Mouse events handlers will be here
+        .into_any_element()
     }
 }
 
@@ -24,6 +32,7 @@ fn create_table_cell(
     display_cell_id: DisplayCellId,
     cell_content: SharedString,
     vertical_alignment: VerticalAlignment,
+    window: &Window,
     cx: &Context<'_, CsvPreviewView>,
 ) -> gpui::Stateful<Div> {
     div()
@@ -35,7 +44,7 @@ fn create_table_cell(
         .flex()
         .h_full()
         .px_1()
-        .border_color(cx.theme().colors().border_variant)
+        .border_color(window.theme(cx).colors().border_variant)
         .map(|div| match vertical_alignment {
             VerticalAlignment::Top => div.items_start(),
             VerticalAlignment::Center => div.items_center(),

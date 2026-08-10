@@ -24,11 +24,11 @@ pub enum DividerColor {
 }
 
 impl DividerColor {
-    pub fn hsla(self, cx: &mut App) -> Hsla {
+    pub fn hsla(self, theme: &impl ActiveTheme) -> Hsla {
         match self {
-            DividerColor::Border => cx.theme().colors().border,
-            DividerColor::BorderFaded => cx.theme().colors().border.opacity(0.6),
-            DividerColor::BorderVariant => cx.theme().colors().border_variant,
+            DividerColor::Border => theme.theme().colors().border,
+            DividerColor::BorderFaded => theme.theme().colors().border.opacity(0.6),
+            DividerColor::BorderVariant => theme.theme().colors().border_variant,
         }
     }
 }
@@ -93,8 +93,8 @@ impl Divider {
         self
     }
 
-    pub fn render_solid(self, base: Div, cx: &mut App) -> impl IntoElement {
-        base.bg(self.color.hsla(cx))
+    pub fn render_solid(self, base: Div, theme: &impl ActiveTheme) -> impl IntoElement {
+        base.bg(self.color.hsla(theme))
     }
 
     pub fn render_dashed(self, base: Div) -> impl IntoElement {
@@ -118,7 +118,7 @@ impl Divider {
                     builder.move_to(start);
                     builder.line_to(end);
                     if let Ok(line) = builder.build() {
-                        window.paint_path(line, self.color.hsla(cx));
+                        window.paint_path(line, self.color.hsla(window.theme(cx)));
                     }
                 },
             )
@@ -135,7 +135,7 @@ impl Styled for Divider {
 }
 
 impl RenderOnce for Divider {
-    fn render(self, _: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let mut base = match self.direction {
             DividerDirection::Horizontal => div()
                 .min_w_0()
@@ -153,7 +153,7 @@ impl RenderOnce for Divider {
         base.style().refine(&self.style);
 
         match self.line_style {
-            DividerStyle::Solid => self.render_solid(base, cx).into_any_element(),
+            DividerStyle::Solid => self.render_solid(base, window.theme(cx)).into_any_element(),
             DividerStyle::Dashed => self.render_dashed(base).into_any_element(),
         }
     }

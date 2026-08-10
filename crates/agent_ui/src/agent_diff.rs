@@ -12,6 +12,7 @@ use editor::{
     multibuffer_context_lines,
     scroll::Autoscroll,
 };
+use ui::WindowTheme as _;
 
 use gpui::{
     Action, AnyElement, App, AppContext, Empty, Entity, EventEmitter, FocusHandle, Focusable,
@@ -583,7 +584,7 @@ impl Item for AgentDiffPane {
     fn set_nav_history(
         &mut self,
         nav_history: ItemNavHistory,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.editor.update(cx, |editor, cx| {
@@ -685,7 +686,7 @@ impl Item for AgentDiffPane {
 }
 
 impl Render for AgentDiffPane {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let is_empty = self.multibuffer.read(cx).is_empty();
         let focus_handle = &self.focus_handle;
 
@@ -699,7 +700,9 @@ impl Render for AgentDiffPane {
             // Only paint the background for the empty state. When the diff editor
             // is shown it already paints `editor_background`; painting it again
             // here double-composites into a darker patch on transparent windows.
-            .when(is_empty, |el| el.bg(cx.theme().colors().editor_background))
+            .when(is_empty, |el| {
+                el.bg(window.theme(cx).colors().editor_background)
+            })
             .flex()
             .items_center()
             .justify_center()
@@ -777,7 +780,7 @@ impl DiffHunkDelegate for AgentDiffDelegate {
         is_created_file: bool,
         line_height: Pixels,
         editor: &Entity<Editor>,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut App,
     ) -> AnyElement {
         render_diff_hunk_controls(
@@ -789,6 +792,7 @@ impl DiffHunkDelegate for AgentDiffDelegate {
             &self.thread,
             editor,
             self.workspace.clone(),
+            window,
             cx,
         )
     }
@@ -807,12 +811,13 @@ fn render_diff_hunk_controls(
     thread: &Entity<AcpThread>,
     editor: &Entity<Editor>,
     workspace: WeakEntity<Workspace>,
+    window: &Window,
     cx: &mut App,
 ) -> AnyElement {
     let editor = editor.clone();
     // Drop shadows render as a dark halo on transparent windows.
     let opaque_window =
-        cx.theme().window_background_appearance() == gpui::WindowBackgroundAppearance::Opaque;
+        window.theme(cx).window_background_appearance() == gpui::WindowBackgroundAppearance::Opaque;
 
     h_flex()
         .h(line_height)
@@ -822,9 +827,9 @@ fn render_diff_hunk_controls(
         .pb_1()
         .border_x_1()
         .border_b_1()
-        .border_color(cx.theme().colors().border)
+        .border_color(window.theme(cx).colors().border)
         .rounded_b_md()
-        .bg(cx.theme().colors().editor_background)
+        .bg(window.theme(cx).colors().editor_background)
         .gap_1()
         .block_mouse_except_scroll()
         .when(opaque_window, |this| this.shadow_md())
@@ -1047,7 +1052,7 @@ impl ToolbarItemView for AgentDiffToolbar {
     fn set_active_pane_item(
         &mut self,
         active_pane_item: Option<&dyn ItemHandle>,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) -> ToolbarItemLocation {
         if let Some(item) = active_pane_item {

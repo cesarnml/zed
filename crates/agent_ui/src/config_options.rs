@@ -467,7 +467,7 @@ impl Render for ConfigOptionSelector {
                 let option_description: Option<SharedString> =
                     option.description.clone().map(Into::into);
 
-                let tooltip = Tooltip::element(move |_window, cx| {
+                let tooltip = Tooltip::element(move |window, cx| {
                     let mut content = v_flex().gap_1().child(Label::new(option_name.clone()));
                     if let Some(desc) = option_description.as_ref() {
                         content = content.child(
@@ -483,7 +483,7 @@ impl Render for ConfigOptionSelector {
                             .gap_2()
                             .justify_between()
                             .border_t_1()
-                            .border_color(cx.theme().colors().border_variant)
+                            .border_color(window.theme(cx).colors().border_variant)
                             .child(Label::new(label))
                             .child(keybinding)
                     };
@@ -713,7 +713,12 @@ impl PickerDelegate for ConfigOptionPickerDelegate {
         self.selected_index
     }
 
-    fn set_selected_index(&mut self, ix: usize, _: &mut Window, cx: &mut Context<Picker<Self>>) {
+    fn set_selected_index(
+        &mut self,
+        ix: usize,
+        _window: &mut Window,
+        cx: &mut Context<Picker<Self>>,
+    ) {
         self.selected_index = ix.min(self.filtered_entries.len().saturating_sub(1));
         cx.notify();
     }
@@ -810,7 +815,7 @@ impl PickerDelegate for ConfigOptionPickerDelegate {
         &self,
         ix: usize,
         selected: bool,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         match self.filtered_entries.get(ix)? {
@@ -822,7 +827,7 @@ impl PickerDelegate for ConfigOptionPickerDelegate {
                             .px_2()
                             .py_1()
                             .text_xs()
-                            .text_color(cx.theme().colors().text_muted)
+                            .text_color(window.theme(cx).colors().text_muted)
                             .child(title.clone()),
                     )
                     .into_any_element(),
@@ -906,7 +911,7 @@ impl PickerDelegate for ConfigOptionPickerDelegate {
 
             ui::DocumentationAside::new(
                 side,
-                Rc::new(move |_| Label::new(description.clone()).into_any_element()),
+                Rc::new(move |_, _| Label::new(description.clone()).into_any_element()),
             )
         })
     }

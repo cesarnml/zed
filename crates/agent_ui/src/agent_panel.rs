@@ -9,6 +9,7 @@ use std::{
     },
     time::Duration,
 };
+use ui::WindowTheme as _;
 
 use acp_thread::{AcpThread, AcpThreadEvent, MentionUri, ThreadStatus, line_range_suffix};
 use agent::{ContextServerRegistry, SharedThread, ThreadStore};
@@ -699,7 +700,8 @@ pub fn init(cx: &mut App) {
                             return;
                         };
 
-                        let Some(selection) = source.read_selection(workspace, true, cx) else {
+                        let Some(selection) = source.read_selection(workspace, true, window, cx)
+                        else {
                             return;
                         };
 
@@ -3575,7 +3577,7 @@ impl AgentPanel {
     pub fn increase_font_size(
         &mut self,
         action: &IncreaseBufferFontSize,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.handle_font_size_action(action.persist, px(1.0), cx);
@@ -3584,7 +3586,7 @@ impl AgentPanel {
     pub fn decrease_font_size(
         &mut self,
         action: &DecreaseBufferFontSize,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.handle_font_size_action(action.persist, px(-1.0), cx);
@@ -3626,7 +3628,7 @@ impl AgentPanel {
     pub fn reset_font_size(
         &mut self,
         action: &ResetBufferFontSize,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         match self.visible_font_size() {
@@ -4970,7 +4972,12 @@ impl Panel for AgentPanel {
         position != DockPosition::Bottom
     }
 
-    fn set_position(&mut self, position: DockPosition, _: &mut Window, cx: &mut Context<Self>) {
+    fn set_position(
+        &mut self,
+        position: DockPosition,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         let side = match position {
             DockPosition::Left => "left",
             DockPosition::Right | DockPosition::Bottom => "right",
@@ -5467,15 +5474,15 @@ impl AgentPanel {
             VisibleSurface::Uninitialized => Label::new("Agent").truncate().into_any_element(),
         };
 
-        let toolbar_bg = cx.theme().colors().tab_bar_background;
+        let toolbar_bg = window.theme(cx).colors().tab_bar_background;
         let gradient_overlay = GradientFade::new(toolbar_bg, toolbar_bg, toolbar_bg)
             .width(px(64.0))
             .right(px(0.0))
             .gradient_stop(0.75);
         // The fade gradient renders as a visible patch on transparent windows
         // (the title already truncates).
-        let opaque_window =
-            cx.theme().window_background_appearance() == gpui::WindowBackgroundAppearance::Opaque;
+        let opaque_window = window.theme(cx).window_background_appearance()
+            == gpui::WindowBackgroundAppearance::Opaque;
 
         h_flex()
             .key_context("TitleEditor")
@@ -5494,7 +5501,7 @@ impl AgentPanel {
                             .absolute()
                             .right_0()
                             .h_full()
-                            .bg(cx.theme().colors().tab_bar_background)
+                            .bg(window.theme(cx).colors().tab_bar_background)
                             .child(
                                 IconButton::new("edit_tile", IconName::Pencil)
                                     .icon_size(IconSize::Small)
@@ -6144,9 +6151,9 @@ impl AgentPanel {
             .h(Tab::container_height(cx))
             .flex_shrink_0()
             .max_w_full()
-            .bg(cx.theme().colors().tab_bar_background)
+            .bg(window.theme(cx).colors().tab_bar_background)
             .border_b_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .child(toolbar_content)
     }
 
@@ -6233,7 +6240,7 @@ impl AgentPanel {
 
     fn render_new_user_onboarding(
         &mut self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Option<impl IntoElement> {
         if !self.should_render_new_user_onboarding(cx) {
@@ -6242,14 +6249,14 @@ impl AgentPanel {
 
         Some(
             div()
-                .bg(cx.theme().colors().editor_background)
+                .bg(window.theme(cx).colors().editor_background)
                 .child(self.new_user_onboarding.clone()),
         )
     }
 
     fn render_trial_end_upsell(
         &self,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Option<impl IntoElement> {
         if !self.should_render_trial_end_upsell(cx) {
@@ -6261,7 +6268,7 @@ impl AgentPanel {
                 .absolute()
                 .inset_0()
                 .size_full()
-                .bg(cx.theme().colors().panel_background)
+                .bg(window.theme(cx).colors().panel_background)
                 .opacity(0.85)
                 .block_mouse_except_scroll()
                 .child(EndTrialUpsell::new(Arc::new({
@@ -6276,7 +6283,7 @@ impl AgentPanel {
         )
     }
 
-    fn render_drag_target(&self, cx: &Context<Self>) -> Div {
+    fn render_drag_target(&self, window: &Window, cx: &Context<Self>) -> Div {
         let is_local = self.project.read(cx).is_local();
         div()
             .invisible()
@@ -6285,7 +6292,7 @@ impl AgentPanel {
             .right_0()
             .bottom_0()
             .left_0()
-            .bg(cx.theme().colors().drop_target_background)
+            .bg(window.theme(cx).colors().drop_target_background)
             .drag_over::<DraggedTab>(|this, _, _, _| this.visible())
             .drag_over::<DraggedSelection>(|this, _, _, _| this.visible())
             .when(is_local, |this| {
@@ -6446,7 +6453,7 @@ impl Render for AgentPanel {
             .size_full()
             .justify_between()
             .track_focus(&self.focus_handle)
-            .bg(cx.theme().colors().panel_background)
+            .bg(window.theme(cx).colors().panel_background)
             .on_action(cx.listener(|this, action: &NewThread, window, cx| {
                 this.new_thread(action, window, cx);
             }))
@@ -6488,7 +6495,7 @@ impl Render for AgentPanel {
                 VisibleSurface::Uninitialized => parent,
                 VisibleSurface::AgentThread(conversation_view) => parent
                     .child(conversation_view.clone())
-                    .child(self.render_drag_target(cx)),
+                    .child(self.render_drag_target(window, cx)),
                 VisibleSurface::Terminal(terminal_view) => {
                     let search_bar = self
                         .active_terminal_id()
@@ -6505,8 +6512,8 @@ impl Render for AgentPanel {
                                         .py(DynamicSpacing::Base06.rems(cx))
                                         .px(DynamicSpacing::Base08.rems(cx))
                                         .border_b_1()
-                                        .border_color(cx.theme().colors().border_variant)
-                                        .bg(cx.theme().colors().toolbar_background)
+                                        .border_color(window.theme(cx).colors().border_variant)
+                                        .bg(window.theme(cx).colors().toolbar_background)
                                         .child(search_bar),
                                 )
                             })
@@ -6515,7 +6522,7 @@ impl Render for AgentPanel {
 
                     parent
                         .child(terminal_content)
-                        .child(self.render_drag_target(cx))
+                        .child(self.render_drag_target(window, cx))
                 }
             })
             .children(self.render_trial_end_upsell(window, cx));

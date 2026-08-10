@@ -108,19 +108,19 @@ impl ParentElement for Tab {
 
 impl RenderOnce for Tab {
     #[allow(refining_impl_trait)]
-    fn render(self, _: &mut Window, cx: &mut App) -> Stateful<Div> {
+    fn render(self, window: &mut Window, cx: &mut App) -> Stateful<Div> {
         let (text_color, tab_bg, _tab_hover_bg, _tab_active_bg) = match self.selected {
             false => (
-                cx.theme().colors().text_muted,
-                cx.theme().colors().tab_inactive_background,
-                cx.theme().colors().ghost_element_hover,
-                cx.theme().colors().ghost_element_active,
+                window.theme(cx).colors().text_muted,
+                window.theme(cx).colors().tab_inactive_background,
+                window.theme(cx).colors().ghost_element_hover,
+                window.theme(cx).colors().ghost_element_active,
             ),
             true => (
-                cx.theme().colors().text,
-                cx.theme().colors().tab_active_background,
-                cx.theme().colors().element_hover,
-                cx.theme().colors().element_active,
+                window.theme(cx).colors().text,
+                window.theme(cx).colors().tab_active_background,
+                window.theme(cx).colors().element_hover,
+                window.theme(cx).colors().element_active,
             ),
         };
 
@@ -144,7 +144,7 @@ impl RenderOnce for Tab {
         self.div
             .h(Tab::container_height(cx))
             .bg(tab_bg)
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .map(|this| match self.position {
                 TabPosition::First => {
                     if self.selected {

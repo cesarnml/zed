@@ -22,15 +22,15 @@ impl ParentElement for AgentPanelOnboardingCard {
 }
 
 impl RenderOnce for AgentPanelOnboardingCard {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        let color = cx.theme().colors();
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let color = window.theme(cx).colors();
 
         div().min_w_0().p_2p5().bg(color.editor_background).child(
             div()
                 .min_w_0()
                 .p(px(3.))
                 .rounded_lg()
-                .elevation_2(cx)
+                .elevation_2(window.theme(cx))
                 .bg(color.background.opacity(0.5))
                 .child(
                     v_flex()

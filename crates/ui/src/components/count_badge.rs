@@ -17,18 +17,18 @@ impl CountBadge {
 }
 
 impl RenderOnce for CountBadge {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let label = if self.count > 99 {
             "99+".to_string()
         } else {
             self.count.to_string()
         };
 
-        let bg = cx
-            .theme()
+        let bg = window
+            .theme(cx)
             .colors()
             .editor_background
-            .blend(cx.theme().status().error.opacity(0.4));
+            .blend(window.theme(cx).status().error.opacity(0.4));
 
         h_flex()
             .absolute()
@@ -41,7 +41,7 @@ impl RenderOnce for CountBadge {
             .justify_center()
             .text_center()
             .border_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .bg(bg)
             .shadow_sm()
             .child(
@@ -61,14 +61,14 @@ impl Component for CountBadge {
         "A small, pill-shaped badge that displays a numeric count."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let container = || {
             div()
                 .relative()
                 .size_8()
                 .border_1()
-                .border_color(cx.theme().colors().border)
-                .bg(cx.theme().colors().background)
+                .border_color(window.theme(cx).colors().border)
+                .bg(window.theme(cx).colors().background)
         };
 
         v_flex()

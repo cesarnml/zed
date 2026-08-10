@@ -82,7 +82,7 @@ impl Transformable for Vector {
 }
 
 impl RenderOnce for Vector {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let width = self.size.width;
         let height = self.size.height;
 
@@ -93,7 +93,7 @@ impl RenderOnce for Vector {
             .w(width)
             .h(height)
             .path(self.path)
-            .text_color(self.color.color(cx))
+            .text_color(self.color.color(window.theme(cx)))
             .with_transformation(self.transformation)
     }
 }

@@ -8,6 +8,7 @@ use repl::{
     components::{KernelPickerDelegate, KernelSelector},
     worktree_id_for_editor,
 };
+use ui::WindowTheme as _;
 use ui::{
     ButtonLike, CommonAnimationExt, ContextMenu, IconWithIndicator, Indicator, IntoElement,
     PopoverMenu, PopoverMenuHandle, Tooltip, prelude::*,
@@ -32,7 +33,7 @@ struct ReplMenuState {
 }
 
 impl QuickActionBar {
-    pub fn render_repl_menu(&self, cx: &mut Context<Self>) -> Option<AnyElement> {
+    pub fn render_repl_menu(&self, window: &Window, cx: &mut Context<Self>) -> Option<AnyElement> {
         if !JupyterSettings::enabled(cx) {
             return None;
         }
@@ -234,7 +235,7 @@ impl QuickActionBar {
                     Icon::new(IconName::ReplNeutral).color(menu_state.icon_color),
                     menu_state.indicator,
                 )
-                .indicator_border_color(Some(cx.theme().colors().toolbar_background))
+                .indicator_border_color(Some(window.theme(cx).colors().toolbar_background))
                 .into_any_element()
             })
             .size(ButtonSize::Compact)

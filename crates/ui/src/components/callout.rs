@@ -121,22 +121,22 @@ impl RenderOnce for Callout {
             Severity::Info => (
                 IconName::Info,
                 Color::Muted,
-                cx.theme().status().info_background.opacity(0.1),
+                window.theme(cx).status().info_background.opacity(0.1),
             ),
             Severity::Success => (
                 IconName::Check,
                 Color::Success,
-                cx.theme().status().success.opacity(0.1),
+                window.theme(cx).status().success.opacity(0.1),
             ),
             Severity::Warning => (
                 IconName::Warning,
                 Color::Warning,
-                cx.theme().status().warning_background.opacity(0.2),
+                window.theme(cx).status().warning_background.opacity(0.2),
             ),
             Severity::Error => (
                 IconName::XCircle,
                 Color::Error,
-                cx.theme().status().error.opacity(0.08),
+                window.theme(cx).status().error.opacity(0.08),
             ),
         };
 
@@ -150,7 +150,7 @@ impl RenderOnce for Callout {
                 CalloutBorderPosition::Top => this.border_t_1(),
                 CalloutBorderPosition::Bottom => this.border_b_1(),
             })
-            .border_color(cx.theme().colors().border)
+            .border_color(window.theme(cx).colors().border)
             .bg(bg_color)
             .overflow_x_hidden()
             .when(self.icon.is_some(), |this| {
@@ -208,7 +208,7 @@ impl RenderOnce for Callout {
                         } else if let Some(description) = self.description {
                             this.child(
                                 base_desc_container
-                                    .text_color(cx.theme().colors().text_muted)
+                                    .text_color(window.theme(cx).colors().text_muted)
                                     .child(description),
                             )
                         } else {

@@ -215,7 +215,7 @@ impl Render for AudioTestWindow {
             .p_4()
             .when(cfg!(target_os = "macos"), |this| this.pt_10())
             .gap_4()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .child(
                 v_flex()
                     .gap_1()
@@ -239,7 +239,7 @@ impl Render for AudioTestWindow {
         client_side_decorations(
             v_flex()
                 .size_full()
-                .text_color(cx.theme().colors().text)
+                .text_color(window.theme(cx).colors().text)
                 .children(self.title_bar.clone())
                 .child(content),
             window,
@@ -260,7 +260,7 @@ impl Drop for AudioTestWindow {
     }
 }
 
-pub fn open_audio_test_window(_window: &mut Window, cx: &mut App) {
+pub fn open_audio_test_window(window: &mut Window, cx: &mut App) {
     let existing = cx
         .windows()
         .into_iter()
@@ -294,7 +294,7 @@ pub fn open_audio_test_window(_window: &mut Window, cx: &mut App) {
             show: true,
             is_movable: true,
             kind: WindowKind::Normal,
-            window_background: cx.theme().window_background_appearance(),
+            window_background: window.theme(cx).window_background_appearance(),
             app_id: Some(app_id.to_owned()),
             window_decorations: Some(gpui::WindowDecorations::Client),
             window_bounds: Some(WindowBounds::centered(window_size, cx)),

@@ -1155,7 +1155,10 @@ impl EditorElement {
                 .buffer_snapshot()
                 .anchor_after(end.to_point(&snapshot.display_snapshot));
 
-        let Some(selection) = snapshot.remote_selections_in_range(&range, hub, cx).next() else {
+        let Some(selection) = snapshot
+            .remote_selections_in_range(&range, hub, window, cx)
+            .next()
+        else {
             return;
         };
         let key = HoveredCursor {
@@ -1202,7 +1205,7 @@ mod tests {
 
         let line_height = cx.update_editor(|editor, window, cx| {
             editor
-                .style(cx)
+                .style(window, cx)
                 .text
                 .line_height_in_pixels(window.rem_size())
         });

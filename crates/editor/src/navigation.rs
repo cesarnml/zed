@@ -1677,7 +1677,7 @@ impl Editor {
     pub(super) fn go_to_line<T: 'static>(
         &mut self,
         position: Anchor,
-        highlight_color: fn(&App) -> Hsla,
+        highlight_color: fn(&Theme) -> Hsla,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
@@ -2081,7 +2081,9 @@ impl Editor {
                 return Ok(());
             };
 
-            let task = editor.update(wcx, |ed, cx| ed.buffer_outline_items(remote_id, cx))?;
+            let task = editor.update_in(wcx, |ed, window, cx| {
+                ed.buffer_outline_items(remote_id, window, cx)
+            })?;
             let outline_items: Vec<OutlineItem<text::Anchor>> = task.await;
 
             let multi_snapshot = editor_snapshot.buffer();

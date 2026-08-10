@@ -1,4 +1,5 @@
 use std::{collections::HashSet, sync::Arc};
+use ui::WindowTheme as _;
 
 use editor::Editor;
 use gpui::{AnyView, Entity, Focusable as _, ScrollHandle, prelude::*};
@@ -667,18 +668,21 @@ fn render_llm_provider_form_page(
                     "Provider Name",
                     "A unique name used to identify this provider.",
                     &form.provider_name,
+                    window,
                     cx,
                 ))
                 .child(render_form_field(
                     "API URL",
                     "The base URL for the compatible API.",
                     &form.api_url,
+                    window,
                     cx,
                 ))
                 .child(render_form_field(
                     "API Key",
                     "Stored in the system keychain, not in settings.json.",
                     &form.api_key,
+                    window,
                     cx,
                 ))
                 .child(render_models_section(form, window, cx)),
@@ -689,7 +693,7 @@ fn render_llm_provider_form_page(
                 .py_2p5()
                 .gap_1()
                 .border_t_1()
-                .border_color(cx.theme().colors().border_variant)
+                .border_color(window.theme(cx).colors().border_variant)
                 .when_some(form.error.clone(), |this, error| {
                     this.child(render_form_error(error))
                 })
@@ -702,9 +706,10 @@ fn render_form_field(
     title: &'static str,
     description: &'static str,
     editor: &Entity<Editor>,
+    window: &Window,
     cx: &mut Context<SettingsWindow>,
 ) -> AnyElement {
-    let colors = cx.theme().colors();
+    let colors = window.theme(cx).colors();
     let focus_handle = editor.focus_handle(cx).tab_index(0).tab_stop(true);
     v_flex()
         .w_full()
@@ -791,12 +796,13 @@ fn render_model(
         .rounded_sm()
         .border_1()
         .border_dashed()
-        .border_color(cx.theme().colors().border.opacity(0.6))
-        .bg(cx.theme().colors().element_active.opacity(0.15))
+        .border_color(window.theme(cx).colors().border.opacity(0.6))
+        .bg(window.theme(cx).colors().element_active.opacity(0.15))
         .child(render_form_field(
             "Model Name",
             "The model's name in the provider's API.",
             &model.name,
+            window,
             cx,
         ))
         .when(matches!(kind, CompatibleProviderKind::OpenAi), |this| {
@@ -804,6 +810,7 @@ fn render_model(
                 "Max Completion Tokens",
                 "Maximum completion tokens for OpenAI-compatible requests.",
                 &model.max_completion_tokens,
+                window,
                 cx,
             ))
         })
@@ -811,12 +818,14 @@ fn render_model(
             "Max Output Tokens",
             "The maximum number of tokens the model can output.",
             &model.max_output_tokens,
+            window,
             cx,
         ))
         .child(render_form_field(
             "Max Tokens",
             "The model context window size.",
             &model.max_tokens,
+            window,
             cx,
         ))
         .child(render_model_capabilities(kind, model, index, window, cx))

@@ -86,7 +86,7 @@ impl DiffHunkDelegate for StagedDiffDelegate {
         _is_created_file: bool,
         line_height: Pixels,
         editor: &Entity<Editor>,
-        _window: &mut Window,
+        window: &mut Window,
         cx: &mut App,
     ) -> AnyElement {
         if !ProjectSettings::get_global(cx)
@@ -104,9 +104,9 @@ impl DiffHunkDelegate for StagedDiffDelegate {
             .pb_1()
             .border_x_1()
             .border_b_1()
-            .border_color(cx.theme().colors().border_variant)
+            .border_color(window.theme(cx).colors().border_variant)
             .rounded_b_lg()
-            .bg(cx.theme().colors().editor_background)
+            .bg(window.theme(cx).colors().editor_background)
             .block_mouse_except_scroll()
             .shadow_md()
             .child(
@@ -381,7 +381,7 @@ impl Item for StagedDiff {
     fn set_nav_history(
         &mut self,
         nav_history: ItemNavHistory,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.diff
@@ -424,7 +424,7 @@ impl Item for StagedDiff {
         &mut self,
         _: SaveOptions,
         _: Entity<Project>,
-        _: &mut Window,
+        _window: &mut Window,
         _: &mut Context<Self>,
     ) -> Task<Result<()>> {
         Task::ready(Ok(()))
@@ -434,7 +434,7 @@ impl Item for StagedDiff {
         &mut self,
         _: Entity<Project>,
         _: ProjectPath,
-        _: &mut Window,
+        _window: &mut Window,
         _: &mut Context<Self>,
     ) -> Task<Result<()>> {
         unreachable!()
@@ -499,7 +499,7 @@ impl SerializableItem for StagedDiff {
     fn cleanup(
         _: workspace::WorkspaceId,
         _: Vec<workspace::ItemId>,
-        _: &mut Window,
+        _window: &mut Window,
         _: &mut App,
     ) -> Task<Result<()>> {
         Task::ready(Ok(()))
@@ -524,7 +524,7 @@ impl SerializableItem for StagedDiff {
         _: &mut Workspace,
         _: workspace::ItemId,
         _: bool,
-        _: &mut Window,
+        _window: &mut Window,
         _: &mut Context<Self>,
     ) -> Option<Task<Result<()>>> {
         Some(Task::ready(Ok(())))
@@ -602,7 +602,7 @@ impl ToolbarItemView for StagedDiffToolbar {
     fn set_active_pane_item(
         &mut self,
         active_pane_item: Option<&dyn ItemHandle>,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) -> ToolbarItemLocation {
         self.staged_diff = active_pane_item
@@ -625,7 +625,7 @@ impl ToolbarItemView for StagedDiffToolbar {
 }
 
 impl Render for StagedDiffToolbar {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let Some(staged_diff) = self.staged_diff(cx) else {
             return div();
         };

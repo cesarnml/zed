@@ -1,5 +1,6 @@
 use std::ops::Range;
 use std::{cmp, sync::Arc};
+use ui::WindowTheme as _;
 
 use editor::scroll::ScrollOffset;
 use editor::{Anchor, AnchorRangeExt, Editor, scroll::Autoscroll};
@@ -13,7 +14,6 @@ use gpui::{
 use language::{OffsetRangeExt, Outline, OutlineItem, OutlineSearchEntry};
 use picker::{MatchLocation, Picker, PickerDelegate, PreviewUpdate};
 use settings::Settings;
-use theme::ActiveTheme;
 use theme_settings::ThemeSettings;
 use ui::{ListItem, ListItemSpacing, prelude::*};
 use util::ResultExt;
@@ -50,7 +50,7 @@ pub fn toggle(
         return;
     }
 
-    let Some(task) = outline_for_editor(&editor, cx) else {
+    let Some(task) = outline_for_editor(&editor, window, cx) else {
         return;
     };
     let editor = editor.clone();
@@ -75,12 +75,15 @@ pub fn toggle(
 
 fn outline_for_editor(
     editor: &Entity<Editor>,
+    window: &mut Window,
     cx: &mut App,
 ) -> Option<Task<Vec<OutlineItem<Anchor>>>> {
     let multibuffer = editor.read(cx).buffer().read(cx).snapshot(cx);
     let buffer_snapshot = multibuffer.as_singleton()?;
     let buffer_id = buffer_snapshot.remote_id();
-    let task = editor.update(cx, |editor, cx| editor.buffer_outline_items(buffer_id, cx));
+    let task = editor.update(cx, |editor, cx| {
+        editor.buffer_outline_items(buffer_id, window, cx)
+    });
 
     Some(cx.background_executor().spawn(async move {
         task.await
@@ -255,7 +258,7 @@ impl OutlineViewDelegate {
                 active_editor.clear_row_highlights::<OutlineRowHighlights>();
                 active_editor.highlight_rows::<OutlineRowHighlights>(
                     outline_item.range.start..outline_item.range.end,
-                    |cx| cx.theme().colors().editor_highlighted_line_background,
+                    |theme| theme.colors().editor_highlighted_line_background,
                     RowHighlightOptions {
                         autoscroll: true,
                         ..Default::default()
@@ -294,13 +297,13 @@ impl PickerDelegate for OutlineViewDelegate {
     fn set_selected_index(
         &mut self,
         ix: usize,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Picker<OutlineViewDelegate>>,
     ) {
         self.set_selected_index(ix, true, cx);
     }
 
-    fn try_get_preview_data_for_match(&self, cx: &App) -> Option<PreviewUpdate> {
+    fn try_get_preview_data_for_match(&self, _window: &Window, cx: &App) -> Option<PreviewUpdate> {
         let selected_match = self.matches.get(self.selected_match_index)?;
         let outline_item = self.outline.items.get(selected_match.candidate_id())?;
         let multi_buffer = self.active_editor.read(cx).buffer().clone();
@@ -414,7 +417,7 @@ impl PickerDelegate for OutlineViewDelegate {
 
         self.active_editor.update(cx, |active_editor, cx| {
             let highlight = active_editor
-                .highlighted_rows::<OutlineRowHighlights>(cx)
+                .highlighted_rows::<OutlineRowHighlights>(window.theme(cx))
                 .next();
             if let Some((rows, _)) = highlight {
                 active_editor.change_selections(
@@ -442,7 +445,7 @@ impl PickerDelegate for OutlineViewDelegate {
         &self,
         ix: usize,
         selected: bool,
-        _: &mut Window,
+        window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         let entry = self.matches.get(ix)?;
@@ -458,7 +461,7 @@ impl PickerDelegate for OutlineViewDelegate {
                     div()
                         .text_ui(cx)
                         .pl(rems(outline_item.depth as f32))
-                        .child(render_item(outline_item, ranges, cx)),
+                        .child(render_item(outline_item, ranges, window, cx)),
                 ),
         )
     }
@@ -467,10 +470,11 @@ impl PickerDelegate for OutlineViewDelegate {
 pub fn render_item<T>(
     outline_item: &OutlineItem<T>,
     match_ranges: impl IntoIterator<Item = Range<usize>>,
+    window: &Window,
     cx: &App,
 ) -> StyledText {
     let highlight_style = HighlightStyle {
-        background_color: Some(cx.theme().colors().text_accent.alpha(0.3)),
+        background_color: Some(window.theme(cx).colors().text_accent.alpha(0.3)),
         ..Default::default()
     };
     let custom_highlights = match_ranges
@@ -483,7 +487,7 @@ pub fn render_item<T>(
     // but I'm not sure how to get the current one and modify it.
     // Before this change TextStyle::default() was used here, which was giving us the wrong font and text color.
     let text_style = TextStyle {
-        color: cx.theme().colors().text,
+        color: window.theme(cx).colors().text,
         font_family: settings.buffer_font.family.clone(),
         font_features: settings.buffer_font.features.clone(),
         font_fallbacks: settings.buffer_font.fallbacks.clone(),

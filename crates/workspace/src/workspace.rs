@@ -139,7 +139,7 @@ use std::{
     time::Duration,
 };
 use task::{DebugScenario, SharedTaskContext, SpawnInTerminal};
-use theme::{ActiveTheme, ClientDecorationsExt, SystemAppearance};
+use theme::{ClientDecorationsExt, SystemAppearance, Theme, ThemeRegistry, WindowThemeOverrides};
 use theme_settings::ThemeSettings;
 pub use toolbar::{
     PaneSearchBarCallbacks, Toolbar, ToolbarItemEvent, ToolbarItemLocation, ToolbarItemView,
@@ -904,7 +904,7 @@ impl ProjectItemRegistry {
                                         })?
                                     {
                                         let build_workspace_item = Box::new(
-                                            move |_: &mut Pane, _: &mut Window, cx: &mut Context<Pane>| {
+                                            move |_: &mut Pane, _window: &mut Window, cx: &mut Context<Pane>| {
                                                 cx.new(|_| broken_project_item_view).boxed_clone()
                                             },
                                         )
@@ -1403,6 +1403,8 @@ pub struct Workspace {
     active_call: Option<(GlobalAnyActiveCall, Vec<Subscription>)>,
     leader_updates_tx: mpsc::UnboundedSender<(PeerId, proto::UpdateFollowers)>,
     database_id: Option<WorkspaceId>,
+    /// User-chosen theme for this workspace's window; persisted by workspace id.
+    theme_override: Option<SharedString>,
     app_state: Arc<AppState>,
     dispatching_keystrokes: Rc<RefCell<DispatchingKeystrokes>>,
     _subscriptions: Vec<Subscription>,
@@ -1860,6 +1862,7 @@ impl Workspace {
             dirty_items: Default::default(),
             active_call,
             database_id: workspace_id,
+            theme_override: None,
             app_state,
             _observe_current_user,
             _apply_leader_updates,
@@ -2005,6 +2008,9 @@ impl Workspace {
                         .as_ref()
                         .map(|w| w.centered_layout)
                         .unwrap_or(false);
+                    let theme_override = serialized_workspace
+                        .as_ref()
+                        .and_then(|w| w.theme_override.clone());
 
                     let workspace = window.update(cx, |multi_workspace, window, cx| {
                         let workspace = cx.new(|cx| {
@@ -2017,6 +2023,7 @@ impl Workspace {
                             );
 
                             workspace.centered_layout = centered_layout;
+                            workspace.set_theme_override_name(theme_override);
 
                             // Call init callback to add items before window renders
                             if let Some(init) = init {
@@ -2067,6 +2074,9 @@ impl Workspace {
                         .as_ref()
                         .map(|w| w.centered_layout)
                         .unwrap_or(false);
+                    let theme_override = serialized_workspace
+                        .as_ref()
+                        .and_then(|w| w.theme_override.clone());
                     let window = cx.open_window(options, {
                         let app_state = app_state.clone();
                         let project_handle = project_handle.clone();
@@ -2080,6 +2090,7 @@ impl Workspace {
                                     cx,
                                 );
                                 workspace.centered_layout = centered_layout;
+                                workspace.set_theme_override_name(theme_override);
 
                                 // Call init callback to add items before window renders
                                 if let Some(init) = init {
@@ -2092,7 +2103,10 @@ impl Workspace {
                         }
                     })?;
                     let workspace =
-                        window.update(cx, |multi_workspace: &mut MultiWorkspace, _, _cx| {
+                        window.update(cx, |multi_workspace: &mut MultiWorkspace, window, cx| {
+                            multi_workspace.workspace().update(cx, |workspace, cx| {
+                                workspace.apply_window_theme(window, cx);
+                            });
                             multi_workspace.workspace().clone()
                         })?;
                     (window, workspace)
@@ -2973,7 +2987,12 @@ impl Workspace {
         &self.app_state.client
     }
 
-    pub fn set_titlebar_item(&mut self, item: AnyView, _: &mut Window, cx: &mut Context<Self>) {
+    pub fn set_titlebar_item(
+        &mut self,
+        item: AnyView,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         self.titlebar_item = Some(item);
         cx.notify();
     }
@@ -6730,7 +6749,7 @@ impl Workspace {
         &self,
         project_only: bool,
         update: proto::update_followers::Variant,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut App,
     ) -> Option<()> {
         // If this update only applies to for followers in the current project,
@@ -6938,6 +6957,74 @@ impl Workspace {
 
     pub fn database_id(&self) -> Option<WorkspaceId> {
         self.database_id
+    }
+
+    /// Theme name override for this workspace, if any.
+    pub fn theme_override(&self) -> Option<&SharedString> {
+        self.theme_override.as_ref()
+    }
+
+    /// Restores a persisted theme override name without applying it to the window.
+    pub fn set_theme_override_name(&mut self, theme_override: Option<String>) {
+        self.theme_override = theme_override.map(SharedString::from);
+    }
+
+    /// Applies this workspace's theme override (or the configured global theme) to `window`.
+    pub fn apply_window_theme(&self, window: &mut Window, cx: &mut App) {
+        if let Some(theme_name) = self.theme_override.as_ref() {
+            match ThemeRegistry::global(cx).get(theme_name) {
+                Ok(theme) => {
+                    // Layer the user's configured theme overrides so a per-window
+                    // theme matches what the same theme looks like globally.
+                    let theme = ThemeSettings::get_global(cx).apply_theme_overrides(theme);
+                    WindowThemeOverrides::apply_to_window(window, theme, cx);
+                    return;
+                }
+                Err(error) => {
+                    log::error!(
+                        "failed to load window theme override {}: {}",
+                        theme_name,
+                        error
+                    );
+                }
+            }
+        }
+        WindowThemeOverrides::clear_for_window(window, cx);
+    }
+
+    /// Sets a per-window theme for this workspace and persists it by workspace id.
+    pub fn set_window_theme(
+        &mut self,
+        theme: Arc<Theme>,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.theme_override = Some(theme.name.clone());
+        // Persist the raw theme name, but paint the window with the user's
+        // configured overrides layered on (matching the global theme path).
+        let effective_theme = ThemeSettings::get_global(cx).apply_theme_overrides(theme.clone());
+        WindowThemeOverrides::apply_to_window(window, effective_theme, cx);
+        if let Some(database_id) = self.database_id() {
+            let db = WorkspaceDb::global(cx);
+            let theme_name = theme.name.to_string();
+            cx.background_spawn(async move {
+                db.set_theme_override(database_id, Some(theme_name)).await
+            })
+            .detach_and_log_err(cx);
+        }
+        cx.notify();
+    }
+
+    /// Clears this workspace's window theme override and persists the clear.
+    pub fn clear_window_theme(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.theme_override = None;
+        WindowThemeOverrides::clear_for_window(window, cx);
+        if let Some(database_id) = self.database_id() {
+            let db = WorkspaceDb::global(cx);
+            cx.background_spawn(async move { db.set_theme_override(database_id, None).await })
+                .detach_and_log_err(cx);
+        }
+        cx.notify();
     }
 
     #[cfg(any(test, feature = "test-support"))]
@@ -7175,6 +7262,7 @@ impl Workspace {
                     display: Default::default(),
                     docks,
                     centered_layout: self.centered_layout,
+                    theme_override: self.theme_override.as_ref().map(|name| name.to_string()),
                     session_id: self.session_id.clone(),
                     bookmarks,
                     breakpoints,
@@ -7960,7 +8048,7 @@ impl Workspace {
         div
     }
 
-    pub fn has_active_modal(&self, _: &mut Window, cx: &mut App) -> bool {
+    pub fn has_active_modal(&self, _window: &mut Window, cx: &mut App) -> bool {
         self.modal_layer.read(cx).has_active_modal()
     }
 
@@ -8013,7 +8101,7 @@ impl Workspace {
     pub fn toggle_centered_layout(
         &mut self,
         _: &ToggleCenteredLayout,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.centered_layout = !self.centered_layout;
@@ -8028,7 +8116,12 @@ impl Workspace {
         cx.notify();
     }
 
-    pub fn clear_bookmarks(&mut self, _: &ClearBookmarks, _: &mut Window, cx: &mut Context<Self>) {
+    pub fn clear_bookmarks(
+        &mut self,
+        _: &ClearBookmarks,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         self.project()
             .read(cx)
             .bookmark_store()
@@ -8495,7 +8588,7 @@ impl Workspace {
         });
     }
 
-    fn toggle_theme_mode(&mut self, _: &ToggleMode, _window: &mut Window, cx: &mut Context<Self>) {
+    fn toggle_theme_mode(&mut self, _: &ToggleMode, window: &mut Window, cx: &mut Context<Self>) {
         let current_mode = ThemeSettings::get_global(cx).theme.mode();
         let next_mode = match current_mode {
             Some(theme_settings::ThemeAppearanceMode::Light) => {
@@ -8505,7 +8598,7 @@ impl Workspace {
                 theme_settings::ThemeAppearanceMode::Light
             }
             Some(theme_settings::ThemeAppearanceMode::System) | None => {
-                match cx.theme().appearance() {
+                match window.theme(cx).appearance() {
                     theme::Appearance::Light => theme_settings::ThemeAppearanceMode::Dark,
                     theme::Appearance::Dark => theme_settings::ThemeAppearanceMode::Light,
                 }
@@ -8581,7 +8674,7 @@ pub trait AnyActiveCall {
     fn peer_id_for_user_in_room(&self, _: u64, _: &App) -> Option<PeerId>;
     fn subscribe(
         &self,
-        _: &mut Window,
+        window: &mut Window,
         _: &mut Context<Workspace>,
         _: Box<dyn Fn(&mut Workspace, &ActiveCallEvent, &mut Window, &mut Context<Workspace>)>,
     ) -> Subscription;
@@ -8589,7 +8682,7 @@ pub trait AnyActiveCall {
         &self,
         _: PeerId,
         _: &Entity<Pane>,
-        _: &mut Window,
+        window: &mut Window,
         _: &mut App,
     ) -> Option<Entity<SharedScreen>>;
     fn peer_ids_with_video_tracks(&self, _: &App) -> Vec<PeerId>;
@@ -8654,7 +8747,7 @@ pub enum ActiveCallEvent {
 fn leader_border_for_pane(
     follower_states: &HashMap<CollaboratorId, FollowerState>,
     pane: &Entity<Pane>,
-    _: &Window,
+    window: &Window,
     cx: &App,
 ) -> Option<Div> {
     let (leader_id, _follower_state) = follower_states.iter().find_map(|(leader_id, state)| {
@@ -8671,12 +8764,13 @@ fn leader_border_for_pane(
                 .0
                 .remote_participant_for_peer_id(leader_peer_id, cx)?;
 
-            cx.theme()
+            window
+                .theme(cx)
                 .players()
                 .color_for_participant(leader.participant_index.0)
                 .cursor
         }
-        CollaboratorId::Agent => cx.theme().players().agent().cursor,
+        CollaboratorId::Agent => window.theme(cx).players().agent().cursor,
     };
     leader_color.fade_out(0.3);
     Some(
@@ -9009,8 +9103,8 @@ impl Render for Workspace {
                 div()
                     .h_full()
                     .w(relative(size))
-                    .bg(cx.theme().colors().editor_background)
-                    .border_color(cx.theme().colors().pane_group_border)
+                    .bg(window.theme(cx).colors().editor_background)
+                    .border_color(window.theme(cx).colors().pane_group_border)
             })
         };
         let paddings = if centered_layout {
@@ -9028,7 +9122,7 @@ impl Render for Workspace {
         };
         let ui_font = theme_settings::setup_ui_font(window, cx);
 
-        let theme = cx.theme().clone();
+        let theme = window.theme(cx).clone();
         let colors = theme.colors();
         let notification_entities = self
             .notifications
@@ -10369,8 +10463,10 @@ pub fn open_workspace_by_id(
             .with_context(|| format!("Workspace {workspace_id:?} not found"))?;
 
         let centered_layout = serialized_workspace.centered_layout;
+        let theme_override = serialized_workspace.theme_override.clone();
 
         let (window, workspace) = if let Some(window) = requesting_window {
+            let theme_override = theme_override.clone();
             let workspace = window.update(cx, |multi_workspace, window, cx| {
                 let workspace = cx.new(|cx| {
                     let mut workspace = Workspace::new(
@@ -10381,6 +10477,7 @@ pub fn open_workspace_by_id(
                         cx,
                     );
                     workspace.centered_layout = centered_layout;
+                    workspace.set_theme_override_name(theme_override);
                     workspace
                 });
                 multi_workspace.add(workspace.clone(), &*window, cx);
@@ -10411,6 +10508,7 @@ pub fn open_workspace_by_id(
             let window = cx.open_window(options, {
                 let app_state = app_state.clone();
                 let project_handle = project_handle.clone();
+                let theme_override = theme_override.clone();
                 move |window, cx| {
                     let workspace = cx.new(|cx| {
                         let mut workspace = Workspace::new(
@@ -10421,15 +10519,20 @@ pub fn open_workspace_by_id(
                             cx,
                         );
                         workspace.centered_layout = centered_layout;
+                        workspace.set_theme_override_name(theme_override);
                         workspace
                     });
                     cx.new(|cx| MultiWorkspace::new(workspace, window, cx))
                 }
             })?;
 
-            let workspace = window.update(cx, |multi_workspace: &mut MultiWorkspace, _, _cx| {
-                multi_workspace.workspace().clone()
-            })?;
+            let workspace =
+                window.update(cx, |multi_workspace: &mut MultiWorkspace, window, cx| {
+                    multi_workspace.workspace().update(cx, |workspace, cx| {
+                        workspace.apply_window_theme(window, cx);
+                    });
+                    multi_workspace.workspace().clone()
+                })?;
 
             (window, workspace)
         };
@@ -10866,6 +10969,7 @@ async fn open_remote_project_inner(
 
             if let Some(ref serialized) = serialized_workspace {
                 workspace.centered_layout = serialized.centered_layout;
+                workspace.set_theme_override_name(serialized.theme_override.clone());
             }
 
             workspace
@@ -11205,7 +11309,7 @@ pub fn client_side_decorations(
                 .map(|div| match decorations {
                     Decorations::Server => div,
                     Decorations::Client { .. } => div
-                        .border_color(cx.theme().colors().border)
+                        .border_color(window.theme(cx).colors().border)
                         .rounded_client_corners(tiling)
                         .when(!tiling.top, |div| div.border_t(BORDER_SIZE))
                         .when(!tiling.bottom, |div| div.border_b(BORDER_SIZE))
@@ -14813,7 +14917,7 @@ mod tests {
     struct TestModal(FocusHandle);
 
     impl TestModal {
-        fn new(_: &mut Window, cx: &mut Context<Self>) -> Self {
+        fn new(_window: &mut Window, cx: &mut Context<Self>) -> Self {
             Self(cx.focus_handle())
         }
     }
@@ -14843,7 +14947,7 @@ mod tests {
     struct ReopenableTestModal(FocusHandle);
 
     impl ReopenableTestModal {
-        fn new(_: &mut Window, cx: &mut Context<Self>) -> Self {
+        fn new(_window: &mut Window, cx: &mut Context<Self>) -> Self {
             let focus_handle = cx.focus_handle();
             register_reopenable_picker(&focus_handle, cx);
             Self(focus_handle)
@@ -16469,7 +16573,7 @@ mod tests {
                 _project: Entity<Project>,
                 _pane: Option<&Pane>,
                 item: Entity<Self::Item>,
-                _: &mut Window,
+                _window: &mut Window,
                 cx: &mut Context<Self>,
             ) -> Self
             where
@@ -16545,7 +16649,7 @@ mod tests {
                 _project: Entity<Project>,
                 _pane: Option<&Pane>,
                 _item: Entity<Self::Item>,
-                _: &mut Window,
+                _window: &mut Window,
                 cx: &mut Context<Self>,
             ) -> Self
             where
@@ -16592,7 +16696,7 @@ mod tests {
                 _project: Entity<Project>,
                 _pane: Option<&Pane>,
                 _item: Entity<Self::Item>,
-                _: &mut Window,
+                _window: &mut Window,
                 cx: &mut Context<Self>,
             ) -> Self
             where

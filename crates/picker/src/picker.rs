@@ -358,7 +358,7 @@ pub trait PickerDelegate: Sized + 'static {
         None
     }
 
-    fn try_get_preview_data_for_match(&self, _cx: &App) -> Option<PreviewUpdate> {
+    fn try_get_preview_data_for_match(&self, _window: &Window, _cx: &App) -> Option<PreviewUpdate> {
         None
     }
 
@@ -833,7 +833,7 @@ impl<D: PickerDelegate> Picker<D> {
                 action(window, cx);
             }
             if let Some(preview) = &mut self.preview
-                && let Some(update) = self.delegate.try_get_preview_data_for_match(cx)
+                && let Some(update) = self.delegate.try_get_preview_data_for_match(window, cx)
             {
                 preview.update(update, window, cx);
             }
@@ -1241,7 +1241,7 @@ impl<D: PickerDelegate> Picker<D> {
             },
         }
         self.pending_update_matches = None;
-        if let Some(update) = self.delegate.try_get_preview_data_for_match(cx)
+        if let Some(update) = self.delegate.try_get_preview_data_for_match(window, cx)
             && let Some(preview) = &mut self.preview
         {
             preview.update(update, window, cx);
@@ -1327,7 +1327,7 @@ impl<D: PickerDelegate> Picker<D> {
             .id(("item", ix))
             .when(selectable, |this| this.cursor_pointer())
             .when(use_fallback_indicator, |this| {
-                this.hover(|s| s.bg(cx.theme().colors().ghost_element_hover))
+                this.hover(|s| s.bg(window.theme(cx).colors().ghost_element_hover))
             })
             .when(multi_select_active && selectable, |this| {
                 this.tooltip(Tooltip::element(move |_window, cx| {
@@ -1428,7 +1428,7 @@ impl<D: PickerDelegate> Picker<D> {
                 self.delegate.separators_after_indices().contains(&ix),
                 |picker| {
                     picker
-                        .border_color(cx.theme().colors().border_variant)
+                        .border_color(window.theme(cx).colors().border_variant)
                         .border_b_1()
                         .py(px(-1.0))
                 },

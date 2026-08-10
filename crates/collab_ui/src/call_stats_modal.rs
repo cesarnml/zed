@@ -88,7 +88,7 @@ impl CallStatsModal {
         }
     }
 
-    fn dismiss(&mut self, _: &menu::Cancel, _: &mut Window, cx: &mut Context<Self>) {
+    fn dismiss(&mut self, _: &menu::Cancel, _window: &mut Window, cx: &mut Context<Self>) {
         cx.emit(DismissEvent);
     }
 
@@ -237,7 +237,7 @@ impl Focusable for CallStatsModal {
 }
 
 impl Render for CallStatsModal {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let is_connected = ActiveCall::try_global(cx)
             .is_some_and(|active_call| active_call.read(cx).room().is_some());
         let diagnostics = call_diagnostics(cx);
@@ -288,7 +288,7 @@ impl Render for CallStatsModal {
             .key_context("CallStatsModal")
             .on_action(cx.listener(Self::dismiss))
             .track_focus(&self.focus_handle)
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .w(rems(36.))
             .max_h(rems(42.))
             .p_4()

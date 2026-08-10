@@ -1,3 +1,4 @@
+use ui::WindowTheme as _;
 #[cfg(test)]
 mod file_finder_tests;
 #[cfg(test)]
@@ -1847,7 +1848,12 @@ impl PickerDelegate for FileFinderDelegate {
         self.selected_index
     }
 
-    fn set_selected_index(&mut self, ix: usize, _: &mut Window, cx: &mut Context<Picker<Self>>) {
+    fn set_selected_index(
+        &mut self,
+        ix: usize,
+        _window: &mut Window,
+        cx: &mut Context<Picker<Self>>,
+    ) {
         self.has_changed_selected_index = true;
         self.selected_index = ix;
         cx.notify();
@@ -2051,19 +2057,23 @@ impl PickerDelegate for FileFinderDelegate {
         }
     }
 
-    fn dismissed(&mut self, _: &mut Window, cx: &mut Context<Picker<FileFinderDelegate>>) {
+    fn dismissed(&mut self, _window: &mut Window, cx: &mut Context<Picker<FileFinderDelegate>>) {
         self.file_finder
             .update(cx, |_, cx| cx.emit(DismissEvent))
             .log_err();
     }
 
-    fn try_get_preview_data_for_match(&self, cx: &App) -> Option<picker::PreviewUpdate> {
+    fn try_get_preview_data_for_match(
+        &self,
+        window: &Window,
+        cx: &App,
+    ) -> Option<picker::PreviewUpdate> {
         let m = self.matches.get(self.selected_index)?;
         match m {
             Match::CreateNew(project_path) => {
                 let path_style = self.project.read(cx).path_style(cx);
                 let path_highlight = gpui::HighlightStyle {
-                    color: Some(cx.theme().colors().text_accent),
+                    color: Some(window.theme(cx).colors().text_accent),
                     ..Default::default()
                 };
                 let mut message = picker::HighlightedTextBuilder::default();

@@ -17,7 +17,7 @@ const WRITE_PATHS_DESCRIPTION: &str = "Each entry must be an absolute path and g
 pub(crate) fn render_sandbox_settings_page(
     settings_window: &SettingsWindow,
     scroll_handle: &ScrollHandle,
-    _window: &mut Window,
+    window: &mut Window,
     cx: &mut Context<SettingsWindow>,
 ) -> AnyElement {
     // Sandbox permissions are a user-level setting; they aren't configurable
@@ -46,7 +46,7 @@ pub(crate) fn render_sandbox_settings_page(
         .collect();
     let add_path_input = render_add_path_input(cx);
 
-    let empty_border = cx.theme().colors().border_variant;
+    let empty_border = window.theme(cx).colors().border_variant;
     let sandbox_enabled = !permissions.allow_unsandboxed;
 
     v_flex()

@@ -151,7 +151,7 @@ impl Render for InputField {
             self.editor.set_masked(masked, window, cx);
         }
 
-        let theme_color = cx.theme().colors();
+        let theme_color = window.theme(cx).colors();
 
         let style = InputFieldStyle {
             text_color: theme_color.text,
@@ -162,7 +162,7 @@ impl Render for InputField {
         let focus_handle = self.editor.focus_handle(cx);
 
         let has_error = self.error.is_some();
-        let error_border = cx.theme().status().error_border;
+        let error_border = window.theme(cx).status().error_border;
 
         let configured_handle = if let Some(tab_index) = self.tab_index {
             focus_handle.tab_index(tab_index).tab_stop(self.tab_stop)

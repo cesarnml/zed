@@ -1,7 +1,7 @@
 #![allow(missing_docs)]
-use gpui::{App, Hsla, SharedString};
+use gpui::{Hsla, SharedString};
 
-use crate::{ActiveTheme, Appearance};
+use crate::Appearance;
 
 /// A collection of colors that are used to style the UI.
 ///
@@ -282,15 +282,15 @@ impl ColorScaleSet {
         &self.dark_alpha
     }
 
-    pub fn step(&self, cx: &App, step: ColorScaleStep) -> Hsla {
-        match cx.theme().appearance {
+    pub fn step(&self, theme: &crate::Theme, step: ColorScaleStep) -> Hsla {
+        match theme.appearance {
             Appearance::Light => self.light().step(step),
             Appearance::Dark => self.dark().step(step),
         }
     }
 
-    pub fn step_alpha(&self, cx: &App, step: ColorScaleStep) -> Hsla {
-        match cx.theme().appearance {
+    pub fn step_alpha(&self, theme: &crate::Theme, step: ColorScaleStep) -> Hsla {
+        match theme.appearance {
             Appearance::Light => self.light_alpha.step(step),
             Appearance::Dark => self.dark_alpha.step(step),
         }

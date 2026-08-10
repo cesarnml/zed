@@ -28,14 +28,14 @@ impl ContactFinder {
 }
 
 impl Render for ContactFinder {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
-            .elevation_3(cx)
+            .elevation_3(window.theme(cx))
             .child(
                 v_flex()
                     .px_2()
                     .py_1()
-                    .bg(cx.theme().colors().element_background)
+                    .bg(window.theme(cx).colors().element_background)
                     // HACK: Prevent the background color from overflowing the parent container.
                     .rounded_t(px(8.))
                     .child(Label::new("Contacts"))
@@ -113,7 +113,7 @@ impl PickerDelegate for ContactFinderDelegate {
         })
     }
 
-    fn confirm(&mut self, _: bool, _: &mut Window, cx: &mut Context<Picker<Self>>) {
+    fn confirm(&mut self, _: bool, _window: &mut Window, cx: &mut Context<Picker<Self>>) {
         if let Some(user) = self.potential_contacts.get(self.selected_index) {
             let user_store = self.user_store.read(cx);
             match user_store.contact_request_status(user) {
@@ -132,7 +132,7 @@ impl PickerDelegate for ContactFinderDelegate {
         }
     }
 
-    fn dismissed(&mut self, _: &mut Window, cx: &mut Context<Picker<Self>>) {
+    fn dismissed(&mut self, _window: &mut Window, cx: &mut Context<Picker<Self>>) {
         self.parent
             .update(cx, |_, cx| cx.emit(DismissEvent))
             .log_err();
@@ -142,7 +142,7 @@ impl PickerDelegate for ContactFinderDelegate {
         &self,
         ix: usize,
         selected: bool,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Picker<Self>>,
     ) -> Option<Self::ListItem> {
         let user = &self.potential_contacts.get(ix)?;

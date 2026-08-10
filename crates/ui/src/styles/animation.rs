@@ -111,7 +111,7 @@ impl Component for Animation {
         "Demonstrates various animation patterns and transitions available in the UI system."
     }
 
-    fn preview(_window: &mut Window, cx: &mut App) -> AnyElement {
+    fn preview(window: &mut Window, cx: &mut App) -> AnyElement {
         let container_size = 128.0;
         let element_size = 32.0;
         let offset = container_size / 2.0 - element_size / 2.0;
@@ -120,9 +120,9 @@ impl Component for Animation {
             h_flex()
                 .relative()
                 .justify_center()
-                .bg(cx.theme().colors().text.opacity(0.05))
+                .bg(window.theme(cx).colors().text.opacity(0.05))
                 .border_1()
-                .border_color(cx.theme().colors().border)
+                .border_color(window.theme(cx).colors().border)
                 .rounded_sm()
         };
 

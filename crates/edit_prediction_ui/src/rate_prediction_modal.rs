@@ -133,11 +133,11 @@ impl RatePredictionsModal {
         }
     }
 
-    fn dismiss(&mut self, _: &menu::Cancel, _: &mut Window, cx: &mut Context<Self>) {
+    fn dismiss(&mut self, _: &menu::Cancel, _window: &mut Window, cx: &mut Context<Self>) {
         cx.emit(DismissEvent);
     }
 
-    fn select_next(&mut self, _: &menu::SelectNext, _: &mut Window, cx: &mut Context<Self>) {
+    fn select_next(&mut self, _: &menu::SelectNext, _window: &mut Window, cx: &mut Context<Self>) {
         self.selected_index += 1;
         self.selected_index = usize::min(
             self.selected_index,
@@ -149,14 +149,14 @@ impl RatePredictionsModal {
     fn select_previous(
         &mut self,
         _: &menu::SelectPrevious,
-        _: &mut Window,
+        _window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.selected_index = self.selected_index.saturating_sub(1);
         cx.notify();
     }
 
-    fn select_next_edit(&mut self, _: &NextEdit, _: &mut Window, cx: &mut Context<Self>) {
+    fn select_next_edit(&mut self, _: &NextEdit, _window: &mut Window, cx: &mut Context<Self>) {
         let next_index = self
             .ep_store
             .read(cx)
@@ -173,7 +173,7 @@ impl RatePredictionsModal {
         }
     }
 
-    fn select_prev_edit(&mut self, _: &PreviousEdit, _: &mut Window, cx: &mut Context<Self>) {
+    fn select_prev_edit(&mut self, _: &PreviousEdit, _window: &mut Window, cx: &mut Context<Self>) {
         let ep_store = self.ep_store.read(cx);
         let completions_len = ep_store.rateable_predictions_count();
 
@@ -195,7 +195,12 @@ impl RatePredictionsModal {
         cx.notify();
     }
 
-    fn select_first(&mut self, _: &menu::SelectFirst, _: &mut Window, cx: &mut Context<Self>) {
+    fn select_first(
+        &mut self,
+        _: &menu::SelectFirst,
+        _window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         self.selected_index = 0;
         cx.notify();
     }
@@ -827,13 +832,13 @@ impl RatePredictionsModal {
         cx.notify();
     }
 
-    fn render_view_nav(&self, cx: &Context<Self>) -> impl IntoElement {
+    fn render_view_nav(&self, window: &Window, cx: &Context<Self>) -> impl IntoElement {
         h_flex()
             .h_8()
             .px_1()
             .border_b_1()
-            .border_color(cx.theme().colors().border)
-            .bg(cx.theme().colors().elevated_surface_background)
+            .border_color(window.theme(cx).colors().border)
+            .bg(window.theme(cx).colors().elevated_surface_background)
             .gap_1()
             .child(
                 Button::new(
@@ -861,9 +866,13 @@ impl RatePredictionsModal {
             )
     }
 
-    fn render_suggested_edits(&self, cx: &mut Context<Self>) -> Option<gpui::Stateful<Div>> {
-        let bg_color = cx.theme().colors().editor_background;
-        let border_color = cx.theme().colors().border;
+    fn render_suggested_edits(
+        &self,
+        window: &Window,
+        cx: &mut Context<Self>,
+    ) -> Option<gpui::Stateful<Div>> {
+        let bg_color = window.theme(cx).colors().editor_background;
+        let border_color = window.theme(cx).colors().border;
         let active_prediction = self.active_prediction.as_ref()?;
 
         Some(
@@ -943,14 +952,14 @@ impl RatePredictionsModal {
                         .py_4()
                         .px_6()
                         .size_full()
-                        .bg(cx.theme().colors().editor_background)
+                        .bg(window.theme(cx).colors().editor_background)
                         .overflow_scroll()
                         .child(if let Some(active_prediction) = &self.active_prediction {
                             markdown::MarkdownElement::new(
                                 active_prediction.formatted_inputs.clone(),
                                 MarkdownStyle {
                                     base_text_style: window.text_style(),
-                                    syntax: cx.theme().syntax().clone(),
+                                    syntax: window.theme(cx).syntax().clone(),
                                     code_block: StyleRefinement {
                                         text: TextStyleRefinement {
                                             font_family: Some(
@@ -986,9 +995,11 @@ impl RatePredictionsModal {
                                             right: Some(AbsoluteLength::Pixels(px(1.))),
                                             bottom: Some(AbsoluteLength::Pixels(px(1.))),
                                         },
-                                        border_color: Some(cx.theme().colors().border_variant),
+                                        border_color: Some(
+                                            window.theme(cx).colors().border_variant,
+                                        ),
                                         background: Some(
-                                            cx.theme().colors().editor_background.into(),
+                                            window.theme(cx).colors().editor_background.into(),
                                         ),
                                         ..Default::default()
                                     },
@@ -1015,8 +1026,8 @@ impl RatePredictionsModal {
         let completion_id = active_prediction.prediction.id.clone();
         let focus_handle = &self.focus_handle(cx);
 
-        let border_color = cx.theme().colors().border;
-        let bg_color = cx.theme().colors().editor_background;
+        let border_color = window.theme(cx).colors().border;
+        let bg_color = window.theme(cx).colors().editor_background;
 
         let rated = self.ep_store.read(cx).is_prediction_rated(&completion_id);
         let feedback_empty = active_prediction
@@ -1037,11 +1048,11 @@ impl RatePredictionsModal {
                         .size_full()
                         .overflow_hidden()
                         .relative()
-                        .child(self.render_view_nav(cx))
+                        .child(self.render_view_nav(window, cx))
                         .when_some(
                             match self.current_view {
                                 RatePredictionView::SuggestedEdits => {
-                                    self.render_suggested_edits(cx)
+                                    self.render_suggested_edits(window, cx)
                                 }
                                 RatePredictionView::RawInput => self.render_raw_input(window, cx),
                             },
@@ -1316,7 +1327,7 @@ impl RatePredictionsModal {
 
 impl Render for RatePredictionsModal {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let border_color = cx.theme().colors().border;
+        let border_color = window.theme(cx).colors().border;
 
         h_flex()
             .key_context("RatePredictionModal")
@@ -1333,7 +1344,7 @@ impl Render for RatePredictionsModal {
             .on_action(cx.listener(Self::thumbs_down_active))
             .on_action(cx.listener(Self::focus_completions))
             .on_action(cx.listener(Self::preview_completion))
-            .bg(cx.theme().colors().elevated_surface_background)
+            .bg(window.theme(cx).colors().elevated_surface_background)
             .border_1()
             .border_color(border_color)
             .w(window.viewport_size().width - px(320.))

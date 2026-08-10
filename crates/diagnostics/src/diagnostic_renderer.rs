@@ -1,4 +1,5 @@
 use std::{ops::Range, sync::Arc};
+use ui::WindowTheme as _;
 
 use editor::{
     Anchor, Editor, EditorSnapshot, ToOffset,
@@ -201,7 +202,7 @@ pub(crate) struct DiagnosticBlock {
 impl DiagnosticBlock {
     pub fn render_block(&self, editor: WeakEntity<Editor>, bcx: &BlockContext) -> AnyElement {
         let cx = &bcx.app;
-        let status_colors = cx.theme().status();
+        let status_colors = bcx.window.theme(cx).status();
 
         let max_width = bcx.em_width * 120.;
 

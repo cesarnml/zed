@@ -1,4 +1,5 @@
 use std::ops::Range;
+use ui::WindowTheme as _;
 
 use anyhow::Result;
 use collections::HashMap;
@@ -24,7 +25,7 @@ use crate::SettingsWindow;
 pub(crate) fn render_external_agents_page(
     settings_window: &SettingsWindow,
     scroll_handle: &ScrollHandle,
-    _window: &mut Window,
+    window: &mut Window,
     cx: &mut Context<SettingsWindow>,
 ) -> AnyElement {
     let agent_server_store = get_agent_server_store(settings_window, cx);
@@ -32,12 +33,12 @@ pub(crate) fn render_external_agents_page(
     let agent_list = if let Some(store) = agent_server_store.as_ref() {
         let agents = collect_agents(store, cx);
         if agents.is_empty() {
-            render_empty_state(cx)
+            render_empty_state(window, cx)
         } else {
             render_agent_list(agents, cx)
         }
     } else {
-        render_no_project_state(cx)
+        render_no_project_state(window, cx)
     };
 
     v_flex()
@@ -108,13 +109,13 @@ fn custom_agent_settings(id: &AgentId, cx: &App) -> Option<CustomAgentServerSett
         .cloned()
 }
 
-fn render_empty_state(cx: &App) -> AnyElement {
+fn render_empty_state(window: &Window, cx: &App) -> AnyElement {
     h_flex()
         .p_4()
         .justify_center()
         .border_1()
         .border_dashed()
-        .border_color(cx.theme().colors().border.opacity(0.6))
+        .border_color(window.theme(cx).colors().border.opacity(0.6))
         .rounded_sm()
         .child(
             Label::new("No external agents added yet. Click \"Add Agent\" to get started.")
@@ -124,13 +125,13 @@ fn render_empty_state(cx: &App) -> AnyElement {
         .into_any_element()
 }
 
-fn render_no_project_state(cx: &App) -> AnyElement {
+fn render_no_project_state(window: &Window, cx: &App) -> AnyElement {
     h_flex()
         .p_4()
         .justify_center()
         .border_1()
         .border_dashed()
-        .border_color(cx.theme().colors().border.opacity(0.6))
+        .border_color(window.theme(cx).colors().border.opacity(0.6))
         .rounded_sm()
         .child(
             Label::new("No active project found. Open a workspace to manage external agents.")
@@ -502,7 +503,7 @@ fn render_custom_agent_form_page(
                 settings_window,
                 "Agent Name",
                 "Required. A unique name used to identify this agent.",
-                input_box(&form.name, cx).into_any_element(),
+                input_box(&form.name, window, cx).into_any_element(),
                 None,
                 None,
                 None,
@@ -516,7 +517,7 @@ fn render_custom_agent_form_page(
                 settings_window,
                 "Command",
                 "Required. Path to the executable that launches the agent.",
-                input_box(&form.command, cx).into_any_element(),
+                input_box(&form.command, window, cx).into_any_element(),
                 None,
                 None,
                 None,
@@ -530,7 +531,7 @@ fn render_custom_agent_form_page(
                 settings_window,
                 "Arguments",
                 "Space-separated arguments passed to the command.",
-                input_box(&form.args, cx).into_any_element(),
+                input_box(&form.args, window, cx).into_any_element(),
                 None,
                 None,
                 None,
@@ -539,7 +540,7 @@ fn render_custom_agent_form_page(
             )
             .into_any_element(),
         )
-        .child(render_env_section(settings_window, &form.env, cx))
+        .child(render_env_section(settings_window, &form.env, window, cx))
         .when_some(error, |this, error| this.child(render_form_error(error)))
         .child(render_form_actions(form, window, cx));
 
@@ -555,8 +556,8 @@ fn render_custom_agent_form_page(
         .into_any_element()
 }
 
-fn input_box(editor: &Entity<Editor>, cx: &App) -> impl IntoElement {
-    let colors = cx.theme().colors();
+fn input_box(editor: &Entity<Editor>, window: &Window, cx: &App) -> impl IntoElement {
+    let colors = window.theme(cx).colors();
     // All form inputs share tab index 0, so tab order follows render (insertion)
     // order. Tracking the editor's focus handle makes the field a tab stop and
     // routes keyboard focus into the editor when tabbed to.
@@ -578,6 +579,7 @@ fn input_box(editor: &Entity<Editor>, cx: &App) -> impl IntoElement {
 fn render_env_section(
     settings_window: &SettingsWindow,
     rows: &[KeyValueRow],
+    window: &Window,
     cx: &mut Context<SettingsWindow>,
 ) -> impl IntoElement {
     // The right-hand control column is narrower than a full row, so each
@@ -587,27 +589,30 @@ fn render_env_section(
         .min_w_64()
         .gap_2()
         .children(rows.iter().enumerate().map(|(ix, row)| {
-            v_flex().gap_1().child(input_box(&row.key, cx)).child(
-                h_flex()
-                    .gap_1()
-                    .items_center()
-                    .child(input_box(&row.value, cx))
-                    .child(
-                        IconButton::new(("custom-agent-env-remove", ix), IconName::Close)
-                            .icon_size(IconSize::Small)
-                            .icon_color(Color::Muted)
-                            .tab_index(0isize)
-                            .tooltip(Tooltip::text("Remove"))
-                            .on_click(cx.listener(move |this, _, _window, cx| {
-                                if let Some(form) = this.custom_agent_form.as_mut()
-                                    && ix < form.env.len()
-                                {
-                                    form.env.remove(ix);
-                                }
-                                cx.notify();
-                            })),
-                    ),
-            )
+            v_flex()
+                .gap_1()
+                .child(input_box(&row.key, window, cx))
+                .child(
+                    h_flex()
+                        .gap_1()
+                        .items_center()
+                        .child(input_box(&row.value, window, cx))
+                        .child(
+                            IconButton::new(("custom-agent-env-remove", ix), IconName::Close)
+                                .icon_size(IconSize::Small)
+                                .icon_color(Color::Muted)
+                                .tab_index(0isize)
+                                .tooltip(Tooltip::text("Remove"))
+                                .on_click(cx.listener(move |this, _, _window, cx| {
+                                    if let Some(form) = this.custom_agent_form.as_mut()
+                                        && ix < form.env.len()
+                                    {
+                                        form.env.remove(ix);
+                                    }
+                                    cx.notify();
+                                })),
+                        ),
+                )
         }))
         .child(
             Button::new("custom-agent-env-add", "Add")
@@ -710,7 +715,7 @@ fn render_form_actions(
 /// (keyboard or programmatic), transparent otherwise.
 fn focus_ring_color(handle: &FocusHandle, window: &Window, cx: &App) -> gpui::Hsla {
     if handle.is_focused(window) {
-        cx.theme().colors().border_focused
+        window.theme(cx).colors().border_focused
     } else {
         gpui::transparent_black()
     }

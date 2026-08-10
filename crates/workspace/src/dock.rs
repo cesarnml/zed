@@ -235,7 +235,7 @@ where
         self.read(cx).icon_tooltip(window, cx)
     }
 
-    fn toggle_action(&self, _: &Window, cx: &App) -> Box<dyn Action> {
+    fn toggle_action(&self, _window: &Window, cx: &App) -> Box<dyn Action> {
         self.read(cx).toggle_action()
     }
 
@@ -1130,7 +1130,7 @@ impl Dock {
 }
 
 impl Render for Dock {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let dispatch_context = Self::dispatch_context();
         if let Some(entry) = self.visible_entry() {
             let position = self.position;
@@ -1199,8 +1199,8 @@ impl Render for Dock {
                 .track_focus(&self.focus_handle(cx))
                 .focus_follows_mouse(self.focus_follows_mouse, cx)
                 .flex()
-                .bg(cx.theme().colors().panel_background)
-                .border_color(cx.theme().colors().border)
+                .bg(window.theme(cx).colors().panel_background)
+                .border_color(window.theme(cx).colors().border)
                 .overflow_hidden()
                 .map(|this| match self.position().axis() {
                     // Width and height are always set on the workspace wrapper in
@@ -1553,7 +1553,12 @@ pub mod test {
             true
         }
 
-        fn set_position(&mut self, position: DockPosition, _: &mut Window, cx: &mut Context<Self>) {
+        fn set_position(
+            &mut self,
+            position: DockPosition,
+            _window: &mut Window,
+            cx: &mut Context<Self>,
+        ) {
             self.position = position;
             cx.update_global::<SettingsStore, _>(|_, _| {});
         }

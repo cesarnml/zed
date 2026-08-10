@@ -24,7 +24,7 @@ use syntax_map::{MAX_BYTES_TO_QUERY, TreeSitterOptions};
 use text::network::Network;
 use text::{BufferId, LineEnding};
 use text::{Point, ToPoint};
-use theme::ActiveTheme;
+use theme::ConfiguredTheme;
 use theme::SyntaxTheme;
 use unindent::Unindent as _;
 use util::rel_path::rel_path;
@@ -3831,11 +3831,11 @@ async fn test_preview_edits(cx: &mut TestAppContext) {
     });
 
     let insertion_style = HighlightStyle {
-        background_color: Some(cx.read(|cx| cx.theme().status().created_background)),
+        background_color: Some(cx.read(|cx| cx.configured_theme().status().created_background)),
         ..Default::default()
     };
     let deletion_style = HighlightStyle {
-        background_color: Some(cx.read(|cx| cx.theme().status().deleted_background)),
+        background_color: Some(cx.read(|cx| cx.configured_theme().status().deleted_background)),
         ..Default::default()
     };
 
@@ -3969,7 +3969,12 @@ async fn test_preview_edits(cx: &mut TestAppContext) {
             .read_with(cx, |buffer, cx| buffer.preview_edits(edits.clone(), cx))
             .await;
         let highlighted_edits = cx.read(|cx| {
-            edit_preview.highlight_edits(&buffer.read(cx).snapshot(), &edits, include_deletions, cx)
+            edit_preview.highlight_edits(
+                &buffer.read(cx).snapshot(),
+                &edits,
+                include_deletions,
+                cx.configured_theme(),
+            )
         });
         assert_fn(highlighted_edits);
     }

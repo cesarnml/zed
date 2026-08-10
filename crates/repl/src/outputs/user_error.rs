@@ -13,7 +13,7 @@ pub struct ErrorView {
 
 impl ErrorView {
     pub fn render(&self, window: &mut Window, cx: &mut App) -> Option<AnyElement> {
-        let theme = cx.theme();
+        let theme = window.theme(cx);
 
         let padding = window.line_height() / 2.;
 

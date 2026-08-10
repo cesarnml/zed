@@ -16,7 +16,7 @@ use regex::Regex;
 use settings::Settings;
 use std::{ops::Range, str::FromStr as _, sync::LazyLock};
 use text::OffsetRangeExt;
-use theme::ActiveTheme as _;
+use theme::WindowTheme as _;
 use util::{
     ResultExt, TryFutureExt as _, markdown::source_position_from_fragment, paths::PathWithPosition,
 };
@@ -511,7 +511,7 @@ pub fn show_link_definition(
                 )),
             };
 
-            this.update(cx, |editor, cx| {
+            this.update_in(cx, |editor, window, cx| {
                 // Clear any existing highlights
                 editor.clear_highlights(HighlightKey::HoveredLinkState, cx);
                 let Some(hovered_link_state) = editor.hovered_link_state.as_mut() else {
@@ -546,7 +546,7 @@ pub fn show_link_definition(
                                 thickness: px(1.),
                                 ..UnderlineStyle::default()
                             }),
-                            color: Some(cx.theme().colors().link_text_hover),
+                            color: Some(window.theme(cx).colors().link_text_hover),
                             ..HighlightStyle::default()
                         };
                         let highlight_range =
@@ -598,7 +598,7 @@ pub fn show_link_definition(
                             thickness: px(1.),
                             ..UnderlineStyle::default()
                         }),
-                        color: Some(cx.theme().colors().link_text_hover),
+                        color: Some(window.theme(cx).colors().link_text_hover),
                         ..HighlightStyle::default()
                     };
                     editor.highlight_text(
