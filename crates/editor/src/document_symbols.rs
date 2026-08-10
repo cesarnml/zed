@@ -1,10 +1,10 @@
 use std::ops::Range;
-use theme::ConfiguredTheme;
+use theme::WindowTheme;
 
 use collections::HashMap;
 use futures::FutureExt;
 use futures::future::join_all;
-use gpui::{App, Context, HighlightStyle, Task};
+use gpui::{App, Context, HighlightStyle, Task, Window};
 use itertools::Itertools as _;
 use language::language_settings::LanguageSettings;
 use language::{Buffer, OutlineItem};
@@ -27,6 +27,7 @@ impl Editor {
     pub fn buffer_outline_items(
         &self,
         buffer_id: BufferId,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Task<Vec<OutlineItem<text::Anchor>>> {
         let Some(buffer) = self.buffer.read(cx).buffer(buffer_id) else {
@@ -50,7 +51,7 @@ impl Editor {
             })
         } else {
             let buffer_snapshot = buffer.read(cx).snapshot();
-            let syntax = cx.configured_theme().syntax().clone();
+            let syntax = window.theme(cx).syntax().clone();
             cx.background_executor()
                 .spawn(async move { buffer_snapshot.outline(Some(&syntax)).items })
         }
@@ -144,6 +145,7 @@ impl Editor {
     pub(super) fn refresh_document_symbols(
         &mut self,
         for_buffer: Option<BufferId>,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         if !self.lsp_data_enabled() {
@@ -182,7 +184,7 @@ impl Editor {
             retain
         });
         if symbols_altered {
-            self.refresh_outline_symbols_at_cursor(cx);
+            self.refresh_outline_symbols_at_cursor(window, cx);
         }
 
         if buffers_to_query.is_empty() {
@@ -190,7 +192,7 @@ impl Editor {
         }
 
         self.refresh_document_symbols_task = cx
-            .spawn(async move |editor, cx| {
+            .spawn_in(window, async move |editor, cx| {
                 cx.background_executor()
                     .timer(LSP_REQUEST_DEBOUNCE_TIMEOUT)
                     .await;
@@ -215,8 +217,8 @@ impl Editor {
 
                 let results = join_all(tasks).await.into_iter().collect::<HashMap<_, _>>();
                 editor
-                    .update(cx, |editor, cx| {
-                        let syntax = cx.configured_theme().syntax().clone();
+                    .update_in(cx, |editor, window, cx| {
+                        let syntax = window.theme(cx).syntax().clone();
                         let display_snapshot =
                             editor.display_map.update(cx, |map, cx| map.snapshot(cx));
                         let mut highlighted_results = results;
@@ -230,7 +232,7 @@ impl Editor {
                             }
                         }
                         editor.lsp_document_symbols.extend(highlighted_results);
-                        editor.refresh_outline_symbols_at_cursor(cx);
+                        editor.refresh_outline_symbols_at_cursor(window, cx);
                     })
                     .ok();
             })

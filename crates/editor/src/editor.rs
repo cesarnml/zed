@@ -2014,7 +2014,7 @@ impl Editor {
                         editor.refresh_folding_ranges(None, window, cx);
                     }
                     project::Event::RefreshDocumentSymbols { .. } => {
-                        editor.refresh_document_symbols(None, cx);
+                        editor.refresh_document_symbols(None, window, cx);
                     }
                     project::Event::RefreshInlayHints { server_id } => {
                         editor.refresh_inlay_hints(
@@ -2025,7 +2025,7 @@ impl Editor {
                         );
                     }
                     project::Event::RefreshSemanticTokens { .. } => {
-                        editor.refresh_semantic_tokens(None, true, cx);
+                        editor.refresh_semantic_tokens(None, true, window, cx);
                     }
                     project::Event::LanguageServerRemoved(_) => {
                         editor.registered_buffers.clear();
@@ -3752,7 +3752,7 @@ impl Editor {
     }
 
     #[ztracing::instrument(skip_all)]
-    fn refresh_outline_symbols_at_cursor(&mut self, cx: &mut Context<Editor>) {
+    fn refresh_outline_symbols_at_cursor(&mut self, window: &mut Window, cx: &mut Context<Editor>) {
         if !self.lsp_data_enabled() {
             return;
         }
@@ -3765,7 +3765,7 @@ impl Editor {
             cx.emit(EditorEvent::OutlineSymbolsChanged);
             cx.notify();
         } else {
-            let syntax = cx.configured_theme().syntax().clone();
+            let syntax = window.theme(cx).syntax().clone();
             let background_task = cx.background_spawn(async move {
                 multi_buffer_snapshot.symbols_containing(cursor, Some(&syntax))
             });
@@ -9633,7 +9633,7 @@ impl Editor {
                 self.refresh_single_line_folds(window, cx);
                 let snapshot = self.snapshot(window, cx);
                 self.refresh_matching_bracket_highlights(&snapshot, window, cx);
-                self.refresh_outline_symbols_at_cursor(cx);
+                self.refresh_outline_symbols_at_cursor(window, cx);
                 self.refresh_sticky_headers(&snapshot, window, cx);
                 if source.is_local() && self.has_active_edit_prediction() {
                     self.update_visible_edit_prediction(window, cx);
@@ -9938,8 +9938,8 @@ impl Editor {
 
             if language_settings_changed {
                 self.clear_disabled_lsp_folding_ranges(window, cx);
-                self.refresh_document_symbols(None, cx);
-                self.refresh_outline_symbols_at_cursor(cx);
+                self.refresh_document_symbols(None, window, cx);
+                self.refresh_outline_symbols_at_cursor(window, cx);
             }
 
             if let Some(inlay_splice) = self.colors.as_mut().and_then(|colors| {
@@ -9987,7 +9987,7 @@ impl Editor {
                 .update_rules(new_semantic_token_rules);
             if language_settings_changed || semantic_token_rules_changed {
                 self.invalidate_semantic_tokens(None);
-                self.refresh_semantic_tokens(None, false, cx);
+                self.refresh_semantic_tokens(None, false, window, cx);
             }
         }
 
@@ -10006,8 +10006,8 @@ impl Editor {
         }
 
         self.invalidate_semantic_tokens(None);
-        self.refresh_semantic_tokens(None, false, cx);
-        self.refresh_outline_symbols_at_cursor(cx);
+        self.refresh_semantic_tokens(None, false, window, cx);
+        self.refresh_outline_symbols_at_cursor(window, cx);
     }
 
     pub fn set_searchable(&mut self, searchable: bool) {
@@ -10906,12 +10906,12 @@ impl Editor {
         if let Some(buffer_id) = for_buffer {
             self.pull_diagnostics(buffer_id, window, cx);
         }
-        self.refresh_semantic_tokens(for_buffer, false, cx);
+        self.refresh_semantic_tokens(for_buffer, false, window, cx);
         self.refresh_document_colors(for_buffer, window, cx);
         self.refresh_document_links(for_buffer, cx);
         self.refresh_folding_ranges(for_buffer, window, cx);
         self.refresh_code_lenses(for_buffer, window, cx);
-        self.refresh_document_symbols(for_buffer, cx);
+        self.refresh_document_symbols(for_buffer, window, cx);
     }
 
     fn register_visible_buffers(&mut self, cx: &mut Context<Self>) {

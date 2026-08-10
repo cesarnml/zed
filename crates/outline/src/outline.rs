@@ -50,7 +50,7 @@ pub fn toggle(
         return;
     }
 
-    let Some(task) = outline_for_editor(&editor, cx) else {
+    let Some(task) = outline_for_editor(&editor, window, cx) else {
         return;
     };
     let editor = editor.clone();
@@ -75,12 +75,15 @@ pub fn toggle(
 
 fn outline_for_editor(
     editor: &Entity<Editor>,
+    window: &mut Window,
     cx: &mut App,
 ) -> Option<Task<Vec<OutlineItem<Anchor>>>> {
     let multibuffer = editor.read(cx).buffer().read(cx).snapshot(cx);
     let buffer_snapshot = multibuffer.as_singleton()?;
     let buffer_id = buffer_snapshot.remote_id();
-    let task = editor.update(cx, |editor, cx| editor.buffer_outline_items(buffer_id, cx));
+    let task = editor.update(cx, |editor, cx| {
+        editor.buffer_outline_items(buffer_id, window, cx)
+    });
 
     Some(cx.background_executor().spawn(async move {
         task.await

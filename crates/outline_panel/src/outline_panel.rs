@@ -3441,7 +3441,9 @@ impl OutlinePanel {
         let first_update = Arc::new(AtomicBool::new(true));
         for buffer_id in buffers_to_fetch {
             let outline_task = self.active_editor().map(|editor| {
-                editor.update(cx, |editor, cx| editor.buffer_outline_items(buffer_id, cx))
+                editor.update(cx, |editor, cx| {
+                    editor.buffer_outline_items(buffer_id, window, cx)
+                })
             });
 
             let first_update = first_update.clone();
