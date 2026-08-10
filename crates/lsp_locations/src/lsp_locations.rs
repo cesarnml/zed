@@ -11,10 +11,11 @@ use gpui::{
     FocusHandle, Focusable, HighlightStyle, StyledText, Subscription, Task, TextStyle, WeakEntity,
     prelude::*,
 };
-use language::{Buffer, HighlightId, LanguageAwareStyling};
+use language::{Buffer, LanguageAwareStyling};
 use picker::{Picker, PickerDelegate};
 use project::{Location, Project, ProjectPath};
 use settings::{GoToDefinitionFallback, Settings as _};
+use syntax_token::SyntaxTokenId;
 use text::{Anchor, Point};
 use theme_settings::ThemeSettings;
 use ui::{Divider, FluentBuilder};
@@ -344,7 +345,7 @@ struct LocationMatch {
     anchor_range: Range<Anchor>,
     range: Range<usize>,
     display_text: String,
-    syntax_highlights: Vec<(Range<usize>, HighlightId)>,
+    syntax_highlights: Vec<(Range<usize>, SyntaxTokenId, Vec<SyntaxTokenId>)>,
     match_range: Range<usize>,
     line_number: u32,
 }
@@ -509,7 +510,11 @@ fn build_location_matches(locations: &[Location], cx: &App) -> Vec<LocationMatch
         ) {
             let chunk_len = chunk.text.len();
             if let Some(id) = chunk.syntax_highlight_id {
-                syntax_highlights.push((offset..offset + chunk_len, id));
+                syntax_highlights.push((
+                    offset..offset + chunk_len,
+                    id,
+                    chunk.syntax_fallbacks.into_vec(),
+                ));
             }
             offset += chunk_len;
         }
@@ -757,7 +762,12 @@ fn render_matched_line(location_match: &LocationMatch, cx: &App) -> StyledText {
     let syntax_highlights = location_match
         .syntax_highlights
         .iter()
-        .filter_map(|(range, id)| Some((range.clone(), syntax_theme.get(*id).copied()?)))
+        .filter_map(|(range, id, fallbacks)| {
+            Some((
+                range.clone(),
+                syntax_theme.style_for_captures(*id, fallbacks).copied()?,
+            ))
+        })
         .collect::<Vec<_>>();
 
     let match_style = HighlightStyle {

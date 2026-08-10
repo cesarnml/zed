@@ -1198,9 +1198,13 @@ fn build_highlight_entries(
                 continue;
             };
 
+            // No capture-stack context is available here (captures arrive one
+            // at a time, not through `BufferChunks`), so this shows the same
+            // prefix-only resolution `get` above used, not the full
+            // enclosing-capture fallback the editor applies at paint time.
             let theme_key = syntax_theme
-                .get_capture_name(highlight_id)
-                .map(|theme_key| SharedString::from(theme_key.to_string()));
+                .capture_name_for_captures(highlight_id, &[])
+                .map(SharedString::from);
 
             let capture_name = grammars[capture.grammar_index]
                 .highlights_config

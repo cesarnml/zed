@@ -278,12 +278,13 @@ impl super::LspAdapter for CLspAdapter {
                 };
                 if let Some(highlight_id) = language
                     .grammar()
-                    .and_then(|g| g.highlight_id_for_name(highlight_name?))
+                    .and_then(|g| g.token_for_capture_name(highlight_name?))
                 {
                     let mut label = CodeLabel::plain(label, completion.filter_text.as_deref());
                     label.runs.push((
                         0..label.text.rfind('(').unwrap_or(label.text.len()),
                         highlight_id,
+                        Default::default(),
                     ));
                     return Some(label);
                 }

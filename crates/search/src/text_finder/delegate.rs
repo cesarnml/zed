@@ -1401,10 +1401,11 @@ fn render_matched_line(search_match: &SearchMatch, cx: &App) -> StyledText {
         },
     ) {
         let chunk_len = chunk.text.len();
-        if let Some(style) = chunk
-            .syntax_highlight_id
-            .and_then(|id| syntax_theme.get(id).copied())
-        {
+        if let Some(style) = chunk.syntax_highlight_id.and_then(|id| {
+            syntax_theme
+                .style_for_captures(id, &chunk.syntax_fallbacks)
+                .copied()
+        }) {
             syntax_highlights.push((current_offset..current_offset + chunk_len, style));
         }
         current_offset += chunk_len;

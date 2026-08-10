@@ -7,7 +7,7 @@ use std::{
 use fs::FakeFs;
 use futures::StreamExt;
 use gpui::TestAppContext;
-use language::{CodeLabel, FakeLspAdapter, HighlightId, rust_lang};
+use language::{CodeLabel, FakeLspAdapter, rust_lang};
 use lsp::Uri;
 use parking_lot::Mutex;
 use project::{
@@ -289,7 +289,7 @@ fn test_multi_len_chars_normalization() {
     let mut label = CodeLabel::new(
         "myElˇ (parameter) myElˇ: {\n    foo: string;\n}".to_string(),
         0..6,
-        vec![(0..6, HighlightId::new(1))],
+        vec![(0..6, syntax_token::intern("variable"), Default::default())],
     );
     ensure_uniform_list_compatible_label(&mut label);
     assert_eq!(
@@ -297,7 +297,7 @@ fn test_multi_len_chars_normalization() {
         CodeLabel::new(
             "myElˇ (parameter) myElˇ: { foo: string; }".to_string(),
             0..6,
-            vec![(0..6, HighlightId::new(1))],
+            vec![(0..6, syntax_token::intern("variable"), Default::default())],
         )
     );
 }
